@@ -1,0 +1,15 @@
+meta:
+  name: block-with-default
+  description: block takes the disruptive action from SecDefaultAction
+spec: 08-actions.md#block
+rules: |
+  SecRuleEngine On
+  SecDefaultAction "phase:1,log,deny,status:403"
+  SecRule ARGS_GET:a "@streq 1" "id:7060,phase:1,block"
+tests:
+  - test_title: block becomes deny
+    stages:
+      - stage:
+          input: {uri: '/?a=1'}
+          output:
+            interruption: {rule_id: 7060, action: deny, status: 403}

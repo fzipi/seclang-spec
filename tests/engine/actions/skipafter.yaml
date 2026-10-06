@@ -1,0 +1,19 @@
+meta:
+  name: skipafter
+  description: skipAfter jumps to a SecMarker in the same phase
+spec: 08-actions.md#skipafter
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:7080,phase:1,pass,skipAfter:END-X"
+  SecRule ARGS_GET:a "@streq 1" "id:7081,phase:1,deny,status:403"
+  SecMarker END-X
+  SecRule ARGS_GET:a "@streq 1" "id:7082,phase:1,pass"
+tests:
+  - test_title: rule between skipAfter and marker is skipped
+    stages:
+      - stage:
+          input: {uri: '/?a=1'}
+          output:
+            triggered_rules: [7080, 7082]
+            non_triggered_rules: [7081]
+            no_interruption: true

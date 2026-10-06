@@ -104,82 +104,82 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 
 ## actions (33 of 48 in all engines)
 
-| Name | v2 | v3 | coraza |
-|---|---|---|---|
-| `accuracy` | yes | yes | yes |
-| `allow` | yes | yes | yes |
-| `append` | yes | - | - |
-| `auditlog` | yes | yes | yes |
-| `block` | yes | yes | yes |
-| `capture` | yes | yes | yes |
-| `chain` | yes | yes | yes |
-| `ctl` | yes | yes | yes |
-| `deny` | yes | yes | yes |
-| `deprecatevar` | yes | - | - |
-| `drop` | yes | yes | yes |
-| `exec` | yes | yes | yes |
-| `expirevar` | yes | yes | yes |
-| `id` | yes | yes | yes |
-| `initcol` | yes | yes | yes |
-| `log` | yes | yes | yes |
-| `logdata` | yes | yes | yes |
-| `marker` | yes | - | - |
-| `maturity` | yes | yes | yes |
-| `msg` | yes | yes | yes |
-| `multiMatch` | yes | yes | yes |
-| `noauditlog` | yes | yes | yes |
-| `nolog` | yes | yes | yes |
-| `pass` | yes | yes | yes |
-| `pause` | yes | - | - |
-| `phase` | yes | yes | yes |
-| `prepend` | yes | - | - |
-| `proxy` | yes | - | - |
-| `redirect` | yes | yes | yes |
-| `rev` | yes | yes | yes |
-| `sanitiseArg` | yes | - | - |
-| `sanitiseMatched` | yes | - | - |
-| `sanitiseMatchedBytes` | yes | - | - |
-| `sanitiseRequestHeader` | yes | - | - |
-| `sanitiseResponseHeader` | yes | - | - |
-| `setenv` | yes | yes | yes |
-| `setrsc` | yes | yes | - |
-| `setsid` | yes | yes | - |
-| `setuid` | yes | yes | - |
-| `setvar` | yes | yes | yes |
-| `severity` | yes | yes | yes |
-| `skip` | yes | yes | yes |
-| `skipAfter` | yes | yes | yes |
-| `status` | yes | yes | yes |
-| `t` | yes | yes | yes |
-| `tag` | yes | yes | yes |
-| `ver` | yes | yes | yes |
-| `xmlns` | yes | yes | - |
+| Name | v2 | v3 | coraza | status |
+|---|---|---|---|---|
+| `accuracy` | yes | yes | yes | Extended |
+| `allow` | yes | yes | yes | Core |
+| `append` | yes | - | - | Deprecated |
+| `auditlog` | yes | yes | yes | Core |
+| `block` | yes | yes | yes | Core |
+| `capture` | yes | yes | yes | Core |
+| `chain` | yes | yes | yes | Core |
+| `ctl` | yes | yes | yes | Core |
+| `deny` | yes | yes | yes | Core |
+| `deprecatevar` | yes | - | - | Deprecated |
+| `drop` | yes | yes | yes | Core |
+| `exec` | yes | yes | yes | Extended |
+| `expirevar` | yes | yes | yes | Extended |
+| `id` | yes | yes | yes | Core |
+| `initcol` | yes | yes | yes | Extended |
+| `log` | yes | yes | yes | Core |
+| `logdata` | yes | yes | yes | Core |
+| `marker` | yes | - | - | Deprecated |
+| `maturity` | yes | yes | yes | Extended |
+| `msg` | yes | yes | yes | Core |
+| `multiMatch` | yes | yes | yes | Core |
+| `noauditlog` | yes | yes | yes | Core |
+| `nolog` | yes | yes | yes | Core |
+| `pass` | yes | yes | yes | Core |
+| `pause` | yes | - | - | Deprecated |
+| `phase` | yes | yes | yes | Core |
+| `prepend` | yes | - | - | Deprecated |
+| `proxy` | yes | - | - | Deprecated |
+| `redirect` | yes | yes | yes | Core |
+| `rev` | yes | yes | yes | Extended |
+| `sanitiseArg` | yes | - | - | Deprecated |
+| `sanitiseMatched` | yes | - | - | Deprecated |
+| `sanitiseMatchedBytes` | yes | - | - | Deprecated |
+| `sanitiseRequestHeader` | yes | - | - | Deprecated |
+| `sanitiseResponseHeader` | yes | - | - | Deprecated |
+| `setenv` | yes | yes | yes | Extended |
+| `setrsc` | yes | yes | - | Extended |
+| `setsid` | yes | yes | - | Extended |
+| `setuid` | yes | yes | - | Extended |
+| `setvar` | yes | yes | yes | Core |
+| `severity` | yes | yes | yes | Core |
+| `skip` | yes | yes | yes | Extended |
+| `skipAfter` | yes | yes | yes | Core |
+| `status` | yes | yes | yes | Core |
+| `t` | yes | yes | yes | Core |
+| `tag` | yes | yes | yes | Core |
+| `ver` | yes | yes | yes | Core |
+| `xmlns` | yes | yes | - | Extended |
 
 ## ctl (10 of 21 in all engines)
 
-| Name | v2 | v3 | coraza |
-|---|---|---|---|
-| `auditEngine` | yes | yes | yes |
-| `auditLogParts` | yes | yes | yes |
-| `debugLogLevel` | yes | - | yes |
-| `forceRequestBodyVariable` | yes | yes | yes |
-| `forceResponseBodyVariable` | - | - | yes |
-| `HashEnforcement` | yes | - | yes |
-| `HashEngine` | yes | - | yes |
-| `parseXmlIntoArgs` | yes | yes | - |
-| `requestBodyAccess` | yes | yes | yes |
-| `requestBodyLimit` | yes | - | yes |
-| `requestBodyProcessor` | yes | yes | yes |
-| `responseBodyAccess` | yes | - | yes |
-| `responseBodyLimit` | yes | - | yes |
-| `responseBodyProcessor` | - | - | yes |
-| `ruleEngine` | yes | yes | yes |
-| `ruleRemoveById` | yes | yes | yes |
-| `ruleRemoveByMsg` | yes | - | yes |
-| `ruleRemoveByTag` | yes | yes | yes |
-| `ruleRemoveTargetById` | yes | yes | yes |
-| `ruleRemoveTargetByMsg` | yes | - | yes |
-| `ruleRemoveTargetByTag` | yes | yes | yes |
+| Name | v2 | v3 | coraza | status |
+|---|---|---|---|---|
+| `auditEngine` | yes | yes | yes | Core |
+| `auditLogParts` | yes | yes | yes | Core |
+| `debugLogLevel` | yes | - | yes | Extended |
+| `forceRequestBodyVariable` | yes | yes | yes | Core |
+| `forceResponseBodyVariable` | - | - | yes | Engine-specific |
+| `hashEnforcement` | yes | - | yes | Deprecated |
+| `hashEngine` | yes | - | yes | Deprecated |
+| `parseXmlIntoArgs` | yes | yes | - | Extended |
+| `requestBodyAccess` | yes | yes | yes | Core |
+| `requestBodyLimit` | yes | - | yes | Extended |
+| `requestBodyProcessor` | yes | yes | yes | Core |
+| `responseBodyAccess` | yes | - | yes | Extended |
+| `responseBodyLimit` | yes | - | yes | Extended |
+| `responseBodyProcessor` | - | - | yes | Engine-specific |
+| `ruleEngine` | yes | yes | yes | Core |
+| `ruleRemoveById` | yes | yes | yes | Core |
+| `ruleRemoveByMsg` | yes | - | yes | Extended |
+| `ruleRemoveByTag` | yes | yes | yes | Core |
+| `ruleRemoveTargetById` | yes | yes | yes | Core |
+| `ruleRemoveTargetByMsg` | yes | - | yes | Extended |
+| `ruleRemoveTargetByTag` | yes | yes | yes | Core |
 
 ## operators (29 of 44 in all engines)
 

@@ -1,0 +1,83 @@
+meta:
+  name: ctl-options
+  description: Each Core ctl option, selected by a request header, applied in phase 1
+spec: 08-actions.md#ctl
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule REQUEST_HEADERS:X-Opt "@streq ruleEngine" "id:7100,phase:1,pass,nolog,ctl:ruleEngine=Off"
+  SecRule REQUEST_HEADERS:X-Opt "@streq ruleRemoveById" "id:7101,phase:1,pass,nolog,ctl:ruleRemoveById=7150"
+  SecRule REQUEST_HEADERS:X-Opt "@streq ruleRemoveByTag" "id:7102,phase:1,pass,nolog,ctl:ruleRemoveByTag=rm-tag"
+  SecRule REQUEST_HEADERS:X-Opt "@streq ruleRemoveTargetById" "id:7103,phase:1,pass,nolog,ctl:ruleRemoveTargetById=7150;ARGS_GET:a"
+  SecRule REQUEST_HEADERS:X-Opt "@streq ruleRemoveTargetByTag" "id:7104,phase:1,pass,nolog,ctl:ruleRemoveTargetByTag=rm-tag;ARGS_GET:a"
+  SecRule REQUEST_HEADERS:X-Opt "@streq requestBodyAccess" "id:7105,phase:1,pass,nolog,ctl:requestBodyAccess=Off"
+  SecRule REQUEST_HEADERS:X-Opt "@streq requestBodyProcessor" "id:7106,phase:1,pass,nolog,ctl:requestBodyProcessor=JSON"
+  SecRule REQUEST_HEADERS:X-Opt "@streq forceRequestBodyVariable" "id:7107,phase:1,pass,nolog,ctl:forceRequestBodyVariable=On"
+  SecRule REQUEST_HEADERS:X-Opt "@streq auditEngine" "id:7108,phase:1,pass,nolog,ctl:auditEngine=Off"
+  SecRule REQUEST_HEADERS:X-Opt "@streq auditLogParts" "id:7109,phase:1,pass,nolog,ctl:auditLogParts=+E"
+  SecRule ARGS_GET:a "@streq 1" "id:7150,phase:1,deny,status:403,tag:'rm-tag'"
+  SecRule ARGS_GET:a "@streq 1" "id:7151,phase:1,pass"
+  SecRule ARGS_POST:p "@streq 1" "id:7152,phase:2,pass"
+  SecRule REQBODY_PROCESSOR "@streq JSON" "id:7153,phase:2,pass"
+  SecRule REQUEST_BODY "@contains hello" "id:7154,phase:2,pass"
+tests:
+  - test_title: "ctl:ruleEngine=Off stops evaluation"
+    spec: 08-actions.md#ctlruleengine
+    stages:
+      - stage:
+          input: {uri: '/?a=1', headers: {X-Opt: ruleEngine}}
+          output: {triggered_rules: [7100], non_triggered_rules: [7150, 7151], no_interruption: true}
+  - test_title: "ctl:ruleRemoveById"
+    spec: 08-actions.md#ctlruleremovebyid
+    stages:
+      - stage:
+          input: {uri: '/?a=1', headers: {X-Opt: ruleRemoveById}}
+          output: {triggered_rules: [7101, 7151], non_triggered_rules: [7150], no_interruption: true}
+  - test_title: "ctl:ruleRemoveByTag"
+    spec: 08-actions.md#ctlruleremovebytag
+    stages:
+      - stage:
+          input: {uri: '/?a=1', headers: {X-Opt: ruleRemoveByTag}}
+          output: {triggered_rules: [7102, 7151], non_triggered_rules: [7150], no_interruption: true}
+  - test_title: "ctl:ruleRemoveTargetById"
+    spec: 08-actions.md#ctlruleremovetargetbyid
+    stages:
+      - stage:
+          input: {uri: '/?a=1', headers: {X-Opt: ruleRemoveTargetById}}
+          output: {triggered_rules: [7103, 7151], non_triggered_rules: [7150], no_interruption: true}
+  - test_title: "ctl:ruleRemoveTargetByTag"
+    spec: 08-actions.md#ctlruleremovetargetbytag
+    stages:
+      - stage:
+          input: {uri: '/?a=1', headers: {X-Opt: ruleRemoveTargetByTag}}
+          output: {triggered_rules: [7104, 7151], non_triggered_rules: [7150], no_interruption: true}
+  - test_title: "ctl:requestBodyAccess=Off"
+    spec: 08-actions.md#ctlrequestbodyaccess
+    stages:
+      - stage:
+          input: {method: POST, uri: /, headers: {X-Opt: requestBodyAccess, Content-Type: application/x-www-form-urlencoded}, data: p=1}
+          output: {triggered_rules: [7105], non_triggered_rules: [7152], no_interruption: true}
+  - test_title: "ctl:requestBodyProcessor=JSON"
+    spec: 08-actions.md#ctlrequestbodyprocessor
+    stages:
+      - stage:
+          input: {method: POST, uri: /, headers: {X-Opt: requestBodyProcessor, Content-Type: text/plain}, data: '{"p":1}'}
+          output: {triggered_rules: [7106, 7153], no_interruption: true}
+  - test_title: "ctl:forceRequestBodyVariable=On"
+    spec: 08-actions.md#ctlforcerequestbodyvariable
+    stages:
+      - stage:
+          input: {method: POST, uri: /, headers: {X-Opt: forceRequestBodyVariable, Content-Type: text/plain}, data: hello world}
+          output: {triggered_rules: [7107, 7154], no_interruption: true}
+  - test_title: "ctl:auditEngine=Off"
+    spec: 08-actions.md#ctlauditengine
+    stages:
+      - stage:
+          input: {uri: '/?a=0', headers: {X-Opt: auditEngine}}
+          output: {triggered_rules: [7108], no_interruption: true}
+  - test_title: "ctl:auditLogParts=+E"
+    spec: 08-actions.md#ctlauditlogparts
+    stages:
+      - stage:
+          input: {uri: '/?a=0', headers: {X-Opt: auditLogParts}}
+          output: {triggered_rules: [7109], no_interruption: true}

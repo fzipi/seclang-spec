@@ -10,6 +10,7 @@ rules: |
     SecRule ARGS_GET:d "@streq 2" "t:none,setvar:tx.c=1"
 tests:
   - test_title: both members match
+    spec: 08-actions.md#chain
     stages:
       - stage:
           input:

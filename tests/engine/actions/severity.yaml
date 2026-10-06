@@ -1,0 +1,19 @@
+meta:
+  name: severity
+  description: severity accepts the eight names and the numbers 0 to 7
+spec: 08-actions.md#severity
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:7020,phase:1,pass,severity:2"
+  SecRule ARGS_GET:a "@streq 1" "id:7021,phase:1,pass,severity:CRITICAL"
+  SecRule ARGS_GET:a "@streq 1" "id:7022,phase:1,pass,severity:'WARNING'"
+  SecRule ARGS_GET:a "@streq 1" "id:7023,phase:1,pass,severity:7"
+tests:
+  - test_title: numeric and named severities load and the rules fire
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [7020, 7021, 7022, 7023]
+            no_interruption: true

@@ -11,6 +11,7 @@ rules: |
   SecRule ARGS_GET:a "@streq any" "id:4034,phase:1,deny,status:402"
 tests:
   - test_title: deny defaults to 403
+    spec: 08-actions.md#deny
     stages:
       - stage:
           input:
@@ -25,6 +26,7 @@ tests:
           output:
             interruption: {rule_id: 4031, action: redirect, status: 302}
   - test_title: drop
+    spec: 08-actions.md#drop
     stages:
       - stage:
           input:

@@ -1,0 +1,21 @@
+meta:
+  name: setvar
+  description: setvar assignment, arithmetic from an unset variable, deletion and macro values
+spec: 08-actions.md#setvar
+rules: |
+  SecRuleEngine On
+  SecAction "id:7010,phase:1,pass,nolog,setvar:tx.a=5,setvar:tx.a=+3,setvar:tx.b=+1,setvar:tx.c=10,setvar:tx.c=-4,setvar:tx.d=x,setvar:!tx.d,setvar:tx.e=%{tx.a}"
+  SecRule TX:a "@eq 8" "id:7011,phase:1,pass"
+  SecRule TX:b "@eq 1" "id:7012,phase:1,pass"
+  SecRule TX:c "@eq 6" "id:7013,phase:1,pass"
+  SecRule &TX:d "@eq 0" "id:7014,phase:1,pass"
+  SecRule TX:e "@streq 8" "id:7015,phase:1,pass"
+tests:
+  - test_title: all forms
+    stages:
+      - stage:
+          input:
+            uri: /
+          output:
+            triggered_rules: [7010, 7011, 7012, 7013, 7014, 7015]
+            no_interruption: true

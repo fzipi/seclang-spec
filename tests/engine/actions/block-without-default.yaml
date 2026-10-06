@@ -1,0 +1,15 @@
+meta:
+  name: block-without-default
+  description: block without a SecDefaultAction disruptive action behaves as pass
+spec: 08-actions.md#block
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:7061,phase:1,block"
+tests:
+  - test_title: block without default passes
+    stages:
+      - stage:
+          input: {uri: '/?a=1'}
+          output:
+            triggered_rules: [7061]
+            no_interruption: true

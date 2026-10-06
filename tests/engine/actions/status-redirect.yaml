@@ -1,0 +1,22 @@
+meta:
+  name: status-redirect
+  description: status sets the code for deny and for a 3xx redirect
+spec: 08-actions.md#status
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq teapot" "id:7050,phase:1,deny,status:418"
+  SecRule ARGS_GET:a "@streq go" "id:7051,phase:1,redirect:https://example.org/,status:307"
+tests:
+  - test_title: deny with custom status
+    stages:
+      - stage:
+          input: {uri: '/?a=teapot'}
+          output:
+            interruption: {rule_id: 7050, action: deny, status: 418}
+  - test_title: redirect with 307
+    spec: 08-actions.md#redirect
+    stages:
+      - stage:
+          input: {uri: '/?a=go'}
+          output:
+            interruption: {rule_id: 7051, action: redirect, status: 307}

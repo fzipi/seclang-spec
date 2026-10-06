@@ -1,0 +1,28 @@
+meta:
+  name: allow
+  description: "allow stops rule processing for the remaining phases except logging; allow:phase only for the current phase"
+spec: 08-actions.md#allow
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:mode "@streq all" "id:7070,phase:1,allow"
+  SecRule ARGS_GET:mode "@streq phase" "id:7071,phase:1,allow:phase"
+  SecRule ARGS_GET:mode "!@streq none" "id:7072,phase:1,deny,status:403"
+  SecRule ARGS_GET:mode "!@streq none" "id:7073,phase:2,deny,status:403"
+  SecRule ARGS_GET:mode "!@streq none" "id:7074,phase:5,pass"
+tests:
+  - test_title: allow skips phases 1 and 2 but not 5
+    stages:
+      - stage:
+          input: {uri: '/?mode=all'}
+          output:
+            triggered_rules: [7070, 7074]
+            non_triggered_rules: [7072, 7073]
+            interruption: {rule_id: 7070, action: allow}
+  - test_title: "allow:phase skips the rest of phase 1 only"
+    stages:
+      - stage:
+          input: {uri: '/?mode=phase'}
+          output:
+            triggered_rules: [7071, 7073]
+            non_triggered_rules: [7072]
+            interruption: {rule_id: 7073, action: deny, status: 403}

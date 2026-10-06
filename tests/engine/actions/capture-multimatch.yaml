@@ -1,0 +1,29 @@
+meta:
+  name: capture-multimatch
+  description: capture fills TX:0..9; multiMatch evaluates the operator after every transformation
+spec: 08-actions.md#capture
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@rx ^(\w+)@(\w+)$" "id:7030,phase:1,pass,capture,chain"
+    SecRule TX:2 "@streq example"
+  SecRule ARGS_GET:b "@streq abc" "id:7031,phase:1,pass,t:lowercase,t:hexEncode,multiMatch"
+  SecRule ARGS_GET:b "@streq abc" "id:7032,phase:1,pass,t:lowercase,t:hexEncode"
+tests:
+  - test_title: capture group two
+    stages:
+      - stage:
+          input:
+            uri: /?a=user@example
+          output:
+            triggered_rules: [7030]
+            no_interruption: true
+  - test_title: multiMatch matches the intermediate value
+    spec: 08-actions.md#multimatch
+    stages:
+      - stage:
+          input:
+            uri: /?b=ABC
+          output:
+            triggered_rules: [7031]
+            non_triggered_rules: [7032]
+            no_interruption: true

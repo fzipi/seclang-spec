@@ -1,0 +1,61 @@
+meta:
+  name: metadata-and-log-actions
+  description: id, phase, msg, logdata, tag, ver, log, nolog, auditlog, noauditlog, pass and t load together
+spec: 08-actions.md#id
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:7040,phase:1,pass,t:none,t:lowercase,log,auditlog,msg:'hello %{MATCHED_VAR}',logdata:'value %{MATCHED_VAR_NAME}',tag:'t/one',tag:'t/two',ver:'spec/1.0'"
+  SecRule ARGS_GET:a "@streq 1" "id:7041,phase:1,pass,nolog,noauditlog"
+tests:
+  - test_title: rules with every metadata and logging action fire
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [7040, 7041]
+            no_interruption: true
+  - test_title: phase
+    spec: 08-actions.md#phase
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7040]}}
+  - test_title: msg
+    spec: 08-actions.md#msg
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7040]}}
+  - test_title: logdata
+    spec: 08-actions.md#logdata
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7040]}}
+  - test_title: tag
+    spec: 08-actions.md#tag
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7040]}}
+  - test_title: ver
+    spec: 08-actions.md#ver
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7040]}}
+  - test_title: log
+    spec: 08-actions.md#log
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7040]}}
+  - test_title: auditlog
+    spec: 08-actions.md#auditlog
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7040]}}
+  - test_title: nolog
+    spec: 08-actions.md#nolog
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7041]}}
+  - test_title: noauditlog
+    spec: 08-actions.md#noauditlog
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7041]}}
+  - test_title: pass
+    spec: 08-actions.md#pass
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7040, 7041], no_interruption: true}}
+  - test_title: t
+    spec: 08-actions.md#t
+    stages:
+      - stage: {input: {uri: '/?a=1'}, output: {triggered_rules: [7040]}}

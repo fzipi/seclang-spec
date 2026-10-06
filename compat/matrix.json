@@ -650,289 +650,337 @@
     "name": "accuracy",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "allow",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "append",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "auditlog",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "block",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "capture",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "chain",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ctl",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "deny",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "deprecatevar",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "drop",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "exec",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "expirevar",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "id",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "initcol",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "log",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "logdata",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "marker",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "maturity",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "msg",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "multiMatch",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "noauditlog",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "nolog",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "pass",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "pause",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "phase",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "prepend",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "proxy",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "redirect",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "rev",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "sanitiseArg",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "sanitiseMatched",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "sanitiseMatchedBytes",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "sanitiseRequestHeader",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "sanitiseResponseHeader",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "setenv",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "setrsc",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "setsid",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "setuid",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "setvar",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "severity",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "skip",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "skipAfter",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "status",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "t",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "tag",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ver",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "xmlns",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    }
   ],
   "ctl": [
@@ -940,127 +988,148 @@
     "name": "auditEngine",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "auditLogParts",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "debugLogLevel",
     "v2": true,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "forceRequestBodyVariable",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
-    "name": "HashEnforcement",
+    "name": "hashEnforcement",
     "v2": true,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
-    "name": "HashEngine",
+    "name": "hashEngine",
     "v2": true,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
     "name": "parseXmlIntoArgs",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "requestBodyAccess",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "requestBodyLimit",
     "v2": true,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "requestBodyProcessor",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "responseBodyAccess",
     "v2": true,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "responseBodyLimit",
     "v2": true,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "responseBodyProcessor",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "ruleEngine",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ruleRemoveById",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ruleRemoveByMsg",
     "v2": true,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "ruleRemoveByTag",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ruleRemoveTargetById",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ruleRemoveTargetByMsg",
     "v2": true,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "ruleRemoveTargetByTag",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "forceResponseBodyVariable",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    }
   ],
   "operators": [

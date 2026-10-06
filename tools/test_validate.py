@@ -430,6 +430,14 @@ class Phase3ToolingTests(unittest.TestCase):
         errors = validate.check_matrix_status(self.root)
         self.assertTrue(any("ruleEngine" in e for e in errors))
 
+    def test_action_named_ctl_is_not_a_ctl_option(self):
+        m = {"generated": "x", "engines": {"v2": "", "v3": "", "coraza": ""},
+             "categories": {"actions": [{"name": "ctl", "v2": True, "v3": True, "coraza": True, "status": "Core"}],
+                            "ctl": [{"name": "ruleEngine", "v2": True, "v3": True, "coraza": True, "status": "Core"}]}}
+        (self.root / "compat/matrix.json").write_text(json.dumps(m))
+        (self.root / "spec/08-actions.md").write_text("# Actions\n\n### ctl\n\n**Status:** Core\n\n### ctl:ruleEngine\n\n**Status:** Core\n")
+        self.assertEqual(validate.check_matrix_status(self.root), [])
+
     def test_files_key_with_dotdot_is_rejected(self):
         prof = GOOD_ENGINE.replace("rules: |", "files:\n  ../x.conf: SecRuleEngine On\nrules: |")
         (self.root / "tests/engine/e.yaml").write_text(prof)

@@ -273,8 +273,12 @@ def check_matrix_status(root: Path) -> list[str]:
                     if not row.get(e):
                         errors.append(f"compat/matrix.json: {category}/{name}: Core but absent in {e}")
         for anchor in sorted(a for a in features if a.startswith(f"{spec_file}#{prefix}")):
+            frag = anchor.split("#", 1)[1]
+            if prefix and len(frag) <= len(prefix):
+                continue  # the bare prefix is a feature of the unprefixed category (the `ctl` action)
             if prefix == "" and category != "directives" and any(
-                a2 != "" and anchor.startswith(f"{spec_file}#{a2}") for (f2, a2) in MATRIX_SPEC_FILES.values() if f2 == spec_file
+                a2 != "" and frag.startswith(a2) and len(frag) > len(a2)
+                for (f2, a2) in MATRIX_SPEC_FILES.values() if f2 == spec_file
             ):
                 continue  # heading belongs to a prefixed category sharing this file (ctl: in 08)
             if "-" in anchor.split("#", 1)[1]:
