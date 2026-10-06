@@ -156,3 +156,92 @@ class CoverageTests(unittest.TestCase):
     def test_fully_covered_repo_has_no_errors(self):
         (self.root / "spec/07-transformations.md").write_text(SPEC_FEATURE.replace("### `rx`\n\n**Status:** Core\n", ""))
         self.assertEqual(validate.check_coverage(self.root), [])
+
+
+ADR_OK = """\
+# ADR-0001: Example decision
+
+- **Status:** proposed
+- **Date:** 2026-10-06
+- **Deciders:** @someone
+- **Category:** Clarification
+
+## Context
+
+Why.
+
+## Decision
+
+What.
+"""
+
+ADR_DIVERGENCE = ADR_OK.replace("0001", "0002").replace("Clarification", "Divergence") + """
+## Tests
+
+- `tests/engine/e.yaml`
+"""
+
+INDEX_OK = """\
+# ADRs
+
+| ADR | Title | Category | Status |
+|---|---|---|---|
+| [0001](0001-example-decision.md) | Example decision | Clarification | proposed |
+"""
+
+
+class AdrTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = make_repo(Path(self._tmp.name))
+        (self.root / "adr/0000-template.md").write_text("# ADR-NNNN: template\n")
+        (self.root / "adr/0001-example-decision.md").write_text(ADR_OK)
+        (self.root / "adr/README.md").write_text(INDEX_OK)
+        (self.root / "tests/engine/e.yaml").write_text(GOOD_ENGINE)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_valid_adr_and_index(self):
+        self.assertEqual(validate.check_adrs(self.root), [])
+
+    def test_bad_filename(self):
+        (self.root / "adr/0003_Bad_Name.md").write_text(ADR_OK.replace("0001", "0003"))
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("0003_Bad_Name.md" in e and "filename" in e for e in errors))
+
+    def test_title_number_mismatch(self):
+        (self.root / "adr/0001-example-decision.md").write_text(ADR_OK.replace("ADR-0001", "ADR-0007"))
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("0001" in e and "0007" in e for e in errors))
+
+    def test_unknown_category_and_status(self):
+        (self.root / "adr/0001-example-decision.md").write_text(
+            ADR_OK.replace("Clarification", "Perf").replace("proposed", "draft"))
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("Category" in e and "Perf" in e for e in errors))
+        self.assertTrue(any("Status" in e and "draft" in e for e in errors))
+
+    def test_missing_field(self):
+        (self.root / "adr/0001-example-decision.md").write_text(ADR_OK.replace("- **Date:** 2026-10-06\n", ""))
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("Date" in e for e in errors))
+
+    def test_divergence_requires_existing_test(self):
+        (self.root / "adr/0002-second.md").write_text(ADR_DIVERGENCE)
+        (self.root / "adr/README.md").write_text(INDEX_OK + "| [0002](0002-second.md) | Second | Divergence | proposed |\n")
+        self.assertEqual(validate.check_adrs(self.root), [])
+        (self.root / "adr/0002-second.md").write_text(ADR_DIVERGENCE.replace("e.yaml", "missing.yaml"))
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("missing.yaml" in e for e in errors))
+        (self.root / "adr/0002-second.md").write_text(ADR_DIVERGENCE.split("## Tests")[0])
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("0002-second.md" in e and "Tests" in e for e in errors))
+
+    def test_file_missing_from_index_and_index_row_without_file(self):
+        (self.root / "adr/0002-second.md").write_text(ADR_OK.replace("0001", "0002"))
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("0002-second.md" in e and "index" in e for e in errors))
+        (self.root / "adr/README.md").write_text(INDEX_OK + "| [0009](0009-ghost.md) | Ghost | Clarification | proposed |\n")
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("0009-ghost.md" in e for e in errors))
