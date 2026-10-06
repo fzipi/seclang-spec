@@ -542,9 +542,11 @@ configurations set the list.
 
 **Semantics.** Adds the given media types to the set whose response bodies are buffered
 and inspected (`#secresponsebodyaccess`). Multiple occurrences accumulate. Types are
-compared case-insensitively against the response `Content-Type` with any parameters
-(`; charset=…`) removed. The tests use bare `Content-Type` values so that parameter
-stripping is not what they measure.
+compared against the response `Content-Type` with any parameters (`; charset=…`)
+removed; whether the comparison ignores case is **not specified** (ModSecurity v2
+compares case-insensitively through `apr_table_get`, libmodsecurity v3 and Coraza
+compare exactly). The tests use bare, lowercase `Content-Type` values so that neither
+parameter stripping nor case is what they measure.
 
 **Divergence notes.** Defaults differ as listed.
 
@@ -855,7 +857,7 @@ be written for each.
 
 **Syntax.** `SecAuditLogDirMode OCTAL`
 
-**Semantics.** Permission bits for directories the concurrent audit logger creates. Default 0700 in ModSecurity v2 (`CREATEMODE_DIR`), 0600 in Coraza; unset in v3.
+**Semantics.** Permission bits for directories the concurrent audit logger creates. Default 0750 in ModSecurity v2 (`CREATEMODE_DIR` in `apache2/modsecurity.h`), 0600 in Coraza; unset in v3.
 
 **Implemented by.** v2, v3, Coraza.
 

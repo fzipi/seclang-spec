@@ -23,6 +23,7 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 | `tests/unit/transformations/uppercase-extra.json` | ModSecurity v2 | `t:uppercase` not implemented | ADR-0012 |
 | `tests/unit/transformations/cssDecode.json` | Coraza | six-digit escapes above U+FFFF decode to U+FFFD (two cases) | `07-transformations.md#cssdecode` |
 | `tests/unit/transformations/urlDecodeUni.json` | Coraza | one full-width `%u` case decodes differently | `07-transformations.md#urldecodeuni` |
+| `tests/engine/variables/key-case.yaml` | Coraza (`coraza.rule.case_sensitive_args_keys` build only) | `ARGS` keys compared exactly | ADR-0008 |
 
 Not listed: differences the specification leaves unspecified (defaults, status codes,
 empty `Include` globs), since no test asserts on them.

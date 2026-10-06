@@ -17,9 +17,6 @@ promoted into the spec (Extension).
    index disagree.
 5. Update the affected section of `spec/` in the same PR.
 
-Numbers 0009–0011 are reserved for the decisions listed in the design document
-(phase model, engine extensions, v2 legacy) and will be written in Phase 3.
-
 ## Index
 
 | ADR | Title | Category | Status |
@@ -32,6 +29,9 @@ Numbers 0009–0011 are reserved for the decisions listed in the design document
 | [0006](0006-core-ctl-options.md) | Core `ctl:` options | Divergence | proposed |
 | [0007](0007-persistent-collections.md) | Persistent collections are Extended | Divergence | proposed |
 | [0008](0008-collection-key-case.md) | Collection keys match case-insensitively | Divergence | proposed |
+| [0009](0009-phase-evaluation-model.md) | Strict per-phase evaluation is normative; early evaluation must be invisible | Clarification | proposed |
+| [0010](0010-engine-specific-names-reserved.md) | Engine-specific names are reserved | Clarification | proposed |
+| [0011](0011-v2-legacy-deprecated.md) | ModSecurity v2 legacy features are Deprecated | Deprecation | proposed |
 | [0012](0012-uppercase-transformation.md) | `uppercase` is promoted to Core | Extension | proposed |
 | [0013](0013-comment-line-continuation.md) | Comment lines ending in a backslash | Divergence | proposed |
 | [0014](0014-secdefaultaction-constraints.md) | `SecDefaultAction` constraints | Divergence | proposed |

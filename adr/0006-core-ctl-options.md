@@ -18,8 +18,10 @@ the CRS documentation for user exclusions relies on `ruleRemoveTargetById` and
 
 `ctl:auditLogParts` has two value forms: relative (`+E`, `-E`) and absolute (`ABCZ`).
 ModSecurity v2 accepts both (`apache2/re_actions.c`), libmodsecurity v3 accepts only the
-relative form (`seclang-scanner.ll`, `=[+|-]{AUDIT_PARTS}`), Coraza accepts the relative
-form since its ADR-0032.
+relative form (`seclang-scanner.ll`, `=[+|-]{AUDIT_PARTS}`), Coraza accepts both
+(`types.ApplyAuditLogParts` falls back to `ParseAuditLogParts`; relative form since its
+ADR-0032). Coraza also has a 21st option, `forceResponseBodyVariable`, missed by the
+Phase 1 survey and added to the matrix in Phase 3.
 
 ## Decision
 
@@ -28,7 +30,7 @@ form since its ADR-0032.
 | Core | `auditEngine`, `auditLogParts` (relative form only), `forceRequestBodyVariable`, `requestBodyAccess`, `requestBodyProcessor`, `ruleEngine`, `ruleRemoveById`, `ruleRemoveByTag`, `ruleRemoveTargetById`, `ruleRemoveTargetByTag` |
 | Extended | `requestBodyLimit`, `responseBodyAccess`, `responseBodyLimit`, `ruleRemoveByMsg`, `ruleRemoveTargetByMsg`, `debugLogLevel`, `parseXmlIntoArgs`, absolute-form `auditLogParts` |
 | Deprecated | `hashEngine`, `hashEnforcement` |
-| Engine-specific | `responseBodyProcessor` (Coraza) |
+| Engine-specific | `responseBodyProcessor`, `forceResponseBodyVariable` (Coraza) |
 
 Option names match case-insensitively (ADR-0002). The timing rules are in
 `spec/03-processing-model.md#ctl-timing`; the full per-option specification lands with
