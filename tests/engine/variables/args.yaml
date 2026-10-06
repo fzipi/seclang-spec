@@ -1,0 +1,83 @@
+meta:
+  name: args
+  description: ARGS, ARGS_GET, ARGS_POST and their NAMES and sizes, including repeated keys
+spec: 05-variables.md#args
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule ARGS_GET:a "@streq 2" "id:6001,phase:1,pass"
+  SecRule &ARGS_GET:a "@eq 2" "id:6002,phase:1,pass"
+  SecRule ARGS_GET_NAMES "@streq b" "id:6003,phase:1,pass"
+  SecRule &ARGS_GET_NAMES "@eq 3" "id:6004,phase:1,pass"
+  SecRule ARGS_POST:p "@streq 1" "id:6005,phase:2,pass"
+  SecRule &ARGS "@eq 2" "id:6006,phase:2,pass"
+  SecRule ARGS_POST_NAMES "@streq p" "id:6007,phase:2,pass"
+  SecRule ARGS_NAMES "@streq a" "id:6008,phase:2,pass"
+  SecRule ARGS_COMBINED_SIZE "@eq 4" "id:6009,phase:2,pass"
+tests:
+  - test_title: repeated GET key yields repeated members and names
+    spec: 05-variables.md#args_get
+    stages:
+      - stage:
+          input:
+            uri: /?a=1&a=2&b=3
+          output:
+            triggered_rules: [6001, 6002, 6003, 6004]
+            no_interruption: true
+  - test_title: ARGS is the union of GET and POST
+    spec: 05-variables.md#args_post
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /?a=1
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1
+          output:
+            triggered_rules: [6005, 6006, 6007, 6008, 6009]
+            no_interruption: true
+  - test_title: ARGS_GET_NAMES
+    spec: 05-variables.md#args_get_names
+    stages:
+      - stage:
+          input:
+            uri: /?a=1&a=2&b=3
+          output:
+            triggered_rules: [6003, 6004]
+  - test_title: ARGS_POST_NAMES and ARGS_NAMES
+    spec: 05-variables.md#args_post_names
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /?a=1
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1
+          output:
+            triggered_rules: [6007, 6008]
+  - test_title: ARGS_NAMES
+    spec: 05-variables.md#args_names
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /?a=1
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1
+          output:
+            triggered_rules: [6008]
+  - test_title: ARGS_COMBINED_SIZE
+    spec: 05-variables.md#args_combined_size
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /?a=1
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1
+          output:
+            triggered_rules: [6009]

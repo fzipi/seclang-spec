@@ -1,0 +1,24 @@
+meta:
+  name: xml
+  description: "XML:/* selects element text and XML://@* selects attribute values"
+spec: 05-variables.md#xml
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule REQUEST_HEADERS:Content-Type "@rx (?i)^(?:application|text)/xml" "id:6090,phase:1,pass,nolog,ctl:requestBodyProcessor=XML"
+  SecRule XML:/* "@contains hello" "id:6091,phase:2,pass"
+  SecRule XML://@* "@streq 1" "id:6092,phase:2,pass"
+  SecRule REQBODY_PROCESSOR "@streq XML" "id:6093,phase:2,pass"
+tests:
+  - test_title: element text and attribute
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: text/xml
+            data: '<a><b attr="1">hello</b></a>'
+          output:
+            triggered_rules: [6090, 6091, 6092, 6093]
+            no_interruption: true

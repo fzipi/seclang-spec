@@ -1,0 +1,67 @@
+meta:
+  name: request-line
+  description: Variables derived from the request line
+spec: 05-variables.md#request_uri
+rules: |
+  SecRuleEngine On
+  SecRule REQUEST_URI "@streq /dir/file.php?x=1" "id:6010,phase:1,pass"
+  SecRule REQUEST_URI_RAW "@streq /dir/file.php?x=1" "id:6011,phase:1,pass"
+  SecRule REQUEST_FILENAME "@streq /dir/file.php" "id:6012,phase:1,pass"
+  SecRule REQUEST_BASENAME "@streq file.php" "id:6013,phase:1,pass"
+  SecRule QUERY_STRING "@streq x=1" "id:6014,phase:1,pass"
+  SecRule REQUEST_METHOD "@streq GET" "id:6015,phase:1,pass"
+  SecRule REQUEST_PROTOCOL "@streq HTTP/1.1" "id:6016,phase:1,pass"
+  SecRule REQUEST_LINE "@streq GET /dir/file.php?x=1 HTTP/1.1" "id:6017,phase:1,pass"
+tests:
+  - test_title: all request-line variables
+    stages:
+      - stage:
+          input:
+            method: GET
+            uri: /dir/file.php?x=1
+            version: HTTP/1.1
+          output:
+            triggered_rules: [6010, 6011, 6012, 6013, 6014, 6015, 6016, 6017]
+            no_interruption: true
+  - test_title: REQUEST_URI_RAW
+    spec: 05-variables.md#request_uri_raw
+    stages:
+      - stage:
+          input: {uri: '/dir/file.php?x=1'}
+          output: {triggered_rules: [6011]}
+  - test_title: REQUEST_FILENAME
+    spec: 05-variables.md#request_filename
+    stages:
+      - stage:
+          input: {uri: '/dir/file.php?x=1'}
+          output: {triggered_rules: [6012]}
+  - test_title: REQUEST_BASENAME
+    spec: 05-variables.md#request_basename
+    stages:
+      - stage:
+          input: {uri: '/dir/file.php?x=1'}
+          output: {triggered_rules: [6013]}
+  - test_title: QUERY_STRING
+    spec: 05-variables.md#query_string
+    stages:
+      - stage:
+          input: {uri: '/dir/file.php?x=1'}
+          output: {triggered_rules: [6014]}
+  - test_title: REQUEST_METHOD
+    spec: 05-variables.md#request_method
+    stages:
+      - stage:
+          input: {uri: '/dir/file.php?x=1'}
+          output: {triggered_rules: [6015]}
+  - test_title: REQUEST_PROTOCOL
+    spec: 05-variables.md#request_protocol
+    stages:
+      - stage:
+          input: {uri: '/dir/file.php?x=1'}
+          output: {triggered_rules: [6016]}
+  - test_title: REQUEST_LINE
+    spec: 05-variables.md#request_line
+    stages:
+      - stage:
+          input: {uri: '/dir/file.php?x=1'}
+          output: {triggered_rules: [6017]}

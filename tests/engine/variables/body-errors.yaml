@@ -1,0 +1,29 @@
+meta:
+  name: body-errors
+  description: REQBODY_ERROR and REQBODY_ERROR_MSG are set by a body processing failure
+spec: 05-variables.md#reqbody_error
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule REQUEST_HEADERS:Content-Type "@beginsWith application/json" "id:6100,phase:1,pass,nolog,ctl:requestBodyProcessor=JSON"
+  SecRule REQBODY_ERROR "@eq 1" "id:6099,phase:2,pass,chain"
+    SecRule REQBODY_ERROR_MSG "!@rx ^$"
+tests:
+  - test_title: malformed JSON sets both variables
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/json
+            data: '{"a":'
+          output:
+            triggered_rules: [6099]
+            no_interruption: true
+  - test_title: REQBODY_ERROR_MSG
+    spec: 05-variables.md#reqbody_error_msg
+    stages:
+      - stage:
+          input: {method: POST, uri: /, headers: {Content-Type: application/json}, data: '{"a":'}
+          output: {triggered_rules: [6099]}

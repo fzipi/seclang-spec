@@ -1,0 +1,31 @@
+meta:
+  name: request-cookies
+  description: REQUEST_COOKIES and REQUEST_COOKIES_NAMES, including a repeated cookie name
+spec: 05-variables.md#request_cookies
+rules: |
+  SecRuleEngine On
+  SecRule REQUEST_COOKIES:a "@streq 3" "id:6030,phase:1,pass"
+  SecRule &REQUEST_COOKIES:a "@eq 2" "id:6031,phase:1,pass"
+  SecRule REQUEST_COOKIES_NAMES "@streq b" "id:6032,phase:1,pass"
+  SecRule &REQUEST_COOKIES "@eq 3" "id:6033,phase:1,pass"
+tests:
+  - test_title: repeated cookie name keeps both values
+    stages:
+      - stage:
+          input:
+            uri: /
+            headers:
+              Cookie: a=1; b=2; a=3
+          output:
+            triggered_rules: [6030, 6031, 6032, 6033]
+            no_interruption: true
+  - test_title: REQUEST_COOKIES_NAMES
+    spec: 05-variables.md#request_cookies_names
+    stages:
+      - stage:
+          input:
+            uri: /
+            headers:
+              Cookie: a=1; b=2; a=3
+          output:
+            triggered_rules: [6032]

@@ -275,149 +275,149 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 
 ## variables (74 of 144 in all engines)
 
-| Name | v2 | v3 | coraza |
-|---|---|---|---|
-| `ARGS` | yes | yes | yes |
-| `ARGS_COMBINED_SIZE` | yes | yes | yes |
-| `ARGS_GET` | yes | yes | yes |
-| `ARGS_GET_NAMES` | yes | yes | yes |
-| `ARGS_NAMES` | yes | yes | yes |
-| `ARGS_PATH` | - | - | yes |
-| `ARGS_POST` | yes | yes | yes |
-| `ARGS_POST_NAMES` | yes | yes | yes |
-| `ARGUMENTS_LIMIT_REACHED` | - | - | yes |
-| `AUTH_TYPE` | yes | yes | - |
-| `DURATION` | yes | yes | yes |
-| `ENV` | yes | yes | yes |
-| `FILES` | yes | yes | yes |
-| `FILES_COMBINED_SIZE` | yes | yes | yes |
-| `FILES_NAMES` | yes | yes | yes |
-| `FILES_SIZES` | yes | yes | yes |
-| `FILES_TMP_CONTENT` | yes | yes | yes |
-| `FILES_TMPNAMES` | yes | yes | yes |
-| `FULL_REQUEST` | yes | yes | - |
-| `FULL_REQUEST_LENGTH` | yes | yes | yes |
-| `GEO` | yes | yes | yes |
-| `GLOBAL` | yes | yes | - |
-| `HIGHEST_SEVERITY` | yes | yes | yes |
-| `INBOUND_DATA_ERROR` | yes | yes | yes |
-| `IP` | yes | yes | - |
-| `JSON` | - | - | yes |
-| `MATCHED_VAR` | yes | yes | yes |
-| `MATCHED_VAR_NAME` | yes | yes | yes |
-| `MATCHED_VARS` | yes | yes | yes |
-| `MATCHED_VARS_NAMES` | yes | yes | yes |
-| `MODSEC_BUILD` | yes | yes | - |
-| `MSC_PCRE_ERROR` | - | yes | - |
-| `MSC_PCRE_LIMITS_EXCEEDED` | - | yes | - |
-| `MULTIPART_BOUNDARY_QUOTED` | yes | yes | - |
-| `MULTIPART_BOUNDARY_WHITESPACE` | yes | yes | - |
-| `MULTIPART_CRLF_LF_LINES` | yes | yes | - |
-| `MULTIPART_CRLF_LINE` | yes | - | - |
-| `MULTIPART_DATA_AFTER` | yes | yes | yes |
-| `MULTIPART_DATA_BEFORE` | yes | yes | - |
-| `MULTIPART_DUPLICATE_PART_HEADER` | - | - | yes |
-| `MULTIPART_FILE_LIMIT_EXCEEDED` | yes | yes | - |
-| `MULTIPART_FILENAME` | yes | yes | yes |
-| `MULTIPART_FILENAME_CHARSET` | - | - | yes |
-| `MULTIPART_FILENAME_LANGUAGE` | - | - | yes |
-| `MULTIPART_HEADER_FOLDING` | yes | yes | - |
-| `MULTIPART_INVALID_HEADER_FOLDING` | yes | yes | - |
-| `MULTIPART_INVALID_PART` | yes | yes | - |
-| `MULTIPART_INVALID_QUOTING` | yes | yes | yes |
-| `MULTIPART_LF_LINE` | yes | yes | - |
-| `MULTIPART_MISSING_SEMICOLON` | yes | yes | - |
-| `MULTIPART_NAME` | yes | yes | yes |
-| `MULTIPART_PART_HEADERS` | yes | yes | yes |
-| `MULTIPART_STRICT_ERROR` | yes | yes | yes |
-| `MULTIPART_UNMATCHED_BOUNDARY` | yes | yes | - |
-| `OUTBOUND_DATA_ERROR` | yes | yes | yes |
-| `PATH_INFO` | yes | yes | - |
-| `PERF_ALL` | yes | - | - |
-| `PERF_COMBINED` | yes | - | - |
-| `PERF_GC` | yes | - | - |
-| `PERF_LOGGING` | yes | - | - |
-| `PERF_PHASE1` | yes | - | - |
-| `PERF_PHASE2` | yes | - | - |
-| `PERF_PHASE3` | yes | - | - |
-| `PERF_PHASE4` | yes | - | - |
-| `PERF_PHASE5` | yes | - | - |
-| `PERF_RULES` | yes | - | - |
-| `PERF_SREAD` | yes | - | - |
-| `PERF_SWRITE` | yes | - | - |
-| `QUERY_STRING` | yes | yes | yes |
-| `REMOTE_ADDR` | yes | yes | yes |
-| `REMOTE_HOST` | yes | yes | yes |
-| `REMOTE_PORT` | yes | yes | yes |
-| `REMOTE_USER` | yes | yes | - |
-| `REQBODY_ERROR` | yes | yes | yes |
-| `REQBODY_ERROR_MSG` | yes | yes | yes |
-| `REQBODY_PROCESSOR` | yes | yes | yes |
-| `REQBODY_PROCESSOR_ERROR` | - | yes | yes |
-| `REQBODY_PROCESSOR_ERROR_MSG` | - | yes | yes |
-| `REQUEST_BASENAME` | yes | yes | yes |
-| `REQUEST_BODY` | yes | yes | yes |
-| `REQUEST_BODY_LENGTH` | yes | yes | yes |
-| `REQUEST_COOKIES` | yes | yes | yes |
-| `REQUEST_COOKIES_NAMES` | yes | yes | yes |
-| `REQUEST_FILENAME` | yes | yes | yes |
-| `REQUEST_HEADERS` | yes | yes | yes |
-| `REQUEST_HEADERS_NAMES` | yes | yes | yes |
-| `REQUEST_LINE` | yes | yes | yes |
-| `REQUEST_METHOD` | yes | yes | yes |
-| `REQUEST_PROTOCOL` | yes | yes | yes |
-| `REQUEST_URI` | yes | yes | yes |
-| `REQUEST_URI_RAW` | yes | yes | yes |
-| `REQUEST_XML` | - | - | yes |
-| `RES_BODY_ERROR` | - | - | yes |
-| `RES_BODY_ERROR_MSG` | - | - | yes |
-| `RES_BODY_PROCESSOR` | - | - | yes |
-| `RES_BODY_PROCESSOR_ERROR` | - | - | yes |
-| `RES_BODY_PROCESSOR_ERROR_MSG` | - | - | yes |
-| `RESOURCE` | yes | yes | - |
-| `RESPONSE_ARGS` | - | - | yes |
-| `RESPONSE_BODY` | yes | yes | yes |
-| `RESPONSE_CONTENT_LENGTH` | yes | yes | yes |
-| `RESPONSE_CONTENT_TYPE` | yes | yes | yes |
-| `RESPONSE_HEADERS` | yes | yes | yes |
-| `RESPONSE_HEADERS_NAMES` | yes | yes | yes |
-| `RESPONSE_PROTOCOL` | yes | yes | yes |
-| `RESPONSE_STATUS` | yes | yes | yes |
-| `RESPONSE_XML` | - | - | yes |
-| `RULE` | yes | yes | yes |
-| `SCRIPT_BASENAME` | yes | - | - |
-| `SCRIPT_FILENAME` | yes | - | - |
-| `SCRIPT_GID` | yes | - | - |
-| `SCRIPT_GROUPNAME` | yes | - | - |
-| `SCRIPT_MODE` | yes | - | - |
-| `SCRIPT_UID` | yes | - | - |
-| `SCRIPT_USERNAME` | yes | - | - |
-| `SDBM_DELETE_ERROR` | yes | - | - |
-| `SERVER_ADDR` | yes | yes | yes |
-| `SERVER_NAME` | yes | yes | yes |
-| `SERVER_PORT` | yes | yes | yes |
-| `SESSION` | yes | yes | - |
-| `SESSIONID` | yes | yes | - |
-| `STATUS` | - | yes | - |
-| `STATUS_LINE` | yes | - | yes |
-| `STREAM_INPUT_BODY` | yes | - | - |
-| `STREAM_OUTPUT_BODY` | yes | - | - |
-| `TIME` | yes | yes | yes |
-| `TIME_DAY` | yes | yes | yes |
-| `TIME_EPOCH` | yes | yes | yes |
-| `TIME_HOUR` | yes | yes | yes |
-| `TIME_MIN` | yes | yes | yes |
-| `TIME_MON` | yes | yes | yes |
-| `TIME_SEC` | yes | yes | yes |
-| `TIME_WDAY` | yes | yes | yes |
-| `TIME_YEAR` | yes | yes | yes |
-| `TX` | yes | yes | yes |
-| `UNIQUE_ID` | yes | yes | yes |
-| `URI_PARSE_ERROR` | - | - | yes |
-| `URLENCODED_ERROR` | yes | yes | yes |
-| `USER` | yes | yes | - |
-| `USERAGENT_IP` | yes | - | - |
-| `USERID` | yes | yes | - |
-| `WEBAPPID` | yes | yes | - |
-| `WEBSERVER_ERROR_LOG` | yes | - | - |
-| `XML` | yes | yes | yes |
+| Name | v2 | v3 | coraza | status |
+|---|---|---|---|---|
+| `ARGS` | yes | yes | yes | Core |
+| `ARGS_COMBINED_SIZE` | yes | yes | yes | Core |
+| `ARGS_GET` | yes | yes | yes | Core |
+| `ARGS_GET_NAMES` | yes | yes | yes | Core |
+| `ARGS_NAMES` | yes | yes | yes | Core |
+| `ARGS_PATH` | - | - | yes | Engine-specific |
+| `ARGS_POST` | yes | yes | yes | Core |
+| `ARGS_POST_NAMES` | yes | yes | yes | Core |
+| `ARGUMENTS_LIMIT_REACHED` | - | - | yes | Engine-specific |
+| `AUTH_TYPE` | yes | yes | - | Extended |
+| `DURATION` | yes | yes | yes | Extended |
+| `ENV` | yes | yes | yes | Extended |
+| `FILES` | yes | yes | yes | Core |
+| `FILES_COMBINED_SIZE` | yes | yes | yes | Core |
+| `FILES_NAMES` | yes | yes | yes | Core |
+| `FILES_SIZES` | yes | yes | yes | Extended |
+| `FILES_TMP_CONTENT` | yes | yes | yes | Extended |
+| `FILES_TMPNAMES` | yes | yes | yes | Extended |
+| `FULL_REQUEST` | yes | yes | - | Extended |
+| `FULL_REQUEST_LENGTH` | yes | yes | yes | Extended |
+| `GEO` | yes | yes | yes | Extended |
+| `GLOBAL` | yes | yes | - | Extended |
+| `HIGHEST_SEVERITY` | yes | yes | yes | Extended |
+| `INBOUND_DATA_ERROR` | yes | yes | yes | Core |
+| `IP` | yes | yes | - | Extended |
+| `JSON` | - | - | yes | Engine-specific |
+| `MATCHED_VAR` | yes | yes | yes | Core |
+| `MATCHED_VAR_NAME` | yes | yes | yes | Core |
+| `MATCHED_VARS` | yes | yes | yes | Core |
+| `MATCHED_VARS_NAMES` | yes | yes | yes | Extended |
+| `MODSEC_BUILD` | yes | yes | - | Extended |
+| `MSC_PCRE_ERROR` | - | yes | - | Engine-specific |
+| `MSC_PCRE_LIMITS_EXCEEDED` | - | yes | - | Engine-specific |
+| `MULTIPART_BOUNDARY_QUOTED` | yes | yes | - | Extended |
+| `MULTIPART_BOUNDARY_WHITESPACE` | yes | yes | - | Extended |
+| `MULTIPART_CRLF_LF_LINES` | yes | yes | - | Extended |
+| `MULTIPART_CRLF_LINE` | yes | - | - | Deprecated |
+| `MULTIPART_DATA_AFTER` | yes | yes | yes | Extended |
+| `MULTIPART_DATA_BEFORE` | yes | yes | - | Extended |
+| `MULTIPART_DUPLICATE_PART_HEADER` | - | - | yes | Engine-specific |
+| `MULTIPART_FILE_LIMIT_EXCEEDED` | yes | yes | - | Extended |
+| `MULTIPART_FILENAME` | yes | yes | yes | Extended |
+| `MULTIPART_FILENAME_CHARSET` | - | - | yes | Engine-specific |
+| `MULTIPART_FILENAME_LANGUAGE` | - | - | yes | Engine-specific |
+| `MULTIPART_HEADER_FOLDING` | yes | yes | - | Extended |
+| `MULTIPART_INVALID_HEADER_FOLDING` | yes | yes | - | Extended |
+| `MULTIPART_INVALID_PART` | yes | yes | - | Extended |
+| `MULTIPART_INVALID_QUOTING` | yes | yes | yes | Extended |
+| `MULTIPART_LF_LINE` | yes | yes | - | Extended |
+| `MULTIPART_MISSING_SEMICOLON` | yes | yes | - | Extended |
+| `MULTIPART_NAME` | yes | yes | yes | Extended |
+| `MULTIPART_PART_HEADERS` | yes | yes | yes | Core |
+| `MULTIPART_STRICT_ERROR` | yes | yes | yes | Core |
+| `MULTIPART_UNMATCHED_BOUNDARY` | yes | yes | - | Extended |
+| `OUTBOUND_DATA_ERROR` | yes | yes | yes | Core |
+| `PATH_INFO` | yes | yes | - | Extended |
+| `PERF_ALL` | yes | - | - | Deprecated |
+| `PERF_COMBINED` | yes | - | - | Deprecated |
+| `PERF_GC` | yes | - | - | Deprecated |
+| `PERF_LOGGING` | yes | - | - | Deprecated |
+| `PERF_PHASE1` | yes | - | - | Deprecated |
+| `PERF_PHASE2` | yes | - | - | Deprecated |
+| `PERF_PHASE3` | yes | - | - | Deprecated |
+| `PERF_PHASE4` | yes | - | - | Deprecated |
+| `PERF_PHASE5` | yes | - | - | Deprecated |
+| `PERF_RULES` | yes | - | - | Deprecated |
+| `PERF_SREAD` | yes | - | - | Deprecated |
+| `PERF_SWRITE` | yes | - | - | Deprecated |
+| `QUERY_STRING` | yes | yes | yes | Core |
+| `REMOTE_ADDR` | yes | yes | yes | Core |
+| `REMOTE_HOST` | yes | yes | yes | Extended |
+| `REMOTE_PORT` | yes | yes | yes | Extended |
+| `REMOTE_USER` | yes | yes | - | Extended |
+| `REQBODY_ERROR` | yes | yes | yes | Core |
+| `REQBODY_ERROR_MSG` | yes | yes | yes | Core |
+| `REQBODY_PROCESSOR` | yes | yes | yes | Core |
+| `REQBODY_PROCESSOR_ERROR` | - | yes | yes | Extended |
+| `REQBODY_PROCESSOR_ERROR_MSG` | - | yes | yes | Extended |
+| `REQUEST_BASENAME` | yes | yes | yes | Core |
+| `REQUEST_BODY` | yes | yes | yes | Core |
+| `REQUEST_BODY_LENGTH` | yes | yes | yes | Core |
+| `REQUEST_COOKIES` | yes | yes | yes | Core |
+| `REQUEST_COOKIES_NAMES` | yes | yes | yes | Core |
+| `REQUEST_FILENAME` | yes | yes | yes | Core |
+| `REQUEST_HEADERS` | yes | yes | yes | Core |
+| `REQUEST_HEADERS_NAMES` | yes | yes | yes | Core |
+| `REQUEST_LINE` | yes | yes | yes | Core |
+| `REQUEST_METHOD` | yes | yes | yes | Core |
+| `REQUEST_PROTOCOL` | yes | yes | yes | Core |
+| `REQUEST_URI` | yes | yes | yes | Core |
+| `REQUEST_URI_RAW` | yes | yes | yes | Core |
+| `REQUEST_XML` | - | - | yes | Engine-specific |
+| `RES_BODY_ERROR` | - | - | yes | Engine-specific |
+| `RES_BODY_ERROR_MSG` | - | - | yes | Engine-specific |
+| `RES_BODY_PROCESSOR` | - | - | yes | Engine-specific |
+| `RES_BODY_PROCESSOR_ERROR` | - | - | yes | Engine-specific |
+| `RES_BODY_PROCESSOR_ERROR_MSG` | - | - | yes | Engine-specific |
+| `RESOURCE` | yes | yes | - | Extended |
+| `RESPONSE_ARGS` | - | - | yes | Engine-specific |
+| `RESPONSE_BODY` | yes | yes | yes | Core |
+| `RESPONSE_CONTENT_LENGTH` | yes | yes | yes | Extended |
+| `RESPONSE_CONTENT_TYPE` | yes | yes | yes | Extended |
+| `RESPONSE_HEADERS` | yes | yes | yes | Core |
+| `RESPONSE_HEADERS_NAMES` | yes | yes | yes | Extended |
+| `RESPONSE_PROTOCOL` | yes | yes | yes | Extended |
+| `RESPONSE_STATUS` | yes | yes | yes | Core |
+| `RESPONSE_XML` | - | - | yes | Engine-specific |
+| `RULE` | yes | yes | yes | Extended |
+| `SCRIPT_BASENAME` | yes | - | - | Deprecated |
+| `SCRIPT_FILENAME` | yes | - | - | Deprecated |
+| `SCRIPT_GID` | yes | - | - | Deprecated |
+| `SCRIPT_GROUPNAME` | yes | - | - | Deprecated |
+| `SCRIPT_MODE` | yes | - | - | Deprecated |
+| `SCRIPT_UID` | yes | - | - | Deprecated |
+| `SCRIPT_USERNAME` | yes | - | - | Deprecated |
+| `SDBM_DELETE_ERROR` | yes | - | - | Deprecated |
+| `SERVER_ADDR` | yes | yes | yes | Extended |
+| `SERVER_NAME` | yes | yes | yes | Extended |
+| `SERVER_PORT` | yes | yes | yes | Extended |
+| `SESSION` | yes | yes | - | Extended |
+| `SESSIONID` | yes | yes | - | Extended |
+| `STATUS` | - | yes | - | Engine-specific |
+| `STATUS_LINE` | yes | - | yes | Extended |
+| `STREAM_INPUT_BODY` | yes | - | - | Deprecated |
+| `STREAM_OUTPUT_BODY` | yes | - | - | Deprecated |
+| `TIME` | yes | yes | yes | Extended |
+| `TIME_DAY` | yes | yes | yes | Extended |
+| `TIME_EPOCH` | yes | yes | yes | Extended |
+| `TIME_HOUR` | yes | yes | yes | Extended |
+| `TIME_MIN` | yes | yes | yes | Extended |
+| `TIME_MON` | yes | yes | yes | Extended |
+| `TIME_SEC` | yes | yes | yes | Extended |
+| `TIME_WDAY` | yes | yes | yes | Extended |
+| `TIME_YEAR` | yes | yes | yes | Extended |
+| `TX` | yes | yes | yes | Core |
+| `UNIQUE_ID` | yes | yes | yes | Core |
+| `URI_PARSE_ERROR` | - | - | yes | Engine-specific |
+| `URLENCODED_ERROR` | yes | yes | yes | Extended |
+| `USER` | yes | yes | - | Extended |
+| `USERAGENT_IP` | yes | - | - | Deprecated |
+| `USERID` | yes | yes | - | Extended |
+| `WEBAPPID` | yes | yes | - | Extended |
+| `WEBSERVER_ERROR_LOG` | yes | - | - | Deprecated |
+| `XML` | yes | yes | yes | Core |

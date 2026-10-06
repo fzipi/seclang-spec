@@ -10,6 +10,7 @@ rules: |
   SecRule INBOUND_DATA_ERROR "@eq 1" "id:5103,phase:2,pass"
 tests:
   - test_title: oversize body sets the error flag and is not rejected
+    spec: 05-variables.md#inbound_data_error
     stages:
       - stage:
           input:

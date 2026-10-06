@@ -1564,865 +1564,1009 @@
     "name": "ARGS",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ARGS_COMBINED_SIZE",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ARGS_GET",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ARGS_GET_NAMES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ARGS_NAMES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ARGS_PATH",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "ARGS_POST",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ARGS_POST_NAMES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ARGUMENTS_LIMIT_REACHED",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "AUTH_TYPE",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "DURATION",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "ENV",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "FILES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "FILES_COMBINED_SIZE",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "FILES_NAMES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "FILES_SIZES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "FILES_TMP_CONTENT",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "FILES_TMPNAMES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "FULL_REQUEST",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "FULL_REQUEST_LENGTH",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "GEO",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "GLOBAL",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "HIGHEST_SEVERITY",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "INBOUND_DATA_ERROR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "IP",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "JSON",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "MATCHED_VAR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "MATCHED_VAR_NAME",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "MATCHED_VARS",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "MATCHED_VARS_NAMES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "MODSEC_BUILD",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MSC_PCRE_ERROR",
     "v2": false,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Engine-specific"
    },
    {
     "name": "MSC_PCRE_LIMITS_EXCEEDED",
     "v2": false,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Engine-specific"
    },
    {
     "name": "MULTIPART_BOUNDARY_QUOTED",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_BOUNDARY_WHITESPACE",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_CRLF_LF_LINES",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_CRLF_LINE",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "MULTIPART_DATA_AFTER",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_DATA_BEFORE",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_DUPLICATE_PART_HEADER",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "MULTIPART_FILE_LIMIT_EXCEEDED",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_FILENAME",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_FILENAME_CHARSET",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "MULTIPART_FILENAME_LANGUAGE",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "MULTIPART_HEADER_FOLDING",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_INVALID_HEADER_FOLDING",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_INVALID_PART",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_INVALID_QUOTING",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_LF_LINE",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_MISSING_SEMICOLON",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_NAME",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "MULTIPART_PART_HEADERS",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "MULTIPART_STRICT_ERROR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "MULTIPART_UNMATCHED_BOUNDARY",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "OUTBOUND_DATA_ERROR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "PATH_INFO",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "PERF_ALL",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_COMBINED",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_GC",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_LOGGING",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_PHASE1",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_PHASE2",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_PHASE3",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_PHASE4",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_PHASE5",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_RULES",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_SREAD",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "PERF_SWRITE",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "QUERY_STRING",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REMOTE_ADDR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REMOTE_HOST",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "REMOTE_PORT",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "REMOTE_USER",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "REQBODY_ERROR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQBODY_ERROR_MSG",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQBODY_PROCESSOR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQBODY_PROCESSOR_ERROR",
     "v2": false,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "REQBODY_PROCESSOR_ERROR_MSG",
     "v2": false,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "REQUEST_BASENAME",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_BODY",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_BODY_LENGTH",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_COOKIES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_COOKIES_NAMES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_FILENAME",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_HEADERS",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_HEADERS_NAMES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_LINE",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_METHOD",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_PROTOCOL",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_URI",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_URI_RAW",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "REQUEST_XML",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "RES_BODY_ERROR",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "RES_BODY_ERROR_MSG",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "RES_BODY_PROCESSOR",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "RES_BODY_PROCESSOR_ERROR",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "RES_BODY_PROCESSOR_ERROR_MSG",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "RESOURCE",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "RESPONSE_ARGS",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "RESPONSE_BODY",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "RESPONSE_CONTENT_LENGTH",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "RESPONSE_CONTENT_TYPE",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "RESPONSE_HEADERS",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "RESPONSE_HEADERS_NAMES",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "RESPONSE_PROTOCOL",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "RESPONSE_STATUS",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "RESPONSE_XML",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "RULE",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SCRIPT_BASENAME",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SCRIPT_FILENAME",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SCRIPT_GID",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SCRIPT_GROUPNAME",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SCRIPT_MODE",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SCRIPT_UID",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SCRIPT_USERNAME",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SDBM_DELETE_ERROR",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SERVER_ADDR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SERVER_NAME",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SERVER_PORT",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SESSION",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "SESSIONID",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "STATUS",
     "v2": false,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Engine-specific"
    },
    {
     "name": "STATUS_LINE",
     "v2": true,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "STREAM_INPUT_BODY",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "STREAM_OUTPUT_BODY",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "TIME",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "TIME_DAY",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "TIME_EPOCH",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "TIME_HOUR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "TIME_MIN",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "TIME_MON",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "TIME_SEC",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "TIME_WDAY",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "TIME_YEAR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "TX",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "UNIQUE_ID",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "URI_PARSE_ERROR",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "URLENCODED_ERROR",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "USER",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "USERAGENT_IP",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "USERID",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "WEBAPPID",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "WEBSERVER_ERROR_LOG",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "XML",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    }
   ]
  }

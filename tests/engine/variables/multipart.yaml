@@ -1,0 +1,74 @@
+meta:
+  name: multipart
+  description: FILES, FILES_NAMES, FILES_COMBINED_SIZE, MULTIPART_PART_HEADERS and MULTIPART_STRICT_ERROR on a well-formed upload
+spec: 05-variables.md#files
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule FILES:f "@streq hello.txt" "id:6050,phase:2,pass"
+  SecRule FILES_NAMES "@streq f" "id:6051,phase:2,pass"
+  SecRule FILES_COMBINED_SIZE "@eq 5" "id:6052,phase:2,pass"
+  SecRule MULTIPART_PART_HEADERS:f "@contains filename" "id:6053,phase:2,pass"
+  SecRule REQBODY_PROCESSOR "@streq MULTIPART" "id:6054,phase:2,pass"
+  SecRule MULTIPART_STRICT_ERROR "@eq 0" "id:6055,phase:2,pass"
+tests:
+  - test_title: one file field
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: multipart/form-data; boundary=XX
+            data: "--XX\r\nContent-Disposition: form-data; name=\"f\"; filename=\"hello.txt\"\r\nContent-Type: text/plain\r\n\r\nhello\r\n--XX--\r\n"
+          output:
+            triggered_rules: [6050, 6051, 6052, 6053, 6054, 6055]
+            no_interruption: true
+  - test_title: FILES_NAMES
+    spec: 05-variables.md#files_names
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: multipart/form-data; boundary=XX
+            data: "--XX\r\nContent-Disposition: form-data; name=\"f\"; filename=\"hello.txt\"\r\nContent-Type: text/plain\r\n\r\nhello\r\n--XX--\r\n"
+          output:
+            triggered_rules: [6051]
+  - test_title: FILES_COMBINED_SIZE
+    spec: 05-variables.md#files_combined_size
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: multipart/form-data; boundary=XX
+            data: "--XX\r\nContent-Disposition: form-data; name=\"f\"; filename=\"hello.txt\"\r\nContent-Type: text/plain\r\n\r\nhello\r\n--XX--\r\n"
+          output:
+            triggered_rules: [6052]
+  - test_title: MULTIPART_PART_HEADERS
+    spec: 05-variables.md#multipart_part_headers
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: multipart/form-data; boundary=XX
+            data: "--XX\r\nContent-Disposition: form-data; name=\"f\"; filename=\"hello.txt\"\r\nContent-Type: text/plain\r\n\r\nhello\r\n--XX--\r\n"
+          output:
+            triggered_rules: [6053]
+  - test_title: MULTIPART_STRICT_ERROR is 0 for a well-formed body
+    spec: 05-variables.md#multipart_strict_error
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: multipart/form-data; boundary=XX
+            data: "--XX\r\nContent-Disposition: form-data; name=\"f\"; filename=\"hello.txt\"\r\nContent-Type: text/plain\r\n\r\nhello\r\n--XX--\r\n"
+          output:
+            triggered_rules: [6055]

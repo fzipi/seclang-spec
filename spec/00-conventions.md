@@ -55,6 +55,6 @@ ADRs), **Tests** (paths under `tests/`).
 ## Source anchors
 
 Tests reference features by `NN-file.md#anchor`, where `anchor` is the GitHub heading
-slug: lowercase the heading, drop every character that is not a letter, digit, space or
-hyphen, then replace spaces with hyphens. `tools/validate.py` enforces that every
+slug: lowercase the heading, drop every character that is not a letter, digit,
+underscore, space or hyphen, then replace spaces with hyphens. `tools/validate.py` enforces that every
 reference resolves and every Core feature is referenced.

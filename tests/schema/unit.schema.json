@@ -16,7 +16,7 @@
       "input": {"type": "string", "description": "Value under test; JSON escapes allowed"},
       "output": {"type": "string", "description": "Transformation result"},
       "ret": {"enum": [0, 1], "description": "op: 1 if matched. tfn: 1 if the value changed"},
-      "spec": {"type": "string", "pattern": "^[0-9]{2}-[a-z0-9-]+\\.md#[a-z0-9-]+$", "description": "Spec anchor, e.g. 07-transformations.md#base64decode"},
+      "spec": {"type": "string", "pattern": "^[0-9]{2}-[a-z0-9-]+\\.md#[a-z0-9_-]+$", "description": "Spec anchor, e.g. 07-transformations.md#base64decode"},
       "note": {"type": "string"},
       "re_groups": {"type": "array", "items": {"type": "string"}, "description": "For @rx: the full match followed by the capture groups, as the capture action stores them in TX:0..9"}
     },

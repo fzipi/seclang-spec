@@ -1,0 +1,51 @@
+meta:
+  name: request-body
+  description: REQUEST_BODY, REQUEST_BODY_LENGTH and REQBODY_PROCESSOR
+spec: 05-variables.md#request_body
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule REQUEST_BODY "@streq p=1&q=2" "id:6040,phase:2,pass"
+  SecRule REQUEST_BODY_LENGTH "@eq 7" "id:6041,phase:2,pass"
+  SecRule REQBODY_PROCESSOR "@streq URLENCODED" "id:6042,phase:2,pass"
+  SecRule REQUEST_HEADERS:Content-Type "@beginsWith application/json" "id:6044,phase:1,pass,nolog,ctl:requestBodyProcessor=JSON"
+  SecRule REQBODY_PROCESSOR "@streq JSON" "id:6043,phase:2,pass"
+tests:
+  - test_title: urlencoded body
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1&q=2
+          output:
+            triggered_rules: [6040, 6041, 6042]
+            non_triggered_rules: [6043]
+            no_interruption: true
+  - test_title: REQUEST_BODY_LENGTH
+    spec: 05-variables.md#request_body_length
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1&q=2
+          output:
+            triggered_rules: [6041]
+  - test_title: REQBODY_PROCESSOR follows ctl
+    spec: 05-variables.md#reqbody_processor
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/json
+            data: '{"p":1}'
+          output:
+            triggered_rules: [6044, 6043]
+            non_triggered_rules: [6042]

@@ -71,7 +71,7 @@ STATUS_RE = re.compile(r"^\*\*Status:\*\*\s+(Core|Extended|Deprecated|Engine-spe
 
 def slug(heading: str) -> str:
     """GitHub-style heading anchor."""
-    cleaned = re.sub(r"[^a-z0-9 -]", "", heading.lower())
+    cleaned = re.sub(r"[^a-z0-9_ -]", "", heading.lower())
     return cleaned.strip().replace(" ", "-")
 
 
@@ -270,6 +270,8 @@ def check_matrix_status(root: Path) -> list[str]:
                 a2 != "" and anchor.startswith(f"{spec_file}#{a2}") for (f2, a2) in MATRIX_SPEC_FILES.values() if f2 == spec_file
             ):
                 continue  # heading belongs to a prefixed category sharing this file (ctl: in 08)
+            if "-" in anchor.split("#", 1)[1]:
+                continue  # concept section (e.g. "Collection keys"), not a feature name
             if anchor not in by_anchor:
                 errors.append(f"spec/{anchor}: no matching row in compat/matrix.json {category}")
     return errors

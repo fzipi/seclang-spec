@@ -1,0 +1,24 @@
+meta:
+  name: remote-addr-unique-id
+  description: REMOTE_ADDR is the client address; UNIQUE_ID is non-empty
+spec: 05-variables.md#remote_addr
+rules: |
+  SecRuleEngine On
+  SecRule REMOTE_ADDR "@ipMatch 203.0.113.0/24" "id:6095,phase:1,pass"
+  SecRule UNIQUE_ID "!@rx ^$" "id:6096,phase:1,pass"
+tests:
+  - test_title: client address and id
+    stages:
+      - stage:
+          input:
+            uri: /
+            remote_addr: 203.0.113.7
+          output:
+            triggered_rules: [6095, 6096]
+            no_interruption: true
+  - test_title: UNIQUE_ID
+    spec: 05-variables.md#unique_id
+    stages:
+      - stage:
+          input: {uri: /, remote_addr: 203.0.113.7}
+          output: {triggered_rules: [6096]}

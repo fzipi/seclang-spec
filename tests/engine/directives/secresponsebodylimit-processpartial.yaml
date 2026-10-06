@@ -11,6 +11,7 @@ rules: |
   SecRule OUTBOUND_DATA_ERROR "@eq 1" "id:5111,phase:4,pass"
 tests:
   - test_title: oversize response sets the error flag
+    spec: 05-variables.md#outbound_data_error
     stages:
       - stage:
           input:

@@ -1,0 +1,20 @@
+meta:
+  name: persistent-collections
+  description: IP collection initialised with initcol and incremented with setvar (Extended, ADR-0007)
+spec: 05-variables.md#persistent-collections
+requires: [05-variables.md#persistent-collections]
+rules: |
+  SecRuleEngine On
+  SecDataDir /tmp
+  SecAction "id:6110,phase:1,pass,nolog,initcol:ip=%{REMOTE_ADDR},setvar:ip.hits=+1"
+  SecRule IP:hits "@ge 1" "id:6111,phase:1,pass"
+tests:
+  - test_title: collection member is visible in the same transaction
+    stages:
+      - stage:
+          input:
+            uri: /
+            remote_addr: 203.0.113.9
+          output:
+            triggered_rules: [6110, 6111]
+            no_interruption: true

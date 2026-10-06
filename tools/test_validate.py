@@ -121,6 +121,7 @@ class CoverageTests(unittest.TestCase):
         self.assertEqual(validate.slug("Name matching"), "name-matching")
         self.assertEqual(validate.slug("`rx`"), "rx")
         self.assertEqual(validate.slug("ctl: ruleRemoveById"), "ctl-ruleremovebyid")
+        self.assertEqual(validate.slug("ARGS_GET"), "args_get")  # GitHub keeps underscores
 
     def test_spec_features_are_file_qualified_with_status(self):
         feats = validate.spec_features(self.root)
@@ -381,6 +382,10 @@ class MatrixStatusTests(unittest.TestCase):
         (self.root / "spec/04-directives.md").write_text(SPEC_DIRECTIVES)
         errors = validate.check_matrix_status(self.root)
         self.assertTrue(any("SecBar" in e and "spec" in e for e in errors))
+
+    def test_concept_headings_with_hyphen_need_no_matrix_row(self):
+        (self.root / "spec/04-directives.md").write_text(SPEC_DIRECTIVES + "\n### Rule exceptions\n\n**Status:** Core\n")
+        self.assertEqual(validate.check_matrix_status(self.root), [])
 
     def test_rows_without_status_are_ignored(self):
         m = json.loads(json.dumps(MATRIX_WITH_STATUS))

@@ -1,0 +1,40 @@
+meta:
+  name: response
+  description: RESPONSE_STATUS, RESPONSE_HEADERS and RESPONSE_BODY
+spec: 05-variables.md#response_status
+rules: |
+  SecRuleEngine On
+  SecResponseBodyAccess On
+  SecResponseBodyMimeType text/plain
+  SecRule RESPONSE_STATUS "@eq 201" "id:6080,phase:3,pass"
+  SecRule RESPONSE_HEADERS:X-R "@streq yes" "id:6081,phase:3,pass"
+  SecRule RESPONSE_BODY "@contains secret" "id:6082,phase:4,pass"
+tests:
+  - test_title: status, header and body
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 201
+            headers:
+              X-R: "yes"
+              Content-Type: text/plain
+            data: the secret
+          output:
+            triggered_rules: [6080, 6081, 6082]
+            no_interruption: true
+  - test_title: RESPONSE_HEADERS
+    spec: 05-variables.md#response_headers
+    stages:
+      - stage:
+          input: {uri: /}
+          response: {status: 201, headers: {X-R: "yes", Content-Type: text/plain}, data: the secret}
+          output: {triggered_rules: [6081]}
+  - test_title: RESPONSE_BODY
+    spec: 05-variables.md#response_body
+    stages:
+      - stage:
+          input: {uri: /}
+          response: {status: 201, headers: {X-R: "yes", Content-Type: text/plain}, data: the secret}
+          output: {triggered_rules: [6082]}

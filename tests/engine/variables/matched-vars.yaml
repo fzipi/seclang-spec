@@ -1,0 +1,33 @@
+meta:
+  name: matched-vars
+  description: MATCHED_VAR, MATCHED_VAR_NAME and MATCHED_VARS inside chains, after transformation
+spec: 05-variables.md#matched_var
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq hello" "id:6060,phase:1,pass,t:lowercase,chain"
+    SecRule MATCHED_VAR "@streq hello"
+  SecRule ARGS_GET:a "@streq hello" "id:6061,phase:1,pass,t:lowercase,chain"
+    SecRule MATCHED_VAR_NAME "@streq ARGS_GET:a"
+  SecRule ARGS_GET:b|ARGS_GET:c "@rx ^v" "id:6062,phase:1,pass,chain"
+    SecRule &MATCHED_VARS "@eq 2"
+tests:
+  - test_title: matched variables carry the transformed value and the full name
+    stages:
+      - stage:
+          input:
+            uri: /?a=HeLLo&b=v1&c=v2
+          output:
+            triggered_rules: [6060, 6061, 6062]
+            no_interruption: true
+  - test_title: MATCHED_VAR_NAME
+    spec: 05-variables.md#matched_var_name
+    stages:
+      - stage:
+          input: {uri: '/?a=HeLLo&b=v1&c=v2'}
+          output: {triggered_rules: [6061]}
+  - test_title: MATCHED_VARS
+    spec: 05-variables.md#matched_vars
+    stages:
+      - stage:
+          input: {uri: '/?a=HeLLo&b=v1&c=v2'}
+          output: {triggered_rules: [6062]}

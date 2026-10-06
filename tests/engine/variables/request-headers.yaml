@@ -1,0 +1,31 @@
+meta:
+  name: request-headers
+  description: REQUEST_HEADERS and REQUEST_HEADERS_NAMES
+spec: 05-variables.md#request_headers
+rules: |
+  SecRuleEngine On
+  SecRule REQUEST_HEADERS:X-Test "@streq Hello" "id:6020,phase:1,pass"
+  SecRule REQUEST_HEADERS_NAMES "@rx (?i)^x-test$" "id:6021,phase:1,pass"
+  SecRule REQUEST_HEADERS "@contains Hello" "id:6022,phase:1,pass"
+  SecRule &REQUEST_HEADERS:X-Test "@eq 1" "id:6023,phase:1,pass"
+tests:
+  - test_title: header value, name and count
+    stages:
+      - stage:
+          input:
+            uri: /
+            headers:
+              X-Test: Hello
+          output:
+            triggered_rules: [6020, 6021, 6022, 6023]
+            no_interruption: true
+  - test_title: REQUEST_HEADERS_NAMES
+    spec: 05-variables.md#request_headers_names
+    stages:
+      - stage:
+          input:
+            uri: /
+            headers:
+              X-Test: Hello
+          output:
+            triggered_rules: [6021]

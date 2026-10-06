@@ -1,0 +1,26 @@
+meta:
+  name: key-case
+  description: Collection keys match case-insensitively (ADR-0008)
+spec: 05-variables.md#collection-keys
+rules: |
+  SecRuleEngine On
+  SecRule ARGS:Foo "@streq 1" "id:6097,phase:1,pass"
+  SecRule REQUEST_HEADERS:x-test "@streq y" "id:6098,phase:1,pass"
+tests:
+  - test_title: lowercase argument matches a mixed-case selector
+    stages:
+      - stage:
+          input:
+            uri: /?foo=1
+            headers:
+              X-Test: y
+          output:
+            triggered_rules: [6097, 6098]
+            no_interruption: true
+  - test_title: uppercase argument matches too
+    stages:
+      - stage:
+          input:
+            uri: /?FOO=1
+          output:
+            triggered_rules: [6097]

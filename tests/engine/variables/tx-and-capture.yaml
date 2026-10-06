@@ -1,0 +1,19 @@
+meta:
+  name: tx-and-capture
+  description: TX holds setvar values and capture groups TX:0..9
+spec: 05-variables.md#tx
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@rx ^(\w+)-(\w+)$" "id:6070,phase:1,pass,capture,setvar:tx.first=%{TX.1}"
+  SecRule TX:first "@streq foo" "id:6071,phase:1,pass"
+  SecRule TX:0 "@streq foo-bar" "id:6072,phase:1,pass"
+  SecRule TX:2 "@streq bar" "id:6073,phase:1,pass"
+tests:
+  - test_title: capture groups and setvar
+    stages:
+      - stage:
+          input:
+            uri: /?a=foo-bar
+          output:
+            triggered_rules: [6070, 6071, 6072, 6073]
+            no_interruption: true
