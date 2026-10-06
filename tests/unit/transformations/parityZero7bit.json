@@ -1,0 +1,34 @@
+[
+ {
+  "output": "",
+  "ret": 0,
+  "input": "",
+  "type": "tfn",
+  "name": "parityZero7bit",
+  "spec": "07-transformations.md#parityzero7bit"
+ },
+ {
+  "output": "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "ret": 0,
+  "input": "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "name": "parityZero7bit",
+  "type": "tfn",
+  "spec": "07-transformations.md#parityzero7bit"
+ },
+ {
+  "output": "abcdefghijklmnopqrstuvwxyz\u00000123456789\u0000ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "ret": 0,
+  "input": "abcdefghijklmnopqrstuvwxyz\u00000123456789\u0000ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "type": "tfn",
+  "name": "parityZero7bit",
+  "spec": "07-transformations.md#parityzero7bit"
+ },
+ {
+  "output": "B\u0000\u0000B\u000fC?",
+  "ret": 1,
+  "input": "\u0000ÿ",
+  "type": "tfn",
+  "name": "parityZero7bit",
+  "spec": "07-transformations.md#parityzero7bit"
+ }
+]

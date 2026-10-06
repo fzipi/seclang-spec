@@ -1,0 +1,20 @@
+meta:
+  name: t-none
+  description: "t:none discards transformations inherited from SecDefaultAction"
+spec: 07-transformations.md#none
+rules: |
+  SecRuleEngine On
+  SecDefaultAction "phase:1,log,pass,t:lowercase"
+  SecRule ARGS_GET:a "@streq abc" "id:7000,phase:1"
+  SecRule ARGS_GET:a "@streq ABC" "id:7001,phase:1,t:none"
+  SecRule ARGS_GET:a "@streq abc" "id:7002,phase:1,t:none"
+tests:
+  - test_title: inherited lowercase applies unless reset
+    stages:
+      - stage:
+          input:
+            uri: /?a=ABC
+          output:
+            triggered_rules: [7000, 7001]
+            non_triggered_rules: [7002]
+            no_interruption: true

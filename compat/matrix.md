@@ -232,46 +232,46 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 
 ## transformations (33 of 38 in all engines)
 
-| Name | v2 | v3 | coraza |
-|---|---|---|---|
-| `base64Decode` | yes | yes | yes |
-| `base64DecodeExt` | yes | yes | yes |
-| `base64Encode` | yes | yes | yes |
-| `cmdLine` | yes | yes | yes |
-| `compressWhitespace` | yes | yes | yes |
-| `cssDecode` | yes | yes | yes |
-| `escapeSeqDecode` | yes | yes | yes |
-| `hexDecode` | yes | yes | yes |
-| `hexEncode` | yes | yes | yes |
-| `htmlEntityDecode` | yes | yes | yes |
-| `jsDecode` | yes | yes | yes |
-| `length` | yes | yes | yes |
-| `lowercase` | yes | yes | yes |
-| `md5` | yes | yes | yes |
-| `none` | yes | yes | yes |
-| `normalisePath` | yes | yes | yes |
-| `normalisePathWin` | yes | yes | yes |
-| `normalizePath` | yes | yes | yes |
-| `normalizePathWin` | yes | yes | yes |
-| `parityEven7bit` | yes | yes | - |
-| `parityOdd7bit` | yes | yes | - |
-| `parityZero7bit` | yes | yes | - |
-| `removeComments` | yes | yes | yes |
-| `removeCommentsChar` | yes | yes | yes |
-| `removeNulls` | yes | yes | yes |
-| `removeWhitespace` | yes | yes | yes |
-| `replaceComments` | yes | yes | yes |
-| `replaceNulls` | yes | yes | yes |
-| `sha1` | yes | yes | yes |
-| `sqlHexDecode` | yes | yes | - |
-| `trim` | yes | yes | yes |
-| `trimLeft` | yes | yes | yes |
-| `trimRight` | yes | yes | yes |
-| `uppercase` | - | yes | yes |
-| `urlDecode` | yes | yes | yes |
-| `urlDecodeUni` | yes | yes | yes |
-| `urlEncode` | yes | yes | yes |
-| `utf8toUnicode` | yes | yes | yes |
+| Name | v2 | v3 | coraza | status |
+|---|---|---|---|---|
+| `base64Decode` | yes | yes | yes | Core |
+| `base64DecodeExt` | yes | yes | yes | Extended |
+| `base64Encode` | yes | yes | yes | Extended |
+| `cmdLine` | yes | yes | yes | Core |
+| `compressWhitespace` | yes | yes | yes | Core |
+| `cssDecode` | yes | yes | yes | Core |
+| `escapeSeqDecode` | yes | yes | yes | Core |
+| `hexDecode` | yes | yes | yes | Extended |
+| `hexEncode` | yes | yes | yes | Core |
+| `htmlEntityDecode` | yes | yes | yes | Core |
+| `jsDecode` | yes | yes | yes | Core |
+| `length` | yes | yes | yes | Core |
+| `lowercase` | yes | yes | yes | Core |
+| `md5` | yes | yes | yes | Extended |
+| `none` | yes | yes | yes | Core |
+| `normalisePath` | yes | yes | yes | Core |
+| `normalisePathWin` | yes | yes | yes | Core |
+| `normalizePath` | yes | yes | yes | - |
+| `normalizePathWin` | yes | yes | yes | - |
+| `parityEven7bit` | yes | yes | - | Extended |
+| `parityOdd7bit` | yes | yes | - | Extended |
+| `parityZero7bit` | yes | yes | - | Extended |
+| `removeComments` | yes | yes | yes | Extended |
+| `removeCommentsChar` | yes | yes | yes | Core |
+| `removeNulls` | yes | yes | yes | Core |
+| `removeWhitespace` | yes | yes | yes | Core |
+| `replaceComments` | yes | yes | yes | Core |
+| `replaceNulls` | yes | yes | yes | Extended |
+| `sha1` | yes | yes | yes | Core |
+| `sqlHexDecode` | yes | yes | - | Extended |
+| `trim` | yes | yes | yes | Extended |
+| `trimLeft` | yes | yes | yes | Extended |
+| `trimRight` | yes | yes | yes | Extended |
+| `uppercase` | - | yes | yes | Core (ADR-0012) |
+| `urlDecode` | yes | yes | yes | Extended |
+| `urlDecodeUni` | yes | yes | yes | Core |
+| `urlEncode` | yes | yes | yes | Extended |
+| `utf8toUnicode` | yes | yes | yes | Core |
 
 ## variables (74 of 144 in all engines)
 

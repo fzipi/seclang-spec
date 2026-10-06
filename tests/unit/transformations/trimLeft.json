@@ -1,0 +1,74 @@
+[
+ {
+  "type": "tfn",
+  "input": "",
+  "name": "trimLeft",
+  "ret": 0,
+  "output": "",
+  "spec": "07-transformations.md#trimleft"
+ },
+ {
+  "input": "TestCase",
+  "type": "tfn",
+  "name": "trimLeft",
+  "ret": 0,
+  "output": "TestCase",
+  "spec": "07-transformations.md#trimleft"
+ },
+ {
+  "name": "trimLeft",
+  "input": "Test\u0000Case",
+  "type": "tfn",
+  "ret": 0,
+  "output": "Test\u0000Case",
+  "spec": "07-transformations.md#trimleft"
+ },
+ {
+  "ret": 0,
+  "type": "tfn",
+  "input": "TestCase    ",
+  "name": "trimLeft",
+  "output": "TestCase    ",
+  "spec": "07-transformations.md#trimleft"
+ },
+ {
+  "ret": 1,
+  "input": "    TestCase",
+  "name": "trimLeft",
+  "type": "tfn",
+  "output": "TestCase",
+  "spec": "07-transformations.md#trimleft"
+ },
+ {
+  "output": "TestCase    ",
+  "name": "trimLeft",
+  "input": "    TestCase    ",
+  "type": "tfn",
+  "ret": 1,
+  "spec": "07-transformations.md#trimleft"
+ },
+ {
+  "output": "Test   Case    ",
+  "ret": 1,
+  "input": "    Test   Case    ",
+  "type": "tfn",
+  "name": "trimLeft",
+  "spec": "07-transformations.md#trimleft"
+ },
+ {
+  "input": "    Test \u0000 Case    ",
+  "name": "trimLeft",
+  "type": "tfn",
+  "ret": 1,
+  "output": "Test \u0000 Case    ",
+  "spec": "07-transformations.md#trimleft"
+ },
+ {
+  "ret": 1,
+  "type": "tfn",
+  "input": " \t   Test \u0000 Case \t  \t   \r\n  ",
+  "name": "trimLeft",
+  "output": "Test \u0000 Case \t  \t   \r\n  ",
+  "spec": "07-transformations.md#trimleft"
+ }
+]

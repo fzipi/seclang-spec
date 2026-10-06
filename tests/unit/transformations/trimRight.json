@@ -1,0 +1,74 @@
+[
+ {
+  "output": "",
+  "type": "tfn",
+  "input": "",
+  "name": "trimRight",
+  "ret": 0,
+  "spec": "07-transformations.md#trimright"
+ },
+ {
+  "ret": 0,
+  "input": "TestCase",
+  "name": "trimRight",
+  "type": "tfn",
+  "output": "TestCase",
+  "spec": "07-transformations.md#trimright"
+ },
+ {
+  "input": "Test\u0000Case",
+  "type": "tfn",
+  "name": "trimRight",
+  "ret": 0,
+  "output": "Test\u0000Case",
+  "spec": "07-transformations.md#trimright"
+ },
+ {
+  "output": "    TestCase",
+  "ret": 0,
+  "input": "    TestCase",
+  "type": "tfn",
+  "name": "trimRight",
+  "spec": "07-transformations.md#trimright"
+ },
+ {
+  "input": "TestCase    ",
+  "type": "tfn",
+  "name": "trimRight",
+  "ret": 1,
+  "output": "TestCase",
+  "spec": "07-transformations.md#trimright"
+ },
+ {
+  "output": "    TestCase",
+  "input": "    TestCase    ",
+  "type": "tfn",
+  "name": "trimRight",
+  "ret": 1,
+  "spec": "07-transformations.md#trimright"
+ },
+ {
+  "output": "    Test   Case",
+  "ret": 1,
+  "name": "trimRight",
+  "input": "    Test   Case    ",
+  "type": "tfn",
+  "spec": "07-transformations.md#trimright"
+ },
+ {
+  "ret": 1,
+  "input": "    Test \u0000 Case    ",
+  "name": "trimRight",
+  "type": "tfn",
+  "output": "    Test \u0000 Case",
+  "spec": "07-transformations.md#trimright"
+ },
+ {
+  "name": "trimRight",
+  "input": " \t   Test12 \u0000 Case \t  \t   \r\n  ",
+  "type": "tfn",
+  "ret": 1,
+  "output": " \t   Test12 \u0000 Case",
+  "spec": "07-transformations.md#trimright"
+ }
+]

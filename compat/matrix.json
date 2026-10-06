@@ -1376,103 +1376,120 @@
     "name": "base64Decode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "base64DecodeExt",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "base64Encode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "cmdLine",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "compressWhitespace",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "cssDecode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "escapeSeqDecode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "hexDecode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "hexEncode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "htmlEntityDecode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "jsDecode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "length",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "lowercase",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "md5",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "none",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "normalisePath",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "normalisePathWin",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "normalizePath",
@@ -1490,115 +1507,135 @@
     "name": "parityEven7bit",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "parityOdd7bit",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "parityZero7bit",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "removeComments",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "removeCommentsChar",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "removeNulls",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "removeWhitespace",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "replaceComments",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "replaceNulls",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "sha1",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "sqlHexDecode",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "trim",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "trimLeft",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "trimRight",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "uppercase",
     "v2": false,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core",
+    "exception": "ADR-0012"
    },
    {
     "name": "urlDecode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "urlDecodeUni",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "urlEncode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "utf8toUnicode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    }
   ],
   "variables": [

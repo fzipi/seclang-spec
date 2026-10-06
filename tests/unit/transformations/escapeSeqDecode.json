@@ -1,0 +1,114 @@
+[
+ {
+  "output": "",
+  "type": "tfn",
+  "input": "",
+  "name": "escapeSeqDecode",
+  "ret": 0,
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "name": "escapeSeqDecode",
+  "input": "TestCase",
+  "type": "tfn",
+  "ret": 0,
+  "output": "TestCase",
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "output": "Test\u0000Case",
+  "ret": 0,
+  "type": "tfn",
+  "input": "Test\u0000Case",
+  "name": "escapeSeqDecode",
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "ret": 1,
+  "input": "\\a\b\\f\n\r\t\\v\\?\\'\\\"\u0000\\12\\123\u0000ÿ",
+  "name": "escapeSeqDecode",
+  "type": "tfn",
+  "output": "\u0007\b\f\n\r\t\u000b?'\"\u0000\nS\u0000ÿ",
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "ret": 1,
+  "type": "tfn",
+  "input": "\\a\b\\f\n\r\t\\v\u0000\\?\\'\\\"\u0000\\12\\123\u0000ÿ",
+  "name": "escapeSeqDecode",
+  "output": "\u0007\b\f\n\r\t\u000b\u0000?'\"\u0000\nS\u0000ÿ",
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "input": "\\8\\9\\666\\xag\\xga\u0000123",
+  "type": "tfn",
+  "name": "escapeSeqDecode",
+  "ret": 1,
+  "output": "89¶\\xag\\xga\n3",
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "output": "x",
+  "type": "tfn",
+  "input": "\\x",
+  "name": "escapeSeqDecode",
+  "ret": 1,
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "name": "escapeSeqDecode",
+  "input": "\\x\\x0",
+  "type": "tfn",
+  "ret": 1,
+  "output": "xx0",
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "output": "xx0\u0000",
+  "name": "escapeSeqDecode",
+  "input": "\\x\\x0\u0000",
+  "type": "tfn",
+  "ret": 1,
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "name": "escapeSeqDecode",
+  "input": "\u0000",
+  "type": "tfn",
+  "ret": 1,
+  "output": "\u0000",
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "output": "\u0001",
+  "ret": 1,
+  "input": "\u00001",
+  "name": "escapeSeqDecode",
+  "type": "tfn",
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "ret": 1,
+  "name": "escapeSeqDecode",
+  "input": "\u000012",
+  "type": "tfn",
+  "output": "\n",
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "ret": 0,
+  "type": "tfn",
+  "input": "\\",
+  "name": "escapeSeqDecode",
+  "output": "\\",
+  "spec": "07-transformations.md#escapeseqdecode"
+ },
+ {
+  "input": "\\\u0000",
+  "type": "tfn",
+  "name": "escapeSeqDecode",
+  "ret": 1,
+  "output": "\u0000",
+  "spec": "07-transformations.md#escapeseqdecode"
+ }
+]

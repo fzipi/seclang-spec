@@ -1,0 +1,74 @@
+[
+ {
+  "ret": 0,
+  "type": "tfn",
+  "input": "",
+  "name": "trim",
+  "output": "",
+  "spec": "07-transformations.md#trim"
+ },
+ {
+  "input": "TestCase",
+  "name": "trim",
+  "type": "tfn",
+  "ret": 0,
+  "output": "TestCase",
+  "spec": "07-transformations.md#trim"
+ },
+ {
+  "ret": 0,
+  "input": "Test\u0000Case",
+  "type": "tfn",
+  "name": "trim",
+  "output": "Test\u0000Case",
+  "spec": "07-transformations.md#trim"
+ },
+ {
+  "output": "TestCase",
+  "input": "    TestCase",
+  "name": "trim",
+  "type": "tfn",
+  "ret": 1,
+  "spec": "07-transformations.md#trim"
+ },
+ {
+  "output": "TestCase",
+  "ret": 1,
+  "name": "trim",
+  "input": "TestCase    ",
+  "type": "tfn",
+  "spec": "07-transformations.md#trim"
+ },
+ {
+  "output": "TestCase",
+  "ret": 1,
+  "name": "trim",
+  "input": "    TestCase    ",
+  "type": "tfn",
+  "spec": "07-transformations.md#trim"
+ },
+ {
+  "output": "Test   Case",
+  "type": "tfn",
+  "input": "    Test   Case    ",
+  "name": "trim",
+  "ret": 1,
+  "spec": "07-transformations.md#trim"
+ },
+ {
+  "name": "trim",
+  "input": "    Test \u0000 Case    ",
+  "type": "tfn",
+  "ret": 1,
+  "output": "Test \u0000 Case",
+  "spec": "07-transformations.md#trim"
+ },
+ {
+  "input": " \t   Test \u0000 Case \t  \t   \r\n  ",
+  "name": "trim",
+  "type": "tfn",
+  "ret": 1,
+  "output": "Test \u0000 Case",
+  "spec": "07-transformations.md#trim"
+ }
+]

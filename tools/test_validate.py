@@ -394,6 +394,13 @@ class MatrixStatusTests(unittest.TestCase):
         errors = validate.check_matrix_status(self.root)
         self.assertTrue(any("SecBar" in e and "spec" in e for e in errors))
 
+    def test_core_row_absent_in_an_engine_is_allowed_with_an_exception(self):
+        m = json.loads(json.dumps(MATRIX_WITH_STATUS))
+        m["categories"]["directives"][0]["coraza"] = False
+        m["categories"]["directives"][0]["exception"] = "ADR-0012"
+        (self.root / "compat/matrix.json").write_text(json.dumps(m))
+        self.assertEqual(validate.check_matrix_status(self.root), [])
+
     def test_concept_headings_with_hyphen_need_no_matrix_row(self):
         (self.root / "spec/04-directives.md").write_text(SPEC_DIRECTIVES + "\n### Rule exceptions\n\n**Status:** Core\n")
         self.assertEqual(validate.check_matrix_status(self.root), [])

@@ -1,0 +1,10 @@
+[
+ {
+  "ret": 1,
+  "input": "0x414243",
+  "type": "tfn",
+  "name": "sqlHexDecode",
+  "output": "ABC",
+  "spec": "07-transformations.md#sqlhexdecode"
+ }
+]

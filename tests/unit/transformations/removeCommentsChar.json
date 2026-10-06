@@ -1,0 +1,170 @@
+[
+ {
+  "output": "",
+  "input": "",
+  "type": "tfn",
+  "name": "removeCommentsChar",
+  "ret": 1,
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "input": "TestCase",
+  "type": "tfn",
+  "name": "removeCommentsChar",
+  "ret": 1,
+  "output": "TestCase",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "ret": 1,
+  "input": "Test\u0000Case",
+  "name": "removeCommentsChar",
+  "type": "tfn",
+  "output": "Test\u0000Case",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "ret": 1,
+  "input": "/* TestCase */",
+  "name": "removeCommentsChar",
+  "type": "tfn",
+  "output": " TestCase ",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "output": "TestCase",
+  "ret": 1,
+  "type": "tfn",
+  "input": "/*TestCase*/",
+  "name": "removeCommentsChar",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "input": "/* TestCase*/",
+  "type": "tfn",
+  "name": "removeCommentsChar",
+  "ret": 1,
+  "output": " TestCase",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "output": "TestCase ",
+  "ret": 1,
+  "name": "removeCommentsChar",
+  "input": "/*TestCase */",
+  "type": "tfn",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "output": "Before TestCase After",
+  "ret": 1,
+  "type": "tfn",
+  "input": "Before/* TestCase */After",
+  "name": "removeCommentsChar",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "output": "Before  TestCase  After",
+  "name": "removeCommentsChar",
+  "input": "Before /* TestCase */ After",
+  "type": "tfn",
+  "ret": 1,
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "type": "tfn",
+  "input": "/* Test\nCase */",
+  "name": "removeCommentsChar",
+  "ret": 1,
+  "output": " Test\nCase ",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "name": "removeCommentsChar",
+  "input": "/* Test\r\nCase */",
+  "type": "tfn",
+  "ret": 1,
+  "output": " Test\r\nCase ",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "ret": 1,
+  "input": "/* Test\nCase */",
+  "type": "tfn",
+  "name": "removeCommentsChar",
+  "output": " Test\nCase ",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "ret": 1,
+  "name": "removeCommentsChar",
+  "input": "/* Test\rCase */",
+  "type": "tfn",
+  "output": " Test\rCase ",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "ret": 1,
+  "input": "Before/* Test\r\nCase ",
+  "type": "tfn",
+  "name": "removeCommentsChar",
+  "output": "Before Test\r\nCase ",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "output": "Before  Test\nCase ",
+  "input": "Before /* Test\nCase ",
+  "type": "tfn",
+  "name": "removeCommentsChar",
+  "ret": 1,
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "output": "Before Test\r\nCase ",
+  "ret": 1,
+  "input": "Before/* Test\r\nCase ",
+  "name": "removeCommentsChar",
+  "type": "tfn",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "input": "Before /* Test\nCase ",
+  "name": "removeCommentsChar",
+  "type": "tfn",
+  "ret": 1,
+  "output": "Before  Test\nCase ",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "ret": 1,
+  "name": "removeCommentsChar",
+  "input": "Test\r\nCase */After",
+  "type": "tfn",
+  "output": "Test\r\nCase After",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "output": "Test\nCase  After",
+  "name": "removeCommentsChar",
+  "input": "Test\nCase */ After",
+  "type": "tfn",
+  "ret": 1,
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "output": "Test\r\nCase After",
+  "ret": 1,
+  "name": "removeCommentsChar",
+  "input": "Test\r\nCase */After",
+  "type": "tfn",
+  "spec": "07-transformations.md#removecommentschar"
+ },
+ {
+  "input": "Test\nCase */ After",
+  "name": "removeCommentsChar",
+  "type": "tfn",
+  "ret": 1,
+  "output": "Test\nCase  After",
+  "spec": "07-transformations.md#removecommentschar"
+ }
+]

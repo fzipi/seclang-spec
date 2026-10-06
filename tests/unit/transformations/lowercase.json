@@ -1,0 +1,42 @@
+[
+ {
+  "input": "",
+  "name": "lowercase",
+  "type": "tfn",
+  "ret": 0,
+  "output": "",
+  "spec": "07-transformations.md#lowercase"
+ },
+ {
+  "output": "testcase",
+  "ret": 0,
+  "name": "lowercase",
+  "input": "testcase",
+  "type": "tfn",
+  "spec": "07-transformations.md#lowercase"
+ },
+ {
+  "ret": 0,
+  "input": "test\u0000case",
+  "type": "tfn",
+  "name": "lowercase",
+  "output": "test\u0000case",
+  "spec": "07-transformations.md#lowercase"
+ },
+ {
+  "output": "testcase",
+  "input": "TestCase",
+  "name": "lowercase",
+  "type": "tfn",
+  "ret": 1,
+  "spec": "07-transformations.md#lowercase"
+ },
+ {
+  "ret": 1,
+  "input": "Test\u0000Case",
+  "name": "lowercase",
+  "type": "tfn",
+  "output": "test\u0000case",
+  "spec": "07-transformations.md#lowercase"
+ }
+]

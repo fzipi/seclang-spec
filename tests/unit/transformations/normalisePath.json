@@ -1,0 +1,250 @@
+[
+ {
+  "ret": 0,
+  "input": "",
+  "name": "normalisePath",
+  "type": "tfn",
+  "output": "",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "name": "normalisePath",
+  "input": "/foo/bar/baz",
+  "type": "tfn",
+  "ret": 0,
+  "output": "/foo/bar/baz",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "ret": 0,
+  "input": "/foo/bar\u0000/baz",
+  "name": "normalisePath",
+  "type": "tfn",
+  "output": "/foo/bar\u0000/baz",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "name": "normalisePath",
+  "input": "x",
+  "type": "tfn",
+  "ret": 0,
+  "output": "x",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "",
+  "name": "normalisePath",
+  "input": ".",
+  "type": "tfn",
+  "ret": 1,
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "",
+  "ret": 1,
+  "type": "tfn",
+  "input": "./",
+  "name": "normalisePath",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "ret": 1,
+  "input": "./..",
+  "name": "normalisePath",
+  "type": "tfn",
+  "output": "..",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "ret": 1,
+  "input": "./../",
+  "name": "normalisePath",
+  "type": "tfn",
+  "output": "../",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "..",
+  "ret": 0,
+  "input": "..",
+  "name": "normalisePath",
+  "type": "tfn",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "../",
+  "ret": 0,
+  "input": "../",
+  "name": "normalisePath",
+  "type": "tfn",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "..",
+  "input": "../.",
+  "name": "normalisePath",
+  "type": "tfn",
+  "ret": 1,
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "name": "normalisePath",
+  "input": ".././",
+  "type": "tfn",
+  "ret": 1,
+  "output": "../",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "ret": 0,
+  "input": "../..",
+  "name": "normalisePath",
+  "type": "tfn",
+  "output": "../..",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "ret": 0,
+  "type": "tfn",
+  "input": "../../",
+  "name": "normalisePath",
+  "output": "../../",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "name": "normalisePath",
+  "input": "/dir/foo//bar",
+  "type": "tfn",
+  "ret": 1,
+  "output": "/dir/foo/bar",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "input": "dir/foo//bar/",
+  "type": "tfn",
+  "name": "normalisePath",
+  "ret": 1,
+  "output": "dir/foo/bar/",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "foo",
+  "ret": 1,
+  "input": "dir/../foo",
+  "type": "tfn",
+  "name": "normalisePath",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "../foo",
+  "type": "tfn",
+  "input": "dir/../../foo",
+  "name": "normalisePath",
+  "ret": 1,
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "ret": 1,
+  "input": "dir/./.././../../foo/bar",
+  "name": "normalisePath",
+  "type": "tfn",
+  "output": "../../foo/bar",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "../../foo/bar",
+  "type": "tfn",
+  "input": "dir/./.././../../foo/bar/.",
+  "name": "normalisePath",
+  "ret": 1,
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "../../foo/bar/",
+  "ret": 1,
+  "input": "dir/./.././../../foo/bar/./",
+  "name": "normalisePath",
+  "type": "tfn",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "input": "dir/./.././../../foo/bar/..",
+  "name": "normalisePath",
+  "type": "tfn",
+  "ret": 1,
+  "output": "../../foo",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "../../foo/",
+  "ret": 1,
+  "input": "dir/./.././../../foo/bar/../",
+  "name": "normalisePath",
+  "type": "tfn",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "ret": 1,
+  "name": "normalisePath",
+  "input": "dir/./.././../../foo/bar/",
+  "type": "tfn",
+  "output": "../../foo/bar/",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "../../foo/bar",
+  "name": "normalisePath",
+  "input": "dir//.//..//.//..//..//foo//bar",
+  "type": "tfn",
+  "ret": 1,
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "name": "normalisePath",
+  "input": "dir//.//..//.//..//..//foo//bar//",
+  "type": "tfn",
+  "ret": 1,
+  "output": "../../foo/bar/",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "dir",
+  "ret": 1,
+  "input": "dir/subdir/subsubdir/subsubsubdir/../../..",
+  "name": "normalisePath",
+  "type": "tfn",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "ret": 1,
+  "type": "tfn",
+  "input": "dir/./subdir/./subsubdir/./subsubsubdir/../../..",
+  "name": "normalisePath",
+  "output": "dir",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "ret": 1,
+  "input": "dir/./subdir/../subsubdir/../subsubsubdir/..",
+  "type": "tfn",
+  "name": "normalisePath",
+  "output": "dir",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "type": "tfn",
+  "input": "/dir/./subdir/../subsubdir/../subsubsubdir/../",
+  "name": "normalisePath",
+  "ret": 1,
+  "output": "/dir/",
+  "spec": "07-transformations.md#normalisepath"
+ },
+ {
+  "output": "/etc/passwd",
+  "ret": 1,
+  "type": "tfn",
+  "input": "/./.././../../../../../../../\u0000/../etc/./passwd",
+  "name": "normalisePath",
+  "spec": "07-transformations.md#normalisepath"
+ }
+]

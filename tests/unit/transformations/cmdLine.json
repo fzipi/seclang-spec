@@ -1,0 +1,50 @@
+[
+ {
+  "name": "cmd_line",
+  "input": "",
+  "type": "tfn",
+  "ret": 0,
+  "output": "",
+  "spec": "07-transformations.md#cmdline"
+ },
+ {
+  "name": "cmd_line",
+  "input": "test",
+  "type": "tfn",
+  "ret": 1,
+  "output": "test",
+  "spec": "07-transformations.md#cmdline"
+ },
+ {
+  "name": "cmd_line",
+  "input": "C^OMMAND /C DIR",
+  "type": "tfn",
+  "ret": 1,
+  "output": "command/c dir",
+  "spec": "07-transformations.md#cmdline"
+ },
+ {
+  "name": "cmd_line",
+  "input": "C^oMMaNd /C DiR",
+  "type": "tfn",
+  "ret": 1,
+  "output": "command/c dir",
+  "spec": "07-transformations.md#cmdline"
+ },
+ {
+  "name": "cmd_line",
+  "input": "cmd,/c DiR",
+  "type": "tfn",
+  "ret": 1,
+  "output": "cmd/c dir",
+  "spec": "07-transformations.md#cmdline"
+ },
+ {
+  "name": "cmd_line",
+  "input": "\"command\" /c DiR",
+  "type": "tfn",
+  "ret": 1,
+  "output": "command/c dir",
+  "spec": "07-transformations.md#cmdline"
+ }
+]

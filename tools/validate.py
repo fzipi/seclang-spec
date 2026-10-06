@@ -267,7 +267,8 @@ def check_matrix_status(root: Path) -> list[str]:
                 errors.append(f"compat/matrix.json: {category}/{name}: status {status} but spec/{anchor} does not exist")
             elif status != spec_status:
                 errors.append(f"compat/matrix.json: {category}/{name}: matrix says {status}, spec/{anchor} says {spec_status}")
-            if status == "Core":
+            if status == "Core" and not row.get("exception"):
+                # "exception" names the ADR that made a Core feature one engine lacks (e.g. ADR-0012)
                 for e in _matrix.ENGINES:
                     if not row.get(e):
                         errors.append(f"compat/matrix.json: {category}/{name}: Core but absent in {e}")

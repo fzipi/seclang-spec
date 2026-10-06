@@ -1,0 +1,42 @@
+[
+ {
+  "output": "",
+  "input": "",
+  "type": "tfn",
+  "name": "base64Encode",
+  "ret": 0,
+  "spec": "07-transformations.md#base64encode"
+ },
+ {
+  "input": "TestCase",
+  "name": "base64Encode",
+  "type": "tfn",
+  "ret": 1,
+  "output": "VGVzdENhc2U=",
+  "spec": "07-transformations.md#base64encode"
+ },
+ {
+  "output": "VGVzdENhc2Ux",
+  "ret": 1,
+  "input": "TestCase1",
+  "name": "base64Encode",
+  "type": "tfn",
+  "spec": "07-transformations.md#base64encode"
+ },
+ {
+  "input": "TestCase12",
+  "type": "tfn",
+  "name": "base64Encode",
+  "ret": 1,
+  "output": "VGVzdENhc2UxMg==",
+  "spec": "07-transformations.md#base64encode"
+ },
+ {
+  "output": "VGVzdABDYXNl",
+  "ret": 1,
+  "name": "base64Encode",
+  "input": "Test\u0000Case",
+  "type": "tfn",
+  "spec": "07-transformations.md#base64encode"
+ }
+]

@@ -1,0 +1,66 @@
+[
+ {
+  "input": "",
+  "type": "tfn",
+  "name": "removeNulls",
+  "ret": 0,
+  "output": "",
+  "spec": "07-transformations.md#removenulls"
+ },
+ {
+  "ret": 0,
+  "input": "TestCase",
+  "type": "tfn",
+  "name": "removeNulls",
+  "output": "TestCase",
+  "spec": "07-transformations.md#removenulls"
+ },
+ {
+  "output": "Test\u0001Case",
+  "input": "Test\u0001Case",
+  "type": "tfn",
+  "name": "removeNulls",
+  "ret": 0,
+  "spec": "07-transformations.md#removenulls"
+ },
+ {
+  "input": "\u0000TestCase",
+  "type": "tfn",
+  "name": "removeNulls",
+  "ret": 1,
+  "output": "TestCase",
+  "spec": "07-transformations.md#removenulls"
+ },
+ {
+  "output": "TestCase",
+  "ret": 1,
+  "input": "Test\u0000Case",
+  "name": "removeNulls",
+  "type": "tfn",
+  "spec": "07-transformations.md#removenulls"
+ },
+ {
+  "input": "Test\u0000\u0000Case",
+  "type": "tfn",
+  "name": "removeNulls",
+  "ret": 1,
+  "output": "TestCase",
+  "spec": "07-transformations.md#removenulls"
+ },
+ {
+  "output": "TestCase",
+  "ret": 1,
+  "input": "TestCase\u0000",
+  "name": "removeNulls",
+  "type": "tfn",
+  "spec": "07-transformations.md#removenulls"
+ },
+ {
+  "output": "TestCase",
+  "type": "tfn",
+  "input": "\u0000Test\u0000Case\u0000",
+  "name": "removeNulls",
+  "ret": 1,
+  "spec": "07-transformations.md#removenulls"
+ }
+]

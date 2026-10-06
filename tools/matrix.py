@@ -42,7 +42,8 @@ def render(matrix: dict) -> str:
         for row in sorted(rows, key=lambda r: r["name"].lower()):
             cells = [("yes" if row[e] else "-") for e in ENGINES]
             if has_status:
-                cells.append(row.get("status", "-"))
+                st = row.get("status", "-")
+                cells.append(f"{st} ({row['exception']})" if row.get("exception") else st)
             out.append(f"| `{row['name']}` | " + " | ".join(cells) + " |")
     return "\n".join(out) + "\n"
 

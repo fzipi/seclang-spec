@@ -17,8 +17,8 @@ promoted into the spec (Extension).
    index disagree.
 5. Update the affected section of `spec/` in the same PR.
 
-Numbers 0009–0012 are reserved for the decisions listed in the design document
-(phase model, engine extensions, v2 legacy, `uppercase`) and will be written in Phase 3.
+Numbers 0009–0011 are reserved for the decisions listed in the design document
+(phase model, engine extensions, v2 legacy) and will be written in Phase 3.
 
 ## Index
 
@@ -32,6 +32,7 @@ Numbers 0009–0012 are reserved for the decisions listed in the design document
 | [0006](0006-core-ctl-options.md) | Core `ctl:` options | Divergence | proposed |
 | [0007](0007-persistent-collections.md) | Persistent collections are Extended | Divergence | proposed |
 | [0008](0008-collection-key-case.md) | Collection keys match case-insensitively | Divergence | proposed |
+| [0012](0012-uppercase-transformation.md) | `uppercase` is promoted to Core | Extension | proposed |
 | [0013](0013-comment-line-continuation.md) | Comment lines ending in a backslash | Divergence | proposed |
 | [0014](0014-secdefaultaction-constraints.md) | `SecDefaultAction` constraints | Divergence | proposed |
 | [0015](0015-mandatory-rule-id.md) | Every rule carries an id | Divergence | proposed |

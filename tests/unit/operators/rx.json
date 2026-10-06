@@ -106,6 +106,25 @@
  {
   "type": "op",
   "name": "rx",
+  "param": "<\\?(?!xml)",
+  "input": "<?php",
+  "ret": 1,
+  "re_groups": [
+   "<?"
+  ],
+  "spec": "06-operators.md#rx"
+ },
+ {
+  "type": "op",
+  "name": "rx",
+  "param": "<\\?(?!xml)",
+  "input": "<?xml",
+  "ret": 0,
+  "spec": "06-operators.md#rx"
+ },
+ {
+  "type": "op",
+  "name": "rx",
   "param": "abc\ndef",
   "input": "abc\ndef",
   "ret": 1,

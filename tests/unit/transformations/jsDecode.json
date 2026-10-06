@@ -1,0 +1,122 @@
+[
+ {
+  "output": "",
+  "ret": 0,
+  "input": "",
+  "name": "jsDecode",
+  "type": "tfn",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "output": "TestCase",
+  "ret": 0,
+  "type": "tfn",
+  "input": "TestCase",
+  "name": "jsDecode",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "ret": 0,
+  "input": "Test\u0000Case",
+  "type": "tfn",
+  "name": "jsDecode",
+  "output": "Test\u0000Case",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "input": "\\\\a\\\b\\\\f\\\n\\\r\\\t\\\\v\\?\\'\\\"\u0000\\12\\123\u0000ÿ",
+  "output": "\\a\b\\f\n\r\t\\v?'\"\u0000\nS\u0000ÿ",
+  "ret": 1,
+  "type": "tfn",
+  "name": "jsDecode",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "output": "8966\n\u0000\u0000\u0000\n\n\n3u00a",
+  "input": "8966\n\u0000\u0000\u0000\n\n\n3u00a",
+  "type": "tfn",
+  "name": "jsDecode",
+  "ret": 1,
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "input": "\\x",
+  "name": "jsDecode",
+  "type": "tfn",
+  "ret": 1,
+  "output": "x",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "output": "xx0",
+  "ret": 1,
+  "name": "jsDecode",
+  "input": "\\x\\x0",
+  "type": "tfn",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "output": "xx0\u0000",
+  "type": "tfn",
+  "input": "\\x\\x0\u0000",
+  "name": "jsDecode",
+  "ret": 1,
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "output": "u",
+  "input": "\\u",
+  "name": "jsDecode",
+  "type": "tfn",
+  "ret": 1,
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "input": "\\u\\u0",
+  "name": "jsDecode",
+  "type": "tfn",
+  "ret": 1,
+  "output": "uu0",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "ret": 1,
+  "type": "tfn",
+  "input": "\\u\\u0\\u01",
+  "name": "jsDecode",
+  "output": "uu0u01",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "input": "\\u\\u0\\u01\\u012",
+  "type": "tfn",
+  "name": "jsDecode",
+  "ret": 1,
+  "output": "uu0u01u012",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "ret": 1,
+  "input": "\\u\\u0\\u01\\u012\u0000",
+  "type": "tfn",
+  "name": "jsDecode",
+  "output": "uu0u01u012\u0000",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "input": "\\",
+  "type": "tfn",
+  "name": "jsDecode",
+  "ret": 0,
+  "output": "\\",
+  "spec": "07-transformations.md#jsdecode"
+ },
+ {
+  "output": "\u0000",
+  "ret": 1,
+  "input": "\\\u0000",
+  "type": "tfn",
+  "name": "jsDecode",
+  "spec": "07-transformations.md#jsdecode"
+ }
+]
