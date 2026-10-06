@@ -7,6 +7,7 @@ rules: |
   SecRule ARGS_GET:a|ARGS_GET:b "@streq 1" "id:3001,phase:1,deny,status:403"
 tests:
   - test_title: second variable in the list matches
+    spec: 04-directives.md#secrule
     stages:
       - stage:
           input:

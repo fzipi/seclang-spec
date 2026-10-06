@@ -10,6 +10,7 @@ rules: |
   SecRule ARGS_GET:c "@streq 1" "id:4022,pass"
 tests:
   - test_title: inherits deny and status
+    spec: 04-directives.md#secdefaultaction
     stages:
       - stage:
           input:

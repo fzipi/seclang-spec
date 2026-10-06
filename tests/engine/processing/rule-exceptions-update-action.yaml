@@ -8,6 +8,7 @@ rules: |
   SecRuleUpdateActionById 4066 "pass"
 tests:
   - test_title: rule now passes
+    spec: 04-directives.md#secruleupdateactionbyid
     stages:
       - stage:
           input:

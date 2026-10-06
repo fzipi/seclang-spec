@@ -1,0 +1,18 @@
+meta:
+  name: seccomponentsignature
+  description: SecComponentSignature is accepted, may repeat, and does not affect rules
+spec: 04-directives.md#seccomponentsignature
+rules: |
+  SecRuleEngine On
+  SecComponentSignature "OWASP_CRS/4.30.0"
+  SecComponentSignature "seclang-spec-tests/1.0 (phase 2)"
+  SecRule ARGS_GET:a "@streq 1" "id:5005,phase:1,deny,status:403"
+tests:
+  - test_title: configuration loads and rule fires
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5005]
+            interruption: {rule_id: 5005, action: deny, status: 403}

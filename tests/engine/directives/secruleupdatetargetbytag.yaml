@@ -1,0 +1,19 @@
+meta:
+  name: secruleupdatetargetbytag
+  description: SecRuleUpdateTargetByTag adds an exclusion to every rule carrying the tag
+spec: 04-directives.md#secruleupdatetargetbytag
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET "@streq 1" "id:5020,phase:1,deny,status:403,tag:'app/foo'"
+  SecRule ARGS_GET "@streq 1" "id:5021,phase:1,deny,status:403,tag:'app/bar'"
+  SecRuleUpdateTargetByTag "app/foo" "!ARGS_GET:safe"
+tests:
+  - test_title: tagged rule ignores the excluded argument, untagged rule does not
+    stages:
+      - stage:
+          input:
+            uri: /?safe=1
+          output:
+            non_triggered_rules: [5020]
+            triggered_rules: [5021]
+            interruption: {rule_id: 5021, action: deny, status: 403}

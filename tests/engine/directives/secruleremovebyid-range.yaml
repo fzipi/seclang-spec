@@ -1,0 +1,22 @@
+meta:
+  name: secruleremovebyid-range
+  description: SecRuleRemoveById accepts ids and inclusive ranges in one directive
+spec: 04-directives.md#secruleremovebyid
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:5010,phase:1,pass"
+  SecRule ARGS_GET:a "@streq 1" "id:5011,phase:1,pass"
+  SecRule ARGS_GET:a "@streq 1" "id:5012,phase:1,pass"
+  SecRule ARGS_GET:a "@streq 1" "id:5013,phase:1,pass"
+  SecRule ARGS_GET:a "@streq 1" "id:5014,phase:1,pass"
+  SecRuleRemoveById 5010 5012-5013
+tests:
+  - test_title: listed id and range are removed, neighbours stay
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5011, 5014]
+            non_triggered_rules: [5010, 5012, 5013]
+            no_interruption: true

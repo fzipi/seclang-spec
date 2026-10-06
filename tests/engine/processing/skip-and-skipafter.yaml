@@ -12,6 +12,7 @@ rules: |
   SecRule ARGS_GET:a "@streq 1" "id:4044,phase:1,pass"
 tests:
   - test_title: skipped rules do not run
+    spec: 04-directives.md#secmarker
     stages:
       - stage:
           input:

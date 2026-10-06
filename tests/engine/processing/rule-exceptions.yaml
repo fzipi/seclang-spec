@@ -17,6 +17,7 @@ rules: |
   SecRuleUpdateTargetById 999999 "!ARGS_GET:a"
 tests:
   - test_title: removed and retargeted rules do not fire on a
+    spec: 04-directives.md#secruleremovebytag
     stages:
       - stage:
           input:
@@ -26,6 +27,7 @@ tests:
             non_triggered_rules: [4060, 4061, 4063]
             interruption: {rule_id: 4062, action: deny, status: 403}
   - test_title: retargeted rule still fires on b
+    spec: 04-directives.md#secruleupdatetargetbyid
     stages:
       - stage:
           input:

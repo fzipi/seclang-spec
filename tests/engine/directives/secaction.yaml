@@ -1,0 +1,17 @@
+meta:
+  name: secaction
+  description: SecAction always matches and can initialise TX variables
+spec: 04-directives.md#secaction
+rules: |
+  SecRuleEngine On
+  SecAction "id:5003,phase:1,pass,nolog,setvar:tx.mode=strict"
+  SecRule TX:mode "@streq strict" "id:5004,phase:1,deny,status:403"
+tests:
+  - test_title: variable set by SecAction is visible to the next rule
+    stages:
+      - stage:
+          input:
+            uri: /
+          output:
+            triggered_rules: [5003, 5004]
+            interruption: {rule_id: 5004, action: deny, status: 403}

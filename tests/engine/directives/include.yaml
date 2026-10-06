@@ -1,0 +1,22 @@
+meta:
+  name: include
+  description: Include parses a file in place and nested includes work
+spec: 04-directives.md#include
+files:
+  a.conf: |
+    Include b.conf
+    SecRule ARGS_GET:a "@streq 1" "id:5001,phase:1,pass"
+  b.conf: |
+    SecRule ARGS_GET:a "@streq 1" "id:5002,phase:1,pass"
+rules: |
+  SecRuleEngine On
+  Include a.conf
+tests:
+  - test_title: rules from both files fire in include order
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5001, 5002]
+            no_interruption: true
