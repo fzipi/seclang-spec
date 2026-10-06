@@ -7,6 +7,7 @@ Checks: test files match their schema; every Core spec feature has a test and no
 points at a missing anchor; ADR files and index agree; compat/matrix.md is current.
 """
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Callable, Iterator
@@ -53,7 +54,65 @@ def check_tests(root: Path) -> list[str]:
     return errors
 
 
-CHECKS: list[Callable[[Path], list[str]]] = [check_tests]
+HEADING_RE = re.compile(r"^#{2,4}\s+(.+?)\s*$")
+STATUS_RE = re.compile(r"^\*\*Status:\*\*\s+(Core|Extended|Deprecated|Engine-specific)\s*$")
+
+
+def slug(heading: str) -> str:
+    """GitHub-style heading anchor."""
+    cleaned = re.sub(r"[^a-z0-9 -]", "", heading.lower())
+    return cleaned.strip().replace(" ", "-")
+
+
+def spec_features(root: Path) -> dict[str, str]:
+    """Map 'NN-file.md#anchor' -> status for every heading followed by a **Status:** line."""
+    features = {}
+    for path in sorted((root / "spec").glob("*.md")):
+        heading = None
+        for line in path.read_text().splitlines():
+            if m := HEADING_RE.match(line):
+                heading = slug(m.group(1))
+            elif (m := STATUS_RE.match(line)) and heading:
+                features[f"{path.name}#{heading}"] = m.group(1)
+                heading = None
+            elif line.strip():
+                heading = None  # status must directly follow its heading
+    return features
+
+
+def test_spec_refs(root: Path) -> dict[str, list[str]]:
+    """Map spec anchor -> test files that reference it."""
+    refs: dict[str, list[str]] = {}
+    for path, data in load_test_files(root):
+        if isinstance(data, Exception):
+            continue
+        rel = _rel(root, path)
+        found = []
+        if isinstance(data, list):
+            found = [c.get("spec") for c in data if isinstance(c, dict)]
+        elif isinstance(data, dict):
+            found = [data.get("spec")] + [t.get("spec") for t in data.get("tests", []) if isinstance(t, dict)]
+        for ref in found:
+            if ref:
+                refs.setdefault(ref, []).append(rel)
+    return refs
+
+
+def check_coverage(root: Path) -> list[str]:
+    features = spec_features(root)
+    refs = test_spec_refs(root)
+    errors = []
+    for ref, files in sorted(refs.items()):
+        if ref not in features:
+            for f in sorted(set(files)):
+                errors.append(f"{f}: spec anchor {ref} does not exist or has no **Status:** line")
+    for anchor, status in sorted(features.items()):
+        if status == "Core" and anchor not in refs:
+            errors.append(f"spec/{anchor}: Core feature has no test")
+    return errors
+
+
+CHECKS: list[Callable[[Path], list[str]]] = [check_tests, check_coverage]
 
 
 def main(root: Path = ROOT, checks: list[Callable[[Path], list[str]]] | None = None) -> int:

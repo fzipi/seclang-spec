@@ -83,3 +83,76 @@ class SchemaCheckTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+SPEC_FEATURE = """\
+# Transformations
+
+### lowercase
+
+**Status:** Core
+
+Lowercases ASCII letters.
+
+### uppercase
+
+**Status:** Extended
+
+### `rx`
+
+**Status:** Core
+"""
+
+
+class CoverageTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = make_repo(Path(self._tmp.name))
+        (self.root / "spec/07-transformations.md").write_text(SPEC_FEATURE)
+        (self.root / "spec/04-directives.md").write_text("# Directives\n\n### SecRuleEngine\n\n**Status:** Core\n")
+        (self.root / "tests/unit/t.json").write_text(json.dumps(GOOD_UNIT))
+        (self.root / "tests/engine/e.yaml").write_text(GOOD_ENGINE)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_slug_matches_github(self):
+        self.assertEqual(validate.slug("SecRuleEngine"), "secruleengine")
+        self.assertEqual(validate.slug("Name matching"), "name-matching")
+        self.assertEqual(validate.slug("`rx`"), "rx")
+        self.assertEqual(validate.slug("ctl: ruleRemoveById"), "ctl-ruleremovebyid")
+
+    def test_spec_features_are_file_qualified_with_status(self):
+        feats = validate.spec_features(self.root)
+        self.assertEqual(feats["07-transformations.md#lowercase"], "Core")
+        self.assertEqual(feats["07-transformations.md#uppercase"], "Extended")
+        self.assertEqual(feats["07-transformations.md#rx"], "Core")
+        self.assertEqual(feats["04-directives.md#secruleengine"], "Core")
+        self.assertNotIn("07-transformations.md#transformations", feats)  # no status line
+
+    def test_same_heading_in_two_files_does_not_collide(self):
+        (self.root / "spec/06-operators.md").write_text("# Operators\n\n### `rx`\n\n**Status:** Core\n")
+        feats = validate.spec_features(self.root)
+        self.assertIn("06-operators.md#rx", feats)
+        self.assertIn("07-transformations.md#rx", feats)
+
+    def test_core_feature_without_test_is_reported(self):
+        errors = validate.check_coverage(self.root)
+        self.assertTrue(any("07-transformations.md#rx" in e and "no test" in e for e in errors))
+        self.assertFalse(any("uppercase" in e for e in errors))  # Extended is not required
+
+    def test_dangling_ref_is_reported(self):
+        bad = [dict(GOOD_UNIT[0], spec="07-transformations.md#nope")]
+        (self.root / "tests/unit/bad.json").write_text(json.dumps(bad))
+        errors = validate.check_coverage(self.root)
+        self.assertTrue(any("tests/unit/bad.json" in e and "#nope" in e for e in errors))
+
+    def test_ref_to_heading_without_status_is_dangling(self):
+        bad = [dict(GOOD_UNIT[0], spec="07-transformations.md#transformations")]
+        (self.root / "tests/unit/bad.json").write_text(json.dumps(bad))
+        errors = validate.check_coverage(self.root)
+        self.assertTrue(any("#transformations" in e for e in errors))
+
+    def test_fully_covered_repo_has_no_errors(self):
+        (self.root / "spec/07-transformations.md").write_text(SPEC_FEATURE.replace("### `rx`\n\n**Status:** Core\n", ""))
+        self.assertEqual(validate.check_coverage(self.root), [])
