@@ -1,0 +1,15 @@
+meta:
+  name: secrule-requires-id
+  description: A SecRule or SecAction that is not a chain member must carry an id (ADR-0015)
+spec: 02-grammar.md#secrule-structure
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "phase:1,deny,status:403"
+tests:
+  - test_title: rule without id fails to load
+    stages:
+      - stage:
+          input:
+            uri: /
+          output:
+            expect_error: true

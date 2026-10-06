@@ -1,0 +1,16 @@
+meta:
+  name: duplicate-rule-id
+  description: Two rules with the same id are a configuration error
+spec: 02-grammar.md#secrule-structure
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:3015,phase:1,pass"
+  SecRule ARGS_GET:b "@streq 1" "id:3015,phase:1,pass"
+tests:
+  - test_title: duplicate id fails to load
+    stages:
+      - stage:
+          input:
+            uri: /
+          output:
+            expect_error: true

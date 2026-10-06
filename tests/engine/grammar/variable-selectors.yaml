@@ -1,0 +1,35 @@
+meta:
+  name: variable-selectors
+  description: Key selectors and regular-expression selectors on collections
+spec: 02-grammar.md#variable-selectors
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:/^user_/ "@streq admin" "id:3004,phase:1,deny,status:403"
+  SecRule REQUEST_HEADERS:X-Test "@streq yes" "id:3005,phase:1,deny,status:403"
+tests:
+  - test_title: regex selector matches a prefixed key
+    stages:
+      - stage:
+          input:
+            uri: /?user_name=admin
+          output:
+            triggered_rules: [3004]
+            interruption: {rule_id: 3004, action: deny, status: 403}
+  - test_title: header key selector
+    stages:
+      - stage:
+          input:
+            uri: /
+            headers:
+              X-Test: "yes"
+          output:
+            triggered_rules: [3005]
+            interruption: {rule_id: 3005, action: deny, status: 403}
+  - test_title: regex selector does not match other keys
+    stages:
+      - stage:
+          input:
+            uri: /?name=admin
+          output:
+            non_triggered_rules: [3004]
+            no_interruption: true

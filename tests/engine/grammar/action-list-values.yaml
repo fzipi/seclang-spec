@@ -1,0 +1,16 @@
+meta:
+  name: action-list-values
+  description: Single-quoted action values may contain commas and slashes
+spec: 02-grammar.md#action-list
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:3009,phase:1,deny,status:403,msg:'commas, inside, quotes',tag:'a/b',logdata:'x=%{MATCHED_VAR}'"
+tests:
+  - test_title: rule with quoted values parses and fires
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [3009]
+            interruption: {rule_id: 3009, action: deny, status: 403}

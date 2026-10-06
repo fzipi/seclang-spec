@@ -1,0 +1,24 @@
+meta:
+  name: variable-list
+  description: Variables are separated by | and any of them may match
+spec: 02-grammar.md#variable-list
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a|ARGS_GET:b "@streq 1" "id:3001,phase:1,deny,status:403"
+tests:
+  - test_title: second variable in the list matches
+    stages:
+      - stage:
+          input:
+            uri: /?b=1
+          output:
+            triggered_rules: [3001]
+            interruption: {rule_id: 3001, action: deny, status: 403}
+  - test_title: unrelated argument does not match
+    stages:
+      - stage:
+          input:
+            uri: /?c=1
+          output:
+            non_triggered_rules: [3001]
+            no_interruption: true

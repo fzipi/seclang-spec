@@ -1,0 +1,28 @@
+meta:
+  name: operator-forms
+  description: Implicit @rx, explicit negation, and negated implicit @rx
+spec: 02-grammar.md#operator
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "^abc$" "id:3006,phase:1,pass"
+  SecRule ARGS_GET:a "!@streq abc" "id:3007,phase:1,pass"
+  SecRule ARGS_GET:a "!abc" "id:3008,phase:1,pass"
+tests:
+  - test_title: value abc
+    stages:
+      - stage:
+          input:
+            uri: /?a=abc
+          output:
+            triggered_rules: [3006]
+            non_triggered_rules: [3007, 3008]
+            no_interruption: true
+  - test_title: value zzz
+    stages:
+      - stage:
+          input:
+            uri: /?a=zzz
+          output:
+            triggered_rules: [3007, 3008]
+            non_triggered_rules: [3006]
+            no_interruption: true

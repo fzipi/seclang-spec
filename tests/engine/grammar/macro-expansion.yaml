@@ -1,0 +1,26 @@
+meta:
+  name: macro-expansion
+  description: "%{collection.key} expands in operator parameters; names are case-insensitive"
+spec: 02-grammar.md#macro-expansion
+rules: |
+  SecRuleEngine On
+  SecAction "id:3010,phase:1,pass,nolog,setvar:tx.expected=secret"
+  SecRule ARGS_GET:a "@streq %{tx.expected}" "id:3011,phase:1,deny,status:403"
+  SecRule ARGS_GET:b "@streq %{TX.EXPECTED}" "id:3012,phase:1,deny,status:403"
+tests:
+  - test_title: lowercase macro
+    stages:
+      - stage:
+          input:
+            uri: /?a=secret
+          output:
+            triggered_rules: [3010, 3011]
+            interruption: {rule_id: 3011, action: deny, status: 403}
+  - test_title: uppercase macro
+    stages:
+      - stage:
+          input:
+            uri: /?b=secret
+          output:
+            triggered_rules: [3010, 3012]
+            interruption: {rule_id: 3012, action: deny, status: 403}

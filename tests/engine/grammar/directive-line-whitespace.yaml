@@ -1,0 +1,14 @@
+meta:
+  name: directive-line-whitespace
+  description: Arguments may be separated by runs of spaces and tabs
+spec: 02-grammar.md#directive-line
+rules: "SecRuleEngine On\nSecRule   ARGS_GET:a\t\t\"@streq 1\"     \"id:3013,phase:1,deny,status:403\"\n"
+tests:
+  - test_title: tabs and multiple spaces between arguments
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [3013]
+            interruption: {rule_id: 3013, action: deny, status: 403}
