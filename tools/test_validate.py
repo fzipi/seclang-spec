@@ -57,6 +57,12 @@ class SchemaCheckTests(unittest.TestCase):
         self.assertIn("tests/unit/bad.json", errors[0])
         self.assertIn("output", errors[0])
 
+    def test_unit_strings_must_be_byte_strings(self):
+        bad = [{"type": "tfn", "name": "lowercase", "input": "\u20ac", "output": "x", "ret": 1, "spec": "07-transformations.md#lowercase"}]
+        (self.root / "tests/unit/bad.json").write_text(json.dumps(bad))
+        errors = validate.check_tests(self.root)
+        self.assertTrue(any("tests/unit/bad.json" in e and "U+00FF" in e for e in errors))
+
     def test_operator_without_param_is_valid(self):
         ok = [{"type": "op", "name": "detectSQLi", "input": "x", "ret": 0, "spec": "06-operators.md#detectsqli"}]
         (self.root / "tests/unit/ok.json").write_text(json.dumps(ok))

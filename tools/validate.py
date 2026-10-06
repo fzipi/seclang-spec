@@ -54,6 +54,12 @@ def check_tests(root: Path) -> list[str]:
         for err in sorted(schemas[tier].iter_errors(data), key=lambda e: list(map(str, e.absolute_path))):
             where = "/".join(map(str, err.absolute_path)) or "<root>"
             errors.append(f"{rel}: {where}: {err.message}")
+        if tier == "unit" and isinstance(data, list):
+            for i, case in enumerate(data):
+                for field in ("input", "output", "param"):
+                    v = case.get(field) if isinstance(case, dict) else None
+                    if isinstance(v, str) and any(ord(ch) > 0xFF for ch in v):
+                        errors.append(f"{rel}: {i}/{field}: unit strings are byte strings, every code point must be <= U+00FF")
         if isinstance(data, dict):
             for key in data.get("files") or {}:
                 if ".." in str(key).split("/"):

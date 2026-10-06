@@ -15,7 +15,12 @@ class ConvertTests(unittest.TestCase):
 
     def test_only_the_runner_escapes_are_decoded(self):
         # The v3 unit runner (test/unit/unit_test.cc) decodes \xHH, \uHHHH, \0, \b, \t, \n, \r and nothing else.
-        self.assertEqual(import_sts.unescape("a\\x41\\u0042"), "a\\x41B")  # \\xHH stays: it means one raw byte
+        self.assertEqual(import_sts.unescape("a\\x41\\u0042"), "aAB")
+
+    def test_strings_become_byte_strings(self):
+        # Code points <= U+00FF are bytes already; wider characters become their UTF-8 bytes.
+        out = import_sts.convert_case({"type": "tfn", "name": "lowercase", "input": "\u00e9\u20ac", "output": "x", "ret": 1}, "a#b")
+        self.assertEqual(out["input"], "\u00e9\u00e2\u0082\u00ac")
         self.assertEqual(import_sts.unescape("x\\0y\\ty\\n\\r\\b"), "x\0y\ty\n\r\b")
         self.assertEqual(import_sts.unescape("\\d\\(\\\\"), "\\d\\(\\\\")  # regex escapes and double backslash untouched
         case = {"type": "op", "name": "rx", "param": "a\\d", "input": "a1", "ret": 1}

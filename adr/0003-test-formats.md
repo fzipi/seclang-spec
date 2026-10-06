@@ -28,12 +28,12 @@ loadable by Go and C++ test code with off-the-shelf libraries.
 Two tiers, both with a JSON Schema in `tests/schema/`:
 
 1. **Unit tier**, `tests/unit/**/*.json`: the SecRules Test Set field names, plus
-   optional `spec`, `note` and `re_groups` fields. One deliberate difference: `input`,
-   `output` and `param` use plain JSON escapes, whereas the original corpus stores a
-   literal backslash sequence that its runners unescape a second time after parsing.
-   The single exception is backslash-`x` plus two hex digits, which denotes one raw byte
-   (JSON cannot carry one); adapters decode exactly that and nothing else. Cases imported
-   from the corpus are converted by `tools/import_sts.py`.
+   optional `spec`, `note` and `re_groups` fields. Two deliberate differences from the
+   corpus: `input`, `output` and `param` are plain JSON strings with no second layer of
+   backslash escapes (the corpus's runners unescape `\\xHH`, `\\uHHHH`, `\\0`, `\\b`, `\\t`,
+   `\\n`, `\\r` after parsing; `tools/import_sts.py` does it once, on import), and they
+   are byte strings: every code point is at most U+00FF and denotes one byte, which the
+   validator enforces, so adapters encode them with Latin-1.
 2. **Engine tier**, `tests/engine/**/*.yaml`: one profile per file in the Coraza
    profile / go-ftw shape (`meta`, `rules`, `tests[].stages[].stage.{input,output}`),
    plus `spec`, `requires`, a `stage.response` block for synthetic backend responses,

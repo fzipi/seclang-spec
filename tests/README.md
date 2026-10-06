@@ -13,12 +13,12 @@ framework. The schemas in `schema/` are the contract.
 
 **Unit** cases exercise one operator or transformation in isolation. `ret` is 1 when an
 operator matches, or when a transformation changed its input. `input`/`output` are JSON
-strings, so `\u0000` and other escapes are legal. Unlike the original SecRules Test Set
-corpus, which stores a literal backslash sequence and unescapes it a second time after
-JSON parsing, these files use plain JSON escapes, with **one** exception: the two-character
-sequence backslash-`x` followed by two hex digits denotes a single raw byte, because JSON
-has no way to carry one. Adapters MUST replace each such sequence with that byte and MUST
-NOT decode anything else. Cases imported from the corpus are converted on import.
+strings, so `\u0000` and other escapes are legal. They are **byte strings**: every code
+point MUST be at most U+00FF and denotes exactly one byte, so adapters encode them with
+Latin-1 (never UTF-8) before handing them to the engine. This is how the SecRules Test
+Set is written too: non-ASCII text appears as the bytes of its UTF-8 encoding, one code
+point per byte. Unlike that corpus, these files carry no second layer of backslash
+escapes; adapters MUST NOT unescape anything after JSON parsing. Cases imported from the corpus are converted on import.
 
 **Engine** profiles load `rules`, then run each stage's `input` as a transaction. When a
 stage has a `response`, the adapter must feed it as the backend response so phases 3–5
