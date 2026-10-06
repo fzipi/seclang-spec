@@ -1,0 +1,14 @@
+meta:
+  name: crlf-line-endings
+  description: CRLF line endings are accepted
+spec: 01-lexical.md#lines-and-directives
+rules: "SecRuleEngine On\r\nSecRule ARGS_GET:a \"@streq 1\" \"id:2005,phase:1,deny,status:403\"\r\n"
+tests:
+  - test_title: rules separated by CRLF load and fire
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [2005]
+            interruption: {rule_id: 2005, action: deny, status: 403}

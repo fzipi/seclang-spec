@@ -1,0 +1,19 @@
+meta:
+  name: comment-with-trailing-backslash
+  description: A comment line ending in a backslash swallows the continued lines (ADR-0013)
+spec: 01-lexical.md#comments
+rules: |
+  SecRuleEngine On
+  # SecRule ARGS_GET:a "@streq 1" \
+      "id:2007,phase:1,deny,status:403"
+  SecRule ARGS_GET:a "@streq 1" "id:2008,phase:1,pass"
+tests:
+  - test_title: continued comment is not parsed as a directive
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [2008]
+            non_triggered_rules: [2007]
+            no_interruption: true

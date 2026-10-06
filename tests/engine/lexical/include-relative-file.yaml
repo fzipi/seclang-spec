@@ -1,0 +1,20 @@
+meta:
+  name: include-relative-file
+  description: Include loads another file; a glob with no match is not an error
+spec: 01-lexical.md#include
+files:
+  included/rules.conf: |
+    SecRule ARGS_GET:a "@streq 1" "id:2006,phase:1,deny,status:403"
+rules: |
+  SecRuleEngine On
+  Include included/rules.conf
+  Include included/nothing-*.conf
+tests:
+  - test_title: rule from included file fires
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [2006]
+            interruption: {rule_id: 2006, action: deny, status: 403}

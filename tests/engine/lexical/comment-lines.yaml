@@ -1,0 +1,19 @@
+meta:
+  name: comment-lines
+  description: Lines whose first non-blank character is # are ignored; # inside a directive is data
+spec: 01-lexical.md#comments
+rules: |
+  SecRuleEngine On
+  # SecRule ARGS_GET:a "@streq 1" "id:2001,phase:1,deny,status:403"
+      # indented comment
+  SecRule ARGS_GET:a "@streq #1" "id:2002,phase:1,deny,status:403"
+tests:
+  - test_title: commented rule does not exist, hash inside operator is literal
+    stages:
+      - stage:
+          input:
+            uri: "/?a=%231"
+          output:
+            triggered_rules: [2002]
+            non_triggered_rules: [2001]
+            interruption: {rule_id: 2002, action: deny, status: 403}

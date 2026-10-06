@@ -1,0 +1,16 @@
+meta:
+  name: quoted-arguments
+  description: Double-quoted arguments may contain spaces and escaped quotes
+spec: 01-lexical.md#quoting-and-escapes
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq say \"hi\" now" "id:2004,phase:1,deny,status:403"
+tests:
+  - test_title: escaped double quote inside operator argument
+    stages:
+      - stage:
+          input:
+            uri: '/?a=say%20%22hi%22%20now'
+          output:
+            triggered_rules: [2004]
+            interruption: {rule_id: 2004, action: deny, status: 403}

@@ -1,0 +1,20 @@
+meta:
+  name: continuation-lines
+  description: A trailing backslash joins the next line without inserting whitespace
+spec: 01-lexical.md#line-continuation
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a \
+      "@streq abc" \
+      "id:2003,\
+      phase:1,\
+      deny,status:403"
+tests:
+  - test_title: five-line rule behaves as one line
+    stages:
+      - stage:
+          input:
+            uri: /?a=abc
+          output:
+            triggered_rules: [2003]
+            interruption: {rule_id: 2003, action: deny, status: 403}
