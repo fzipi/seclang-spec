@@ -245,3 +245,40 @@ class AdrTests(unittest.TestCase):
         (self.root / "adr/README.md").write_text(INDEX_OK + "| [0009](0009-ghost.md) | Ghost | Clarification | proposed |\n")
         errors = validate.check_adrs(self.root)
         self.assertTrue(any("0009-ghost.md" in e for e in errors))
+
+
+from tools import matrix as matrix_mod
+from tools.test_matrix import SAMPLE as MATRIX_SAMPLE
+
+
+class MatrixCheckTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = make_repo(Path(self._tmp.name))
+        (self.root / "compat/matrix.json").write_text(json.dumps(MATRIX_SAMPLE))
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_fresh_markdown_passes(self):
+        matrix_mod.main(self.root)
+        self.assertEqual(validate.check_matrix(self.root), [])
+
+    def test_stale_markdown_is_reported(self):
+        (self.root / "compat/matrix.md").write_text("# old\n")
+        errors = validate.check_matrix(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("tools/matrix.py", errors[0])
+
+    def test_missing_markdown_is_reported(self):
+        errors = validate.check_matrix(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("compat/matrix.md", errors[0])
+
+    def test_broken_json_row_is_reported_not_raised(self):
+        broken = json.loads(json.dumps(MATRIX_SAMPLE))
+        del broken["categories"]["operators"][0]["v2"]
+        (self.root / "compat/matrix.json").write_text(json.dumps(broken))
+        errors = validate.check_matrix(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("rx", errors[0])

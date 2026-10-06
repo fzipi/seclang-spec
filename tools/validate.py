@@ -15,6 +15,9 @@ from typing import Callable, Iterator
 import jsonschema
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from tools import matrix as _matrix  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -179,7 +182,20 @@ def check_adrs(root: Path) -> list[str]:
     return errors
 
 
-CHECKS: list[Callable[[Path], list[str]]] = [check_tests, check_coverage, check_adrs]
+def check_matrix(root: Path) -> list[str]:
+    try:
+        expected = _matrix.render(_matrix.load(root))
+    except (ValueError, KeyError) as exc:
+        return [f"compat/matrix.json: {exc}"]
+    md = root / "compat" / "matrix.md"
+    if not md.is_file():
+        return ["compat/matrix.md: missing; run python3 tools/matrix.py"]
+    if md.read_text() != expected:
+        return ["compat/matrix.md: stale; run python3 tools/matrix.py and commit the result"]
+    return []
+
+
+CHECKS: list[Callable[[Path], list[str]]] = [check_tests, check_coverage, check_adrs, check_matrix]
 
 
 def main(root: Path = ROOT, checks: list[Callable[[Path], list[str]]] | None = None) -> int:
