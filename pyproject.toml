@@ -1,0 +1,15 @@
+[project]
+name = "seclang-spec"
+version = "0.0.0"
+description = "SecLang specification: conformance test data, ADRs and the repository validator"
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pyyaml>=6",
+    "jsonschema>=4.18",
+]
+
+[tool.uv]
+package = false

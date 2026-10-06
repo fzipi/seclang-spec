@@ -38,4 +38,4 @@ beyond `log_contains`/`no_log_contains` substrings.
 1. Pick the tier and copy an existing file.
 2. Set `spec` to the heading you are testing. If the heading does not exist yet, add it
    to `spec/` with a status line first.
-3. Run `python3 tools/validate.py` from the repo root.
+3. Run `uv run python tools/validate.py` from the repo root.

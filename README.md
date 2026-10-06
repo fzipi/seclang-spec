@@ -24,9 +24,9 @@ Definitions: `spec/00-conventions.md`. Rationale: `adr/0001-status-labels-and-co
 ## Running the checks
 
 ```sh
-python3 -m pip install -r requirements-dev.txt
-python3 tools/validate.py
-python3 -m unittest discover -s tools -t .
+uv sync
+uv run python tools/validate.py
+uv run python -m unittest discover -s tools -t .
 ```
 
 ## Implementing an engine adapter

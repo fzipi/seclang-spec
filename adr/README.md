@@ -13,7 +13,7 @@ promoted into the spec (Extension).
    implementing engines agree, then `accepted`. `superseded` and `rejected` are terminal.
 3. A `Divergence` ADR must list at least one test under `## Tests` that encodes the
    outcome. The validator checks the paths exist.
-4. Add a row to the index below. `python3 tools/validate.py` fails if a file and the
+4. Add a row to the index below. `uv run python tools/validate.py` fails if a file and the
    index disagree.
 5. Update the affected section of `spec/` in the same PR.
 
