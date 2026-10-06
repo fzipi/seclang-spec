@@ -1,0 +1,25 @@
+meta:
+  name: ctl-core-options-load
+  description: Every Core ctl option loads in a valid form (ADR-0006)
+spec: 03-processing-model.md#ctl-timing
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule REQUEST_HEADERS:X-Ctl "@streq 1" "id:4100,phase:1,pass,nolog,ctl:auditEngine=Off,ctl:auditLogParts=+E,ctl:forceRequestBodyVariable=On,ctl:requestBodyAccess=On,ctl:requestBodyProcessor=URLENCODED,ctl:ruleEngine=DetectionOnly,ctl:ruleRemoveById=4101,ctl:ruleRemoveByTag=removable,ctl:ruleRemoveTargetById=4102;ARGS_GET:a,ctl:ruleRemoveTargetByTag=retarget;ARGS_GET:a"
+  SecRule ARGS_GET:a "@streq 1" "id:4101,phase:1,deny,status:403"
+  SecRule ARGS_GET:a "@streq 1" "id:4102,phase:1,deny,status:403"
+  SecRule ARGS_GET:a "@streq 1" "id:4103,phase:1,deny,status:403,tag:'removable'"
+  SecRule ARGS_GET:a "@streq 1" "id:4104,phase:1,deny,status:403,tag:'retarget'"
+  SecRule ARGS_GET:a "@streq 1" "id:4105,phase:1,deny,status:403"
+tests:
+  - test_title: all Core options parse and apply
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+            headers:
+              X-Ctl: "1"
+          output:
+            triggered_rules: [4100, 4105]
+            non_triggered_rules: [4101, 4102, 4103, 4104]
+            no_interruption: true

@@ -1,0 +1,15 @@
+meta:
+  name: unknown-directive
+  description: A directive name not defined by the specification is a configuration error (ADR-0005)
+spec: 04-directives.md#secrule
+rules: |
+  SecRuleEngine On
+  SecFrobnicate On
+tests:
+  - test_title: fails to load
+    stages:
+      - stage:
+          input:
+            uri: /
+          output:
+            expect_error: true

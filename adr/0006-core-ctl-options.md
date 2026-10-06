@@ -1,0 +1,58 @@
+# ADR-0006: Core `ctl:` options
+
+- **Status:** proposed
+- **Date:** 2026-10-06
+- **Deciders:** @fzipi
+- **Category:** Divergence
+
+## Context
+
+The `ctl` action has 20 option names across the three engines and only 10 in all three
+(`compat/matrix.md`). libmodsecurity v3 lacks `requestBodyLimit`, `responseBodyAccess`,
+`responseBodyLimit`, `ruleRemoveByMsg`, `ruleRemoveTargetByMsg`, `debugLogLevel`,
+`hashEngine` and `hashEnforcement`; Coraza lacks `parseXmlIntoArgs`; only Coraza has
+`responseBodyProcessor`. OWASP CRS v4 uses `requestBodyProcessor`, `ruleRemoveByTag`,
+`ruleRemoveById`, `forceRequestBodyVariable`, `auditEngine` and `ruleRemoveTargetByTag`;
+the CRS documentation for user exclusions relies on `ruleRemoveTargetById` and
+`ruleEngine`.
+
+`ctl:auditLogParts` has two value forms: relative (`+E`, `-E`) and absolute (`ABCZ`).
+ModSecurity v2 accepts both (`apache2/re_actions.c`), libmodsecurity v3 accepts only the
+relative form (`seclang-scanner.ll`, `=[+|-]{AUDIT_PARTS}`), Coraza accepts the relative
+form since its ADR-0032.
+
+## Decision
+
+| Status | Options |
+|---|---|
+| Core | `auditEngine`, `auditLogParts` (relative form only), `forceRequestBodyVariable`, `requestBodyAccess`, `requestBodyProcessor`, `ruleEngine`, `ruleRemoveById`, `ruleRemoveByTag`, `ruleRemoveTargetById`, `ruleRemoveTargetByTag` |
+| Extended | `requestBodyLimit`, `responseBodyAccess`, `responseBodyLimit`, `ruleRemoveByMsg`, `ruleRemoveTargetByMsg`, `debugLogLevel`, `parseXmlIntoArgs`, absolute-form `auditLogParts` |
+| Deprecated | `hashEngine`, `hashEnforcement` |
+| Engine-specific | `responseBodyProcessor` (Coraza) |
+
+Option names match case-insensitively (ADR-0002). The timing rules are in
+`spec/03-processing-model.md#ctl-timing`; the full per-option specification lands with
+the actions in Phase 3.
+
+## Options considered
+
+- Core = every option any engine has: forces hash-engine options on engines without a
+  hash engine; rejected.
+- Core = strict three-way intersection (chosen): it already covers everything CRS and
+  its documented exclusion mechanisms use.
+
+## Consequences
+
+- For libmodsecurity v3: the eight missing options are Extended, so not required.
+- For Coraza: `parseXmlIntoArgs` is Extended, not required.
+- For rule authors: `ctl:auditLogParts=+E` is portable, `ctl:auditLogParts=ABCEZ` is not.
+
+## Tests
+
+- `tests/engine/processing/ctl-timing.yaml`
+- `tests/engine/processing/ctl-core-options-load.yaml`
+
+## References
+
+- `spec/03-processing-model.md#ctl-timing`, `spec/04-directives.md#secauditlogparts`
+- Coraza ADR-0032 in `corazawaf/coraza/docs/adr`

@@ -1,0 +1,26 @@
+meta:
+  name: default-action-redefined
+  description: A later SecDefaultAction for the same phase replaces the earlier one for following rules (ADR-0014)
+spec: 03-processing-model.md#default-actions
+rules: |
+  SecRuleEngine On
+  SecDefaultAction "phase:1,log,deny,status:418"
+  SecRule ARGS_GET:a "@streq 1" "id:4023"
+  SecDefaultAction "phase:1,log,pass"
+  SecRule ARGS_GET:b "@streq 1" "id:4024"
+tests:
+  - test_title: first rule inherits deny
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            interruption: {rule_id: 4023, action: deny, status: 418}
+  - test_title: second rule inherits pass
+    stages:
+      - stage:
+          input:
+            uri: /?b=1
+          output:
+            triggered_rules: [4024]
+            no_interruption: true

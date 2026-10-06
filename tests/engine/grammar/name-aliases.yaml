@@ -1,0 +1,23 @@
+meta:
+  name: name-aliases
+  description: The required aliases normalizePath, pmf and ipMatchF load and behave as their canonical names (ADR-0004)
+spec: 02-grammar.md#operator
+files:
+  words.txt: |
+    forbidden
+  nets.txt: |
+    10.0.0.0/8
+rules: |
+  SecRuleEngine On
+  SecRule REQUEST_URI "@streq /a/b" "id:3020,phase:1,t:normalizePath,pass"
+  SecRule ARGS_GET:w "@pmf words.txt" "id:3021,phase:1,pass"
+  SecRule ARGS_GET:ip "@ipMatchF nets.txt" "id:3022,phase:1,pass"
+tests:
+  - test_title: aliases resolve
+    stages:
+      - stage:
+          input:
+            uri: /a/./c/../b?w=forbidden&ip=10.1.2.3
+          output:
+            triggered_rules: [3020, 3021, 3022]
+            no_interruption: true
