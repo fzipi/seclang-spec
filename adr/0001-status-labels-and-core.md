@@ -8,7 +8,7 @@
 ## Context
 
 No prior specification exists. A survey on 2026-10-06 of ModSecurity v2 (`v2/master`),
-libmodsecurity v3.0.16 and Coraza v3.8.1 found 92 directive names, 48 actions, 20
+libmodsecurity v3.0.16 and Coraza v3.8.1 found 91 directive names, 48 actions, 20
 `ctl:` options, 44 operators, 38 transformations and 144 variables in the union, of
 which 65, 33, 10, 28, 33 and 74 respectively exist in all three (`compat/matrix.md`).
 Some union members are legacy (`sanitise*`, `PERF_*`), some are engine extensions

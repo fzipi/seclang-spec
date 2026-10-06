@@ -9,8 +9,12 @@ Core directives arrive in Phase 2.
 
 **Syntax.** `SecRuleEngine On|Off|DetectionOnly`
 
-**Default.** `Off` in ModSecurity v2 and Coraza. libmodsecurity v3 has no engine-level
-default: the connector supplies one. Rulesets MUST set it explicitly.
+**Default.** `Off` in ModSecurity v2 (`apache2_config.c`, `is_enabled = 0`). `On` in
+Coraza (`internal/corazawaf/waf.go`, `RuleEngine: types.RuleEngineOn`). libmodsecurity
+v3 leaves the value unset (`PropertyNotSetRuleEngine`), in which state rules are
+evaluated and logged but never interrupt, equivalent to `DetectionOnly`. Because the
+three defaults differ, rulesets MUST set it explicitly and this specification does not
+standardize the default.
 
 **Scope.** Main configuration and any included file. The last occurrence before a
 transaction starts wins. `ctl:ruleEngine` changes the value for the current
@@ -26,9 +30,8 @@ transaction only.
 - `Off`: no rules are evaluated. Nothing is logged by rules. Request and response body
   handling directives still apply where the engine needs them for other purposes.
 
-**Divergence notes.** None known for the three values. Engines differ on the default;
-this specification does not standardize the default because every published ruleset
-sets it.
+**Divergence notes.** None known for the three values. The defaults differ as listed
+above; every published ruleset sets the directive, so the default is left unspecified.
 
 **Tests.** `tests/engine/directives/secruleengine-on.yaml`,
 `tests/engine/directives/secruleengine-detectiononly.yaml`,

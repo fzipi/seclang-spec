@@ -39,6 +39,12 @@ An engine conforms to `seclang-spec vX.Y` when it passes every test under `tests
 is not skipped by a `requires:` clause for an Extended feature it does not declare.
 Core tests can never be skipped.
 
+An engine-tier profile that needs an Extended feature lists that feature's anchor under
+`requires:` (`NN-file.md#anchor`); every entry MUST resolve to a feature whose status is
+`Extended`, which `tools/validate.py` enforces. Unit-tier cases carry no `requires:`:
+a unit case belongs to the feature named by its `spec:` anchor, and an engine skips the
+case when that feature is Extended and not declared by the engine.
+
 ## Reading this document
 
 Each feature section is organized as: **Syntax**, **Default** (where applicable),

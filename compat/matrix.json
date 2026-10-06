@@ -164,7 +164,7 @@
     "coraza": true
    },
    {
-    "name": "secdataset",
+    "name": "SecDataset",
     "v2": false,
     "v3": false,
     "coraza": true
@@ -248,7 +248,7 @@
     "coraza": true
    },
    {
-    "name": "secignorerulecompilationerrors",
+    "name": "SecIgnoreRuleCompilationErrors",
     "v2": false,
     "v3": false,
     "coraza": true
@@ -350,7 +350,7 @@
     "coraza": true
    },
    {
-    "name": "secresponsebodyjsondepthlimit",
+    "name": "SecResponseBodyJsonDepthLimit",
     "v2": false,
     "v3": false,
     "coraza": true
@@ -452,7 +452,7 @@
     "coraza": true
    },
    {
-    "name": "secrxprefilter",
+    "name": "SecRxPreFilter",
     "v2": false,
     "v3": false,
     "coraza": true
@@ -504,12 +504,6 @@
     "v2": true,
     "v3": false,
     "coraza": false
-   },
-   {
-    "name": "secunicodemap",
-    "v2": false,
-    "v3": false,
-    "coraza": true
    },
    {
     "name": "SecUnicodeMapFile",

@@ -54,6 +54,10 @@ def check_tests(root: Path) -> list[str]:
         for err in sorted(schemas[tier].iter_errors(data), key=lambda e: list(map(str, e.absolute_path))):
             where = "/".join(map(str, err.absolute_path)) or "<root>"
             errors.append(f"{rel}: {where}: {err.message}")
+    for tier, suffix in (("unit", ".json"), ("engine", ".yaml")):
+        for path in sorted((root / "tests" / tier).rglob("*")):
+            if path.is_file() and path.suffix != suffix:
+                errors.append(f"{_rel(root, path)}: unexpected file; the {tier} tier takes only *{suffix}")
     return errors
 
 
@@ -67,8 +71,12 @@ def slug(heading: str) -> str:
     return cleaned.strip().replace(" ", "-")
 
 
-def spec_features(root: Path) -> dict[str, str]:
-    """Map 'NN-file.md#anchor' -> status for every heading followed by a **Status:** line."""
+def spec_features(root: Path, errors: list[str] | None = None) -> dict[str, str]:
+    """Map 'NN-file.md#anchor' -> status for every heading followed by a **Status:** line.
+
+    A heading that appears twice in one file is appended to `errors` (GitHub would give
+    the second one a different anchor, so a `spec:` reference to it is ambiguous).
+    """
     features = {}
     for path in sorted((root / "spec").glob("*.md")):
         heading = None
@@ -76,7 +84,10 @@ def spec_features(root: Path) -> dict[str, str]:
             if m := HEADING_RE.match(line):
                 heading = slug(m.group(1))
             elif (m := STATUS_RE.match(line)) and heading:
-                features[f"{path.name}#{heading}"] = m.group(1)
+                anchor = f"{path.name}#{heading}"
+                if anchor in features and errors is not None:
+                    errors.append(f"spec/{anchor}: duplicate feature heading in one file")
+                features[anchor] = m.group(1)
                 heading = None
             elif line.strip():
                 heading = None  # status must directly follow its heading
@@ -101,10 +112,26 @@ def test_spec_refs(root: Path) -> dict[str, list[str]]:
     return refs
 
 
-def check_coverage(root: Path) -> list[str]:
-    features = spec_features(root)
-    refs = test_spec_refs(root)
+def check_requires(root: Path, features: dict[str, str]) -> list[str]:
+    """Every `requires:` entry of an engine profile must name an Extended feature."""
     errors = []
+    for path, data in load_test_files(root):
+        if not isinstance(data, dict):
+            continue
+        for ref in data.get("requires") or []:
+            status = features.get(ref)
+            if status is None:
+                errors.append(f"{_rel(root, path)}: requires {ref}: no such feature")
+            elif status != "Extended":
+                errors.append(f"{_rel(root, path)}: requires {ref}: feature is {status}, only Extended features may be required")
+    return errors
+
+
+def check_coverage(root: Path) -> list[str]:
+    errors: list[str] = []
+    features = spec_features(root, errors)
+    refs = test_spec_refs(root)
+    errors += check_requires(root, features)
     for ref, files in sorted(refs.items()):
         if ref not in features:
             for f in sorted(set(files)):

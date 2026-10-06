@@ -282,3 +282,43 @@ class MatrixCheckTests(unittest.TestCase):
         errors = validate.check_matrix(self.root)
         self.assertEqual(len(errors), 1)
         self.assertIn("rx", errors[0])
+
+
+class ReviewFixTests(unittest.TestCase):
+    """Findings from the Phase 1 whole-branch review."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = make_repo(Path(self._tmp.name))
+        (self.root / "spec/07-transformations.md").write_text(SPEC_FEATURE.replace("### `rx`\n\n**Status:** Core\n", ""))
+        (self.root / "spec/04-directives.md").write_text("# Directives\n\n### SecRuleEngine\n\n**Status:** Core\n")
+        (self.root / "tests/unit/t.json").write_text(json.dumps(GOOD_UNIT))
+        (self.root / "tests/engine/e.yaml").write_text(GOOD_ENGINE)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_duplicate_heading_in_one_file_is_reported(self):
+        (self.root / "spec/07-transformations.md").write_text(SPEC_FEATURE + "\n### lowercase\n\n**Status:** Extended\n")
+        errors = validate.check_coverage(self.root)
+        self.assertTrue(any("07-transformations.md#lowercase" in e and "duplicate" in e for e in errors))
+
+    def test_unexpected_file_in_test_tree_is_reported(self):
+        (self.root / "tests/engine/profile.yml").write_text(GOOD_ENGINE)
+        (self.root / "tests/unit/notes.txt").write_text("hi")
+        errors = validate.check_tests(self.root)
+        self.assertTrue(any("tests/engine/profile.yml" in e and "*.yaml" in e for e in errors))
+        self.assertTrue(any("tests/unit/notes.txt" in e and "*.json" in e for e in errors))
+
+    def test_requires_must_resolve_to_extended_feature(self):
+        ok = GOOD_ENGINE.replace("rules: |", "requires: [07-transformations.md#uppercase]\nrules: |")
+        (self.root / "tests/engine/e.yaml").write_text(ok)
+        self.assertEqual(validate.check_coverage(self.root), [])
+        core = GOOD_ENGINE.replace("rules: |", "requires: [07-transformations.md#lowercase]\nrules: |")
+        (self.root / "tests/engine/e.yaml").write_text(core)
+        errors = validate.check_coverage(self.root)
+        self.assertTrue(any("requires" in e and "#lowercase" in e and "Core" in e for e in errors))
+        missing = GOOD_ENGINE.replace("rules: |", "requires: [07-transformations.md#nope]\nrules: |")
+        (self.root / "tests/engine/e.yaml").write_text(missing)
+        errors = validate.check_coverage(self.root)
+        self.assertTrue(any("requires" in e and "#nope" in e for e in errors))

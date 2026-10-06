@@ -6,7 +6,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 - **v3**: libmodsecurity v3.0.16 (owasp-modsecurity/ModSecurity branch v3/master)
 - **coraza**: Coraza v3.8.1 (corazawaf/coraza)
 
-## directives (65 of 92 in all engines)
+## directives (65 of 91 in all engines)
 
 | Name | v2 | v3 | coraza |
 |---|---|---|---|
@@ -36,7 +36,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `SecCookieFormat` | yes | yes | yes |
 | `SecCookieV0Separator` | yes | yes | - |
 | `SecDataDir` | yes | yes | yes |
-| `secdataset` | - | - | yes |
+| `SecDataset` | - | - | yes |
 | `SecDebugLog` | yes | yes | yes |
 | `SecDebugLogLevel` | yes | yes | yes |
 | `SecDefaultAction` | yes | yes | yes |
@@ -50,7 +50,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `SecHashMethodRx` | yes | yes | yes |
 | `SecHashParam` | yes | yes | yes |
 | `SecHttpBlKey` | yes | yes | yes |
-| `secignorerulecompilationerrors` | - | - | yes |
+| `SecIgnoreRuleCompilationErrors` | - | - | yes |
 | `SecInterceptOnError` | yes | yes | - |
 | `SecMarker` | yes | yes | yes |
 | `SecParseXmlIntoArgs` | yes | yes | - |
@@ -67,7 +67,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `SecRequestBodyNoFilesLimit` | yes | yes | yes |
 | `SecRequestEncoding` | yes | - | - |
 | `SecResponseBodyAccess` | yes | yes | yes |
-| `secresponsebodyjsondepthlimit` | - | - | yes |
+| `SecResponseBodyJsonDepthLimit` | - | - | yes |
 | `SecResponseBodyLimit` | yes | yes | yes |
 | `SecResponseBodyLimitAction` | yes | yes | yes |
 | `SecResponseBodyMimeType` | yes | yes | yes |
@@ -84,7 +84,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `SecRuleUpdateTargetById` | yes | yes | yes |
 | `SecRuleUpdateTargetByMsg` | yes | yes | yes |
 | `SecRuleUpdateTargetByTag` | yes | yes | yes |
-| `secrxprefilter` | - | - | yes |
+| `SecRxPreFilter` | - | - | yes |
 | `SecSensorId` | yes | yes | yes |
 | `SecServerSignature` | yes | yes | yes |
 | `SecStatusEngine` | yes | yes | - |
@@ -93,7 +93,6 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `SecTmpDir` | yes | yes | yes |
 | `SecTmpSaveUploadedFiles` | yes | yes | - |
 | `SecUnicodeCodePage` | yes | - | - |
-| `secunicodemap` | - | - | yes |
 | `SecUnicodeMapFile` | yes | yes | - |
 | `SecUploadDir` | yes | yes | yes |
 | `SecUploadFileLimit` | yes | yes | yes |

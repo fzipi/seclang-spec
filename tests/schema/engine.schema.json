@@ -21,8 +21,8 @@
     "spec": {"type": "string", "pattern": "^[0-9]{2}-[a-z0-9-]+\\.md#[a-z0-9-]+$"},
     "requires": {
       "type": "array",
-      "items": {"type": "string", "pattern": "^[a-z0-9-]+$"},
-      "description": "Extended feature ids an engine must implement to run this profile; otherwise it skips the whole file"
+      "items": {"type": "string", "pattern": "^[0-9]{2}-[a-z0-9-]+\\.md#[a-z0-9-]+$"},
+      "description": "Spec anchors of Extended features an engine must implement to run this profile; otherwise it skips the whole file"
     },
     "rules": {"type": "string", "minLength": 1, "description": "SecLang configuration loaded before every test"},
     "tests": {
