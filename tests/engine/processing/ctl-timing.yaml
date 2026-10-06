@@ -1,0 +1,20 @@
+meta:
+  name: ctl-timing
+  description: ctl actions take effect when their rule matches and affect later rules
+spec: 03-processing-model.md#ctl-timing
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4090,phase:1,pass,nolog,ctl:ruleRemoveById=4091"
+  SecRule ARGS_GET:a "@streq 1" "id:4091,phase:1,deny,status:403"
+  SecRule ARGS_GET:a "@streq 1" "id:4092,phase:2,pass,nolog,ctl:ruleEngine=Off"
+  SecRule ARGS_GET:a "@streq 1" "id:4093,phase:2,deny,status:403"
+tests:
+  - test_title: later rules see the ctl effects
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [4090, 4092]
+            non_triggered_rules: [4091, 4093]
+            no_interruption: true

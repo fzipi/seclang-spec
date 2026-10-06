@@ -1,0 +1,33 @@
+meta:
+  name: default-action
+  description: SecDefaultAction supplies actions to later rules of its phase; rule actions override
+spec: 03-processing-model.md#default-actions
+rules: |
+  SecRuleEngine On
+  SecDefaultAction "phase:1,log,deny,status:418"
+  SecRule ARGS_GET:a "@streq 1" "id:4020"
+  SecRule ARGS_GET:b "@streq 1" "id:4021,status:403"
+  SecRule ARGS_GET:c "@streq 1" "id:4022,pass"
+tests:
+  - test_title: inherits deny and status
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            interruption: {rule_id: 4020, action: deny, status: 418}
+  - test_title: rule overrides status
+    stages:
+      - stage:
+          input:
+            uri: /?b=1
+          output:
+            interruption: {rule_id: 4021, action: deny, status: 403}
+  - test_title: rule overrides disruptive action with pass
+    stages:
+      - stage:
+          input:
+            uri: /?c=1
+          output:
+            triggered_rules: [4022]
+            no_interruption: true

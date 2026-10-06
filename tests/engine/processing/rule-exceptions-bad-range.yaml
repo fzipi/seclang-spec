@@ -1,0 +1,16 @@
+meta:
+  name: rule-exceptions-bad-range
+  description: A range whose start exceeds its end is a configuration error
+spec: 03-processing-model.md#rule-exceptions
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4067,phase:1,pass"
+  SecRuleRemoveById 200-100
+tests:
+  - test_title: fails to load
+    stages:
+      - stage:
+          input:
+            uri: /
+          output:
+            expect_error: true

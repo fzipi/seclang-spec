@@ -1,0 +1,22 @@
+meta:
+  name: skip-and-skipafter
+  description: skip:N skips the next N rules; skipAfter jumps past a SecMarker
+spec: 03-processing-model.md#flow-control
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4040,phase:1,pass,skip:1"
+  SecRule ARGS_GET:a "@streq 1" "id:4041,phase:1,pass"
+  SecRule ARGS_GET:a "@streq 1" "id:4042,phase:1,pass,skipAfter:END-A"
+  SecRule ARGS_GET:a "@streq 1" "id:4043,phase:1,pass"
+  SecMarker END-A
+  SecRule ARGS_GET:a "@streq 1" "id:4044,phase:1,pass"
+tests:
+  - test_title: skipped rules do not run
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [4040, 4042, 4044]
+            non_triggered_rules: [4041, 4043]
+            no_interruption: true

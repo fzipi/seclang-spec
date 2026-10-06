@@ -1,0 +1,15 @@
+meta:
+  name: default-action-no-phase
+  description: SecDefaultAction without a phase is a configuration error (ADR-0014)
+spec: 03-processing-model.md#default-actions
+rules: |
+  SecRuleEngine On
+  SecDefaultAction "log,deny"
+tests:
+  - test_title: fails to load
+    stages:
+      - stage:
+          input:
+            uri: /
+          output:
+            expect_error: true

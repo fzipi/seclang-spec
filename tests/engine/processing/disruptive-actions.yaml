@@ -1,0 +1,42 @@
+meta:
+  name: disruptive-actions
+  description: deny, redirect and drop interrupt; the first disruptive match ends the phase
+spec: 03-processing-model.md#disruptive-actions
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq deny" "id:4030,phase:1,deny"
+  SecRule ARGS_GET:a "@streq redirect" "id:4031,phase:1,redirect:http://example.com/"
+  SecRule ARGS_GET:a "@streq drop" "id:4032,phase:1,drop"
+  SecRule ARGS_GET:a "@streq any" "id:4033,phase:1,deny,status:401"
+  SecRule ARGS_GET:a "@streq any" "id:4034,phase:1,deny,status:402"
+tests:
+  - test_title: deny defaults to 403
+    stages:
+      - stage:
+          input:
+            uri: /?a=deny
+          output:
+            interruption: {rule_id: 4030, action: deny, status: 403}
+  - test_title: redirect defaults to 302
+    stages:
+      - stage:
+          input:
+            uri: /?a=redirect
+          output:
+            interruption: {rule_id: 4031, action: redirect, status: 302}
+  - test_title: drop
+    stages:
+      - stage:
+          input:
+            uri: /?a=drop
+          output:
+            interruption: {rule_id: 4032, action: drop}
+  - test_title: first disruptive match stops the phase
+    stages:
+      - stage:
+          input:
+            uri: /?a=any
+          output:
+            triggered_rules: [4033]
+            non_triggered_rules: [4034]
+            interruption: {rule_id: 4033, action: deny, status: 401}

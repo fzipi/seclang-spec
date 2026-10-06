@@ -1,0 +1,35 @@
+meta:
+  name: chain
+  description: A chain matches only when every member matches; actions of the starter apply
+spec: 03-processing-model.md#chains
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4010,phase:1,deny,status:403,chain"
+    SecRule ARGS_GET:b "@streq 2"
+  SecRule ARGS_GET:c "@streq 1" "id:4011,phase:1,pass,chain"
+    SecRule ARGS_GET:d "@streq 2" "t:none,setvar:tx.c=1"
+tests:
+  - test_title: both members match
+    stages:
+      - stage:
+          input:
+            uri: /?a=1&b=2
+          output:
+            triggered_rules: [4010]
+            interruption: {rule_id: 4010, action: deny, status: 403}
+  - test_title: second member fails
+    stages:
+      - stage:
+          input:
+            uri: /?a=1&b=3
+          output:
+            non_triggered_rules: [4010]
+            no_interruption: true
+  - test_title: member with its own non-disruptive actions
+    stages:
+      - stage:
+          input:
+            uri: /?c=1&d=2
+          output:
+            triggered_rules: [4011]
+            no_interruption: true

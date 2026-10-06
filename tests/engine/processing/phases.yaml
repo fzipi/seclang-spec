@@ -1,0 +1,35 @@
+meta:
+  name: phases
+  description: Rules run in their phase; each phase sees the data available at that point
+spec: 03-processing-model.md#phases
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecResponseBodyAccess On
+  SecResponseBodyMimeType text/plain
+  SecRule REQUEST_HEADERS:X-P "@streq 1" "id:4001,phase:1,pass"
+  SecRule ARGS_POST:p "@streq 1" "id:4002,phase:2,pass"
+  SecRule RESPONSE_HEADERS:X-R "@streq 1" "id:4003,phase:3,pass"
+  SecRule RESPONSE_BODY "@contains marker" "id:4004,phase:4,pass"
+  SecRule TX:seen "@eq 1" "id:4005,phase:5,pass"
+  SecAction "id:4006,phase:4,pass,nolog,setvar:tx.seen=1"
+tests:
+  - test_title: one rule per phase fires
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              X-P: "1"
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1
+          response:
+            status: 200
+            headers:
+              X-R: "1"
+              Content-Type: text/plain
+            data: has marker
+          output:
+            triggered_rules: [4001, 4002, 4003, 4004, 4005, 4006]
+            no_interruption: true

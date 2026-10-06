@@ -1,0 +1,21 @@
+meta:
+  name: skipafter-later-phase
+  description: A skipAfter whose marker is not reached ends with the phase (ADR-0016)
+spec: 03-processing-model.md#flow-control
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4050,phase:1,pass,skipAfter:END-B"
+  SecRule ARGS_GET:a "@streq 1" "id:4051,phase:1,pass"
+  SecRule ARGS_GET:a "@streq 1" "id:4052,phase:2,pass"
+  SecMarker END-B
+  SecRule ARGS_GET:a "@streq 1" "id:4053,phase:2,pass"
+tests:
+  - test_title: phase 2 rules run although the marker was not reached in phase 1
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [4050, 4052, 4053]
+            non_triggered_rules: [4051]
+            no_interruption: true

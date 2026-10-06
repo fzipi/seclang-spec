@@ -1,0 +1,35 @@
+meta:
+  name: rule-exceptions
+  description: SecRuleRemoveBy*, SecRuleUpdateTargetById and SecRuleUpdateActionById modify earlier rules
+spec: 03-processing-model.md#rule-exceptions
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4060,phase:1,deny,status:403"
+  SecRule ARGS_GET:a "@streq 1" "id:4061,phase:1,deny,status:403,tag:'drop-me'"
+  SecRule ARGS_GET:a "@streq 1" "id:4062,phase:1,deny,status:403"
+  SecRule ARGS_GET:a|ARGS_GET:b "@streq 1" "id:4063,phase:1,deny,status:403"
+  SecRule ARGS_GET:a "@streq 1" "id:4064,phase:1,deny,status:403"
+  SecRule ARGS_GET:a "@streq 1" "id:4065,phase:1,pass"
+  SecRuleRemoveById 4060 4070-4080
+  SecRuleRemoveByTag drop-me
+  SecRuleUpdateTargetById 4063 "!ARGS_GET:a"
+  SecRuleUpdateActionById 4064 "pass"
+  SecRuleUpdateTargetById 999999 "!ARGS_GET:a"
+tests:
+  - test_title: removed and retargeted rules do not fire on a
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [4062]
+            non_triggered_rules: [4060, 4061, 4063]
+            interruption: {rule_id: 4062, action: deny, status: 403}
+  - test_title: retargeted rule still fires on b
+    stages:
+      - stage:
+          input:
+            uri: /?b=1
+          output:
+            triggered_rules: [4063]
+            interruption: {rule_id: 4063, action: deny, status: 403}

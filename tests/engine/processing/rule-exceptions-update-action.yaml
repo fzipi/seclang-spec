@@ -1,0 +1,17 @@
+meta:
+  name: rule-exceptions-update-action
+  description: SecRuleUpdateActionById replaces the disruptive action of an earlier rule
+spec: 03-processing-model.md#rule-exceptions
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4066,phase:1,deny,status:403"
+  SecRuleUpdateActionById 4066 "pass"
+tests:
+  - test_title: rule now passes
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [4066]
+            no_interruption: true
