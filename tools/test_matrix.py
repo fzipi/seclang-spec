@@ -48,3 +48,16 @@ class RenderTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StatusColumnTests(unittest.TestCase):
+    def test_status_column_rendered_when_any_row_has_it(self):
+        sample = json.loads(json.dumps(SAMPLE))
+        sample["categories"]["operators"][0]["status"] = "Core"
+        md = matrix.render(sample)
+        self.assertIn("| Name | v2 | v3 | coraza | status |", md)
+        self.assertIn("| `rx` | yes | yes | yes | Core |", md)
+        self.assertIn("| `restpath` | - | - | yes | - |", md)
+
+    def test_no_status_column_when_absent(self):
+        self.assertNotIn("| status |", matrix.render(SAMPLE))

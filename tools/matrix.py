@@ -29,17 +29,21 @@ def render(matrix: dict) -> str:
             missing = [e for e in ENGINES if e not in row]
             if missing:
                 raise ValueError(f"{category}/{row.get('name', '?')}: missing engine key(s) {missing}")
+        has_status = any("status" in row for row in rows)
         in_all = sum(all(row[e] for e in ENGINES) for row in rows)
+        header = ["Name", *ENGINES] + (["status"] if has_status else [])
         out += [
             "",
             f"## {category} ({in_all} of {len(rows)} in all engines)",
             "",
-            "| Name | " + " | ".join(ENGINES) + " |",
-            "|---|" + "---|" * len(ENGINES),
+            "| " + " | ".join(header) + " |",
+            "|---|" + "---|" * (len(header) - 1),
         ]
         for row in sorted(rows, key=lambda r: r["name"].lower()):
-            cells = " | ".join("yes" if row[e] else "-" for e in ENGINES)
-            out.append(f"| `{row['name']}` | {cells} |")
+            cells = [("yes" if row[e] else "-") for e in ENGINES]
+            if has_status:
+                cells.append(row.get("status", "-"))
+            out.append(f"| `{row['name']}` | " + " | ".join(cells) + " |")
     return "\n".join(out) + "\n"
 
 

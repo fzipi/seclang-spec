@@ -322,3 +322,68 @@ class ReviewFixTests(unittest.TestCase):
         (self.root / "tests/engine/e.yaml").write_text(missing)
         errors = validate.check_coverage(self.root)
         self.assertTrue(any("requires" in e and "#nope" in e for e in errors))
+
+
+MATRIX_WITH_STATUS = {
+    "generated": "2026-10-06",
+    "engines": {"v2": "a", "v3": "b", "coraza": "c"},
+    "categories": {"directives": [
+        {"name": "SecRuleEngine", "v2": True, "v3": True, "coraza": True, "status": "Core"},
+        {"name": "SecDataset", "v2": False, "v3": False, "coraza": True, "status": "Engine-specific"},
+    ]},
+}
+
+SPEC_DIRECTIVES = """\
+# Directives
+
+### SecRuleEngine
+
+**Status:** Core
+
+### SecDataset
+
+**Status:** Engine-specific
+"""
+
+
+class MatrixStatusTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = make_repo(Path(self._tmp.name))
+        (self.root / "compat/matrix.json").write_text(json.dumps(MATRIX_WITH_STATUS))
+        (self.root / "spec/04-directives.md").write_text(SPEC_DIRECTIVES)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_consistent_matrix_and_spec_pass(self):
+        self.assertEqual(validate.check_matrix_status(self.root), [])
+
+    def test_status_mismatch_is_reported(self):
+        (self.root / "spec/04-directives.md").write_text(SPEC_DIRECTIVES.replace("**Status:** Core", "**Status:** Extended"))
+        errors = validate.check_matrix_status(self.root)
+        self.assertTrue(any("SecRuleEngine" in e and "Core" in e and "Extended" in e for e in errors))
+
+    def test_core_row_missing_in_an_engine_is_reported(self):
+        m = json.loads(json.dumps(MATRIX_WITH_STATUS))
+        m["categories"]["directives"][0]["coraza"] = False
+        (self.root / "compat/matrix.json").write_text(json.dumps(m))
+        errors = validate.check_matrix_status(self.root)
+        self.assertTrue(any("SecRuleEngine" in e and "coraza" in e for e in errors))
+
+    def test_spec_feature_without_matrix_row_and_row_without_feature(self):
+        (self.root / "spec/04-directives.md").write_text(SPEC_DIRECTIVES + "\n### SecFoo\n\n**Status:** Core\n")
+        errors = validate.check_matrix_status(self.root)
+        self.assertTrue(any("secfoo" in e.lower() and "matrix" in e for e in errors))
+        m = json.loads(json.dumps(MATRIX_WITH_STATUS))
+        m["categories"]["directives"].append({"name": "SecBar", "v2": True, "v3": True, "coraza": True, "status": "Core"})
+        (self.root / "compat/matrix.json").write_text(json.dumps(m))
+        (self.root / "spec/04-directives.md").write_text(SPEC_DIRECTIVES)
+        errors = validate.check_matrix_status(self.root)
+        self.assertTrue(any("SecBar" in e and "spec" in e for e in errors))
+
+    def test_rows_without_status_are_ignored(self):
+        m = json.loads(json.dumps(MATRIX_WITH_STATUS))
+        m["categories"]["operators"] = [{"name": "rx", "v2": True, "v3": True, "coraza": True}]
+        (self.root / "compat/matrix.json").write_text(json.dumps(m))
+        self.assertEqual(validate.check_matrix_status(self.root), [])

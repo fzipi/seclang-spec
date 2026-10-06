@@ -24,6 +24,12 @@
       "items": {"type": "string", "pattern": "^[0-9]{2}-[a-z0-9-]+\\.md#[a-z0-9-]+$"},
       "description": "Spec anchors of Extended features an engine must implement to run this profile; otherwise it skips the whole file"
     },
+    "files": {
+      "type": "object",
+      "additionalProperties": {"type": "string"},
+      "propertyNames": {"pattern": "^[A-Za-z0-9_./-]+$"},
+      "description": "Auxiliary files written next to the profile before rules are loaded, e.g. for Include or @pmFromFile. Keys are relative paths without '..'."
+    },
     "rules": {"type": "string", "minLength": 1, "description": "SecLang configuration loaded before every test"},
     "tests": {
       "type": "array",

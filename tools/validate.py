@@ -222,7 +222,45 @@ def check_matrix(root: Path) -> list[str]:
     return []
 
 
-CHECKS: list[Callable[[Path], list[str]]] = [check_tests, check_coverage, check_adrs, check_matrix]
+MATRIX_SPEC_FILES = {"directives": "04-directives.md"}
+
+
+def check_matrix_status(root: Path) -> list[str]:
+    """Matrix rows that carry a status must agree with the spec feature of the same name."""
+    try:
+        matrix = _matrix.load(root)
+    except (FileNotFoundError, ValueError):
+        return []  # check_matrix reports these
+    features = spec_features(root)
+    errors = []
+    for category, spec_file in MATRIX_SPEC_FILES.items():
+        rows = {row["name"]: row for row in matrix["categories"].get(category, [])}
+        if not any("status" in row for row in rows.values()):
+            continue
+        by_anchor = {f"{spec_file}#{slug(name)}": name for name in rows}
+        for name, row in sorted(rows.items()):
+            anchor = f"{spec_file}#{slug(name)}"
+            status = row.get("status")
+            spec_status = features.get(anchor)
+            if status is None and spec_status is None:
+                continue
+            if status is None:
+                errors.append(f"compat/matrix.json: {category}/{name}: spec has status {spec_status} but matrix row has none")
+            elif spec_status is None:
+                errors.append(f"compat/matrix.json: {category}/{name}: status {status} but spec/{anchor} does not exist")
+            elif status != spec_status:
+                errors.append(f"compat/matrix.json: {category}/{name}: matrix says {status}, spec/{anchor} says {spec_status}")
+            if status == "Core":
+                for e in _matrix.ENGINES:
+                    if not row.get(e):
+                        errors.append(f"compat/matrix.json: {category}/{name}: Core but absent in {e}")
+        for anchor in sorted(a for a in features if a.startswith(spec_file + "#")):
+            if anchor not in by_anchor:
+                errors.append(f"spec/{anchor}: no matching row in compat/matrix.json {category}")
+    return errors
+
+
+CHECKS: list[Callable[[Path], list[str]]] = [check_tests, check_coverage, check_adrs, check_matrix, check_matrix_status]
 
 
 def main(root: Path = ROOT, checks: list[Callable[[Path], list[str]]] | None = None) -> int:

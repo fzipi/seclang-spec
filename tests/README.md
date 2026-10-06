@@ -32,6 +32,10 @@ beyond `log_contains`/`no_log_contains` substrings.
   **skip** the file, not fail it. The validator rejects an entry that is not an
   Extended feature. Unit cases have no `requires`; an engine skips a unit case whose
   `spec` anchor is an Extended feature it does not declare.
+- `files: {relative/path: content}` (engine tier) ships auxiliary files. The adapter
+  writes each one relative to a temporary directory, then loads `rules` with that
+  directory as the configuration directory, so `Include relative/path` and
+  `@pmFromFile relative/path` resolve.
 
 ## Adding a case
 
