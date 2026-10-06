@@ -11,547 +11,638 @@
     "name": "Include",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecAction",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecArgumentSeparator",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecArgumentsLimit",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecAuditEngine",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecAuditLog",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecAuditLog2",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecAuditLogDirMode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecAuditLogFileMode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecAuditLogFormat",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecAuditLogParts",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecAuditLogPrefix",
     "v2": false,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Engine-specific"
    },
    {
     "name": "SecAuditLogRelevantStatus",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecAuditLogStorageDir",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecAuditLogType",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecCacheTransformations",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecChrootDir",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecCollectionTimeout",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecComponentSignature",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecConnEngine",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
     "name": "SecConnReadStateLimit",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
     "name": "SecConnWriteStateLimit",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
     "name": "SecContentInjection",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecCookieFormat",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecCookieV0Separator",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "SecDataDir",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecDataset",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "SecDebugLog",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecDebugLogLevel",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecDefaultAction",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecDisableBackendCompression",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecGeoLookupDb",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "SecGsbLookupDb",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
     "name": "SecGuardianLog",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecHashEngine",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
     "name": "SecHashKey",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
     "name": "SecHashMethodPm",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
     "name": "SecHashMethodRx",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
     "name": "SecHashParam",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Deprecated"
    },
    {
     "name": "SecHttpBlKey",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecIgnoreRuleCompilationErrors",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "SecInterceptOnError",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecMarker",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecParseXmlIntoArgs",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "SecPcreMatchLimit",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecPcreMatchLimitRecursion",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecReadStateLimit",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecRemoteRules",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecRemoteRulesFailAction",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecRequestBodyAccess",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRequestBodyInMemoryLimit",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRequestBodyJsonDepthLimit",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRequestBodyLimit",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRequestBodyLimitAction",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRequestBodyNoFilesLimit",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRequestEncoding",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecResponseBodyAccess",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecResponseBodyJsonDepthLimit",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "SecResponseBodyLimit",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecResponseBodyLimitAction",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecResponseBodyMimeType",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecResponseBodyMimeTypesClear",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRule",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRuleEngine",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRuleInheritance",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "SecRulePerfTime",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecRuleRemoveById",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRuleRemoveByMsg",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecRuleRemoveByTag",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRuleScript",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecRuleUpdateActionById",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRuleUpdateTargetById",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRuleUpdateTargetByMsg",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecRuleUpdateTargetByTag",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecRxPreFilter",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "SecSensorId",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecServerSignature",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecStatusEngine",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecStreamInBodyInspection",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecStreamOutBodyInspection",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecTmpDir",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecTmpSaveUploadedFiles",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "SecUnicodeCodePage",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecUnicodeMapFile",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "SecUploadDir",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecUploadFileLimit",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecUploadFileMode",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecUploadKeepFiles",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "SecWebAppId",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "SecWriteStateLimit",
     "v2": true,
     "v3": false,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "SecXmlExternalEntity",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    }
   ],
   "actions": [

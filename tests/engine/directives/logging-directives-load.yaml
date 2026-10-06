@@ -1,0 +1,118 @@
+meta:
+  name: logging-directives-load
+  description: Core logging and storage directives load with valid values and do not disturb rule evaluation
+spec: 04-directives.md#secauditengine
+rules: |
+  SecRuleEngine On
+  SecAuditEngine RelevantOnly
+  SecAuditLog /dev/null
+  SecAuditLogFormat JSON
+  SecAuditLogParts ABIJDEFHZ
+  SecAuditLogRelevantStatus "^(?:5|4(?!04))"
+  SecAuditLogStorageDir /tmp
+  SecAuditLogType Serial
+  SecDataDir /tmp
+  SecDebugLog /dev/null
+  SecDebugLogLevel 0
+  SecUploadDir /tmp
+  SecUploadFileMode 0600
+  SecUploadKeepFiles Off
+  SecRule ARGS_GET:a "@streq 1" "id:5200,phase:1,deny,status:403"
+tests:
+  - test_title: SecAuditLog and friends load; rule fires
+    spec: 04-directives.md#secauditlog
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+            interruption: {rule_id: 5200, action: deny, status: 403}
+  - test_title: SecAuditLogFormat
+    spec: 04-directives.md#secauditlogformat
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+  - test_title: SecAuditLogParts
+    spec: 04-directives.md#secauditlogparts
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+  - test_title: SecAuditLogRelevantStatus
+    spec: 04-directives.md#secauditlogrelevantstatus
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+  - test_title: SecAuditLogStorageDir
+    spec: 04-directives.md#secauditlogstoragedir
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+  - test_title: SecAuditLogType
+    spec: 04-directives.md#secauditlogtype
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+  - test_title: SecDataDir
+    spec: 04-directives.md#secdatadir
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+  - test_title: SecDebugLog
+    spec: 04-directives.md#secdebuglog
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+  - test_title: SecDebugLogLevel
+    spec: 04-directives.md#secdebugloglevel
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+  - test_title: SecUploadDir
+    spec: 04-directives.md#secuploaddir
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+  - test_title: SecUploadFileMode
+    spec: 04-directives.md#secuploadfilemode
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]
+  - test_title: SecUploadKeepFiles
+    spec: 04-directives.md#secuploadkeepfiles
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5200]

@@ -603,3 +603,753 @@ above; every published ruleset sets the directive, so the default is left unspec
 **Tests.** `tests/engine/directives/secruleengine-on.yaml`,
 `tests/engine/directives/secruleengine-detectiononly.yaml`,
 `tests/engine/directives/secruleengine-off.yaml`
+
+## Logging and storage directives
+
+### SecAuditEngine
+
+**Status:** Core
+
+**Syntax.** `SecAuditEngine On|Off|RelevantOnly`
+
+**Default.** `Off` in ModSecurity v2 and Coraza; unset in libmodsecurity v3, which
+behaves as `Off`. Normative default: `Off`.
+
+**Semantics.** `On` writes an audit log entry for every transaction. `RelevantOnly`
+writes one for transactions in which a rule carrying `auditlog` matched (the default
+action list in CRS adds `auditlog` to every rule) or whose response status matches
+`SecAuditLogRelevantStatus`. `Off` writes none. `ctl:auditEngine` overrides the value for
+one transaction. The content and layout of an entry are defined in `10-logging.md`;
+this specification never asserts on them.
+
+**Divergence notes.** None known.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecAuditLog
+
+**Status:** Core
+
+**Syntax.** `SecAuditLog PATH`
+
+**Default.** None; without it audit logging is disabled even when the engine is `On`.
+
+**Semantics.** The destination of serial audit entries, and of the index file in
+concurrent mode. `PATH` is a filesystem path; engines MAY accept a `|program` pipe
+(ModSecurity v2) or a URL (Coraza `https://`, its ADR-0003) but those forms are
+Engine-specific.
+
+**Divergence notes.** None for a plain path.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecAuditLogFormat
+
+**Status:** Core
+
+**Syntax.** `SecAuditLogFormat Native|JSON`
+
+**Default.** `Native` (all engines).
+
+**Semantics.** Selects the serialization of audit entries: the historical multi-part
+text format (`Native`) or one JSON object per entry (`JSON`). Engines MUST accept both
+values. The JSON layout itself is defined in `10-logging.md` to the extent the engines
+agree.
+
+**Divergence notes.** Coraza additionally accepts `JsonLegacy` and `OCSF`
+(Engine-specific, its ADR-0018).
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecAuditLogParts
+
+**Status:** Core
+
+**Syntax.** `SecAuditLogParts LETTERS`
+
+**Default.** `ABCFHZ` (ModSecurity v2 `apache2_config.c`, libmodsecurity v3
+`audit_log.h` `m_defaultParts`, Coraza `waf.go`). Normative default: `ABCFHZ`.
+
+**Semantics.** Which parts an audit entry contains, as a string of part letters: `A`
+header, `B` request headers, `C` request body, `D` reserved, `E` intermediary response
+body, `F` response headers, `G` reserved, `H` audit trailer, `I` request body without
+files, `J` uploaded files information, `K` matched rules, `Z` end marker. `A` and `Z`
+are mandatory. A letter outside `A`–`K` and `Z` MUST be a configuration error.
+`ctl:auditLogParts` changes the parts for one transaction; Coraza additionally accepts
+`+X`/`-X` relative forms there (Engine-specific, its ADR-0032).
+
+**Divergence notes.** All three reject unknown letters (v2 `is_valid_parts_specification`,
+v3 scanner character class `[ABCDEFGHJKIZ]`, Coraza `ParseAuditLogParts`). Which parts
+each engine actually fills is a `10-logging.md` matter; Coraza does not implement `D`,
+`E` or `G`.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`,
+`tests/engine/directives/secauditlogparts-invalid.yaml`
+
+### SecAuditLogRelevantStatus
+
+**Status:** Core
+
+**Syntax.** `SecAuditLogRelevantStatus REGEX`
+
+**Default.** None: no status is relevant until set. Both recommended configurations set
+`"^(?:5|4(?!04))"`.
+
+**Semantics.** With `SecAuditEngine RelevantOnly`, a transaction whose final HTTP status
+code, as a decimal string, matches `REGEX` is logged even if no rule marked it relevant.
+
+**Divergence notes.** None known.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecAuditLogStorageDir
+
+**Status:** Core
+
+**Syntax.** `SecAuditLogStorageDir PATH`
+
+**Default.** None; required when `SecAuditLogType Concurrent`.
+
+**Semantics.** The directory under which concurrent-mode audit entries are written, one
+file per transaction, in the date-based subdirectory layout defined in `10-logging.md`.
+
+**Divergence notes.** None known.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecAuditLogType
+
+**Status:** Core
+
+**Syntax.** `SecAuditLogType Serial|Concurrent`
+
+**Default.** `Serial` (all engines).
+
+**Semantics.** `Serial` appends every entry to the `SecAuditLog` file. `Concurrent`
+writes one file per transaction under `SecAuditLogStorageDir` and appends an index line
+to `SecAuditLog`.
+
+**Divergence notes.** libmodsecurity v3 accepts `Parallel` as an alias of `Concurrent`
+and `https` for remote logging; Coraza accepts `HTTPS` and `Syslog`. Those values are
+Engine-specific (ADR-0004).
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecDataDir
+
+**Status:** Core
+
+**Syntax.** `SecDataDir PATH`
+
+**Default.** None.
+
+**Semantics.** The directory where the engine keeps files that outlive a transaction:
+persistent collections (`IP`, `SESSION`, `USER`, `GLOBAL`, `RESOURCE`; Extended, see
+ADR-0007 in Phase 3) in ModSecurity, and any similar engine state. An engine that has no
+such state MUST still accept the directive.
+
+**Divergence notes.** Coraza has no persistent collections and accepts the directive
+without effect. Both recommended configurations set it, which is why it is Core.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecDebugLog
+
+**Status:** Core
+
+**Syntax.** `SecDebugLog PATH`
+
+**Default.** None: debug output goes to the host's error log or nowhere.
+
+**Semantics.** The file that receives debug messages at or below `SecDebugLogLevel`.
+Message wording is engine-specific and never asserted by this specification.
+
+**Divergence notes.** None known.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecDebugLogLevel
+
+**Status:** Core
+
+**Syntax.** `SecDebugLogLevel N` with `N` from 0 to 9.
+
+**Default.** 0 in ModSecurity v2 and libmodsecurity v3; 3 in Coraza (`directives.go`).
+Unspecified.
+
+**Semantics.** 0 disables debug logging; 1 to 3 correspond to error, warning and notice
+and are also mirrored to the host error log; 4 to 9 add increasing detail about rule
+evaluation. A value outside 0–9 MUST be a configuration error.
+
+**Divergence notes.** Defaults differ as listed.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecUploadDir
+
+**Status:** Core
+
+**Syntax.** `SecUploadDir PATH`
+
+**Default.** None.
+
+**Semantics.** The directory into which uploaded files are stored when
+`SecUploadKeepFiles` keeps them. It MUST be on the same filesystem as `SecTmpDir` in
+engines that move rather than copy; this specification does not require either.
+
+**Divergence notes.** None known.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecUploadFileMode
+
+**Status:** Core
+
+**Syntax.** `SecUploadFileMode OCTAL`
+
+**Default.** 0600 in ModSecurity v2 and Coraza; unset in libmodsecurity v3.
+Unspecified.
+
+**Semantics.** The permission bits applied to files kept under `SecUploadDir`, as an
+octal number. Engines on platforms without POSIX permissions MUST accept and MAY ignore
+it.
+
+**Divergence notes.** Defaults differ as listed.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+### SecUploadKeepFiles
+
+**Status:** Core
+
+**Syntax.** `SecUploadKeepFiles On|Off|RelevantOnly`
+
+**Default.** `Off` in ModSecurity v2 and Coraza; unset in libmodsecurity v3, behaving as
+`Off`. Normative default: `Off`.
+
+**Semantics.** `On` keeps every uploaded file under `SecUploadDir` after the transaction;
+`Off` deletes them; `RelevantOnly` keeps them only for transactions that are audit-log
+relevant. Engines MUST accept `On` and `Off`. `RelevantOnly` is Extended: see the
+divergence note.
+
+**Divergence notes.** libmodsecurity v3 rejects `RelevantOnly` ("not currently supported",
+`seclang-parser.yy`); ModSecurity v2 and Coraza implement it.
+
+**Tests.** `tests/engine/directives/logging-directives-load.yaml`
+
+## Extended directives
+
+Specified in outline; SHOULD be implemented. Full sections follow when an engine test can
+be written for each.
+
+### SecAuditLogDirMode
+
+**Status:** Extended
+
+**Syntax.** `SecAuditLogDirMode OCTAL`
+
+**Semantics.** Permission bits for directories the concurrent audit logger creates. Default 0700 in ModSecurity v2 (`CREATEMODE_DIR`), 0600 in Coraza; unset in v3.
+
+**Implemented by.** v2, v3, Coraza.
+
+### SecAuditLogFileMode
+
+**Status:** Extended
+
+**Syntax.** `SecAuditLogFileMode OCTAL`
+
+**Semantics.** Permission bits for audit files. Default 0640 in ModSecurity v2 (`CREATEMODE`) and libmodsecurity v3 (`m_defaultFilePermission`), 0600 in Coraza.
+
+**Implemented by.** v2, v3, Coraza.
+
+### SecCollectionTimeout
+
+**Status:** Extended
+
+**Syntax.** `SecCollectionTimeout SECONDS`
+
+**Semantics.** Idle time after which a persistent collection record expires; default 3600 in v2. Meaningful only with persistent collections (ADR-0007, Phase 3).
+
+**Implemented by.** v2, v3 (parsed), Coraza (parsed).
+
+### SecCookieFormat
+
+**Status:** Extended
+
+**Syntax.** `SecCookieFormat 0|1`
+
+**Semantics.** Cookie header syntax: 0 for Netscape-style, 1 for RFC 2965 version-1 cookies. Default 0 everywhere. Version-1 cookies are obsolete; Coraza accepts and ignores the directive (ADR-0005), which is why it is Extended although both recommended configurations set it to 0.
+
+**Implemented by.** v2, v3; Coraza parses only.
+
+### SecCookieV0Separator
+
+**Status:** Extended
+
+**Syntax.** `SecCookieV0Separator CHAR`
+
+**Semantics.** Separator between version-0 cookies; default `;`.
+
+**Implemented by.** v2, v3.
+
+### SecGeoLookupDb
+
+**Status:** Extended
+
+**Syntax.** `SecGeoLookupDb PATH`
+
+**Semantics.** Path to a GeoIP database used by `@geoLookup` to fill the `GEO` collection. Spelled `SecGeoLookupDB` in the v2 manual; names match case-insensitively.
+
+**Implemented by.** v2, v3.
+
+### SecHttpBlKey
+
+**Status:** Extended
+
+**Syntax.** `SecHttpBlKey KEY`
+
+**Semantics.** Project Honey Pot access key used by `@rbl` against `dnsbl.httpbl.org`.
+
+**Implemented by.** v2, v3, Coraza.
+
+### SecParseXmlIntoArgs
+
+**Status:** Extended
+
+**Syntax.** `SecParseXmlIntoArgs On|Off|OnlyArgs`
+
+**Semantics.** Expose XML request body element values as `ARGS` so generic rules inspect them; `ctl:parseXmlIntoArgs` is the per-transaction form. Default `Off`.
+
+**Implemented by.** v2, v3.
+
+### SecPcreMatchLimit
+
+**Status:** Extended
+
+**Syntax.** `SecPcreMatchLimit N`
+
+**Semantics.** PCRE `match_limit` for every regular expression; a hit sets `MSC_PCRE_LIMITS_EXCEEDED` (v3) or `TX:MSC_PCRE_LIMITS_EXCEEDED` (v2). Default 1500 in v2's recommended configuration. Coraza's RE2-style engine has no such limit and accepts the directive without effect.
+
+**Implemented by.** v2, v3; Coraza parses only.
+
+### SecPcreMatchLimitRecursion
+
+**Status:** Extended
+
+**Syntax.** `SecPcreMatchLimitRecursion N`
+
+**Semantics.** PCRE `match_limit_recursion`; otherwise as `SecPcreMatchLimit`.
+
+**Implemented by.** v2, v3; Coraza parses only.
+
+### SecRemoteRules
+
+**Status:** Extended
+
+**Syntax.** `SecRemoteRules [crypto] KEY URL`
+
+**Semantics.** Download a rule file over HTTPS at load time, sending `KEY` in the `ModSec-key` header. Coraza rejects the directive with an error rather than ignoring it.
+
+**Implemented by.** v2, v3; Coraza errors.
+
+### SecRemoteRulesFailAction
+
+**Status:** Extended
+
+**Syntax.** `SecRemoteRulesFailAction Abort|Warn`
+
+**Semantics.** Whether a failed `SecRemoteRules` download aborts loading (default) or only warns.
+
+**Implemented by.** v2, v3, Coraza (parsed).
+
+### SecRuleInheritance
+
+**Status:** Extended
+
+**Syntax.** `SecRuleInheritance On|Off`
+
+**Semantics.** Whether a nested configuration context (Apache `<Location>` and similar) inherits the parent's rules. Default `On`. Only meaningful where the host has nested contexts.
+
+**Implemented by.** v2, v3.
+
+### SecRulePerfTime
+
+**Status:** Extended
+
+**Syntax.** `SecRulePerfTime MICROSECONDS`
+
+**Semantics.** Log rules whose evaluation took longer than the threshold. Coraza accepts and ignores it.
+
+**Implemented by.** v2, v3; Coraza parses only.
+
+### SecRuleScript
+
+**Status:** Extended
+
+**Syntax.** `SecRuleScript PATH [ACTIONS]`
+
+**Semantics.** A rule whose condition is a Lua script. Coraza accepts and ignores it (ADR-0005).
+
+**Implemented by.** v2, v3; Coraza parses only.
+
+### SecSensorId
+
+**Status:** Extended
+
+**Syntax.** `SecSensorId STRING`
+
+**Semantics.** Identifier of this sensor, written to audit log part H. Default `default` in v2.
+
+**Implemented by.** v2, v3, Coraza.
+
+### SecServerSignature
+
+**Status:** Extended
+
+**Syntax.** `SecServerSignature STRING`
+
+**Semantics.** Replace the `Server` response header value the host would send. Requires host support.
+
+**Implemented by.** v2, v3, Coraza (parsed).
+
+### SecTmpDir
+
+**Status:** Extended
+
+**Syntax.** `SecTmpDir PATH`
+
+**Semantics.** Directory for temporary files such as spooled request bodies. Default: the system temporary directory. Coraza accepts and ignores it (ADR-0005). Extended although both recommended configurations set it, because it has no rule-visible behaviour.
+
+**Implemented by.** v2, v3; Coraza parses only.
+
+### SecTmpSaveUploadedFiles
+
+**Status:** Extended
+
+**Syntax.** `SecTmpSaveUploadedFiles On|Off`
+
+**Semantics.** Keep uploaded files in `SecTmpDir` during the transaction so `@inspectFile` can examine them even when `SecUploadKeepFiles` is `Off`.
+
+**Implemented by.** v2, v3.
+
+### SecUnicodeMapFile
+
+**Status:** Extended
+
+**Syntax.** `SecUnicodeMapFile PATH CODEPAGE`
+
+**Semantics.** Load a Unicode mapping table used by `t:urlDecodeUni` for `%uXXXX` sequences; the code page selects the table. Coraza has no equivalent (its `secunicodemap` key is unsupported).
+
+**Implemented by.** v2, v3.
+
+### SecUploadFileLimit
+
+**Status:** Extended
+
+**Syntax.** `SecUploadFileLimit N`
+
+**Semantics.** Maximum number of files accepted in one multipart request; default 100 in v2. Exceeding it sets `MULTIPART_FILE_LIMIT_EXCEEDED`.
+
+**Implemented by.** v2, v3, Coraza.
+
+### SecWebAppId
+
+**Status:** Extended
+
+**Syntax.** `SecWebAppId STRING`
+
+**Semantics.** Namespace for persistent collections and a field in audit logs so several applications behind one engine do not share `IP`/`SESSION` data. Default `default` in v2.
+
+**Implemented by.** v2, v3, Coraza.
+
+### SecXmlExternalEntity
+
+**Status:** Extended
+
+**Syntax.** `SecXmlExternalEntity On|Off`
+
+**Semantics.** Allow the XML body processor to load external entities. Default `Off`; `On` enables XXE and is a security risk.
+
+**Implemented by.** v2, v3.
+
+
+## Deprecated directives
+
+Engines MUST accept these names and MAY ignore them with a warning (ADR-0005). They are
+Apache-era or single-engine features that no current ruleset relies on.
+
+### SecAuditLog2
+
+**Status:** Deprecated
+
+**Syntax.** `SecAuditLog2 PATH`
+
+**Semantics.** A second concurrent-mode index file.
+
+**Implemented by.** v2, v3 (parsed).
+
+### SecCacheTransformations
+
+**Status:** Deprecated
+
+**Syntax.** `SecCacheTransformations On|Off [options]`
+
+**Semantics.** Cache transformation results across rules; experimental in v2 and never recommended.
+
+**Implemented by.** v2, v3 (parsed).
+
+### SecChrootDir
+
+**Status:** Deprecated
+
+**Syntax.** `SecChrootDir PATH`
+
+**Semantics.** Chroot the Apache process after startup.
+
+**Implemented by.** v2, v3 (parsed).
+
+### SecConnEngine
+
+**Status:** Deprecated
+
+**Syntax.** `SecConnEngine On|Off|DetectionOnly`
+
+**Semantics.** Connection-limiting engine using the two state-limit directives. Only v2 implements it.
+
+**Implemented by.** v2; v3, Coraza parse only.
+
+### SecConnReadStateLimit
+
+**Status:** Deprecated
+
+**Syntax.** `SecConnReadStateLimit N [SUSPICIOUS_LIST]`
+
+**Semantics.** Maximum concurrent connections in read state per client IP.
+
+**Implemented by.** v2; v3, Coraza parse only.
+
+### SecConnWriteStateLimit
+
+**Status:** Deprecated
+
+**Syntax.** `SecConnWriteStateLimit N [SUSPICIOUS_LIST]`
+
+**Semantics.** Maximum concurrent connections in write state per client IP.
+
+**Implemented by.** v2; v3, Coraza parse only.
+
+### SecContentInjection
+
+**Status:** Deprecated
+
+**Syntax.** `SecContentInjection On|Off`
+
+**Semantics.** Enable the `append` and `prepend` actions.
+
+**Implemented by.** v2, v3 (parsed).
+
+### SecDisableBackendCompression
+
+**Status:** Deprecated
+
+**Syntax.** `SecDisableBackendCompression On|Off`
+
+**Semantics.** Remove `Accept-Encoding` on the way to the backend so response bodies can be inspected uncompressed.
+
+**Implemented by.** v2, v3 (parsed).
+
+### SecGsbLookupDb
+
+**Status:** Deprecated
+
+**Syntax.** `SecGsbLookupDb PATH`
+
+**Semantics.** Google Safe Browsing database for `@gsbLookup`; the underlying API was retired.
+
+**Implemented by.** v2; v3, Coraza parse only.
+
+### SecGuardianLog
+
+**Status:** Deprecated
+
+**Syntax.** `SecGuardianLog |PROGRAM`
+
+**Semantics.** Pipe a per-request line to the `httpd-guardian` script.
+
+**Implemented by.** v2, v3 (parsed).
+
+### SecHashEngine
+
+**Status:** Deprecated
+
+**Syntax.** `SecHashEngine On|Off`
+
+**Semantics.** Response-rewriting hash engine protecting links and forms against tampering.
+
+**Implemented by.** v2; v3, Coraza parse only.
+
+### SecHashKey
+
+**Status:** Deprecated
+
+**Syntax.** `SecHashKey KEY [KeyOnly|SessionID|RemoteIP]`
+
+**Semantics.** Hash engine key material.
+
+**Implemented by.** v2; v3, Coraza parse only.
+
+### SecHashMethodPm
+
+**Status:** Deprecated
+
+**Syntax.** `SecHashMethodPm TYPE PHRASES`
+
+**Semantics.** Which response elements the hash engine rewrites, by phrase.
+
+**Implemented by.** v2; v3, Coraza parse only.
+
+### SecHashMethodRx
+
+**Status:** Deprecated
+
+**Syntax.** `SecHashMethodRx TYPE REGEX`
+
+**Semantics.** Which response elements the hash engine rewrites, by regex.
+
+**Implemented by.** v2; v3, Coraza parse only.
+
+### SecHashParam
+
+**Status:** Deprecated
+
+**Syntax.** `SecHashParam NAME`
+
+**Semantics.** Query parameter carrying the hash.
+
+**Implemented by.** v2; v3, Coraza parse only.
+
+### SecInterceptOnError
+
+**Status:** Deprecated
+
+**Syntax.** `SecInterceptOnError On|Off`
+
+**Semantics.** Deny the request when a rule-processing error occurs.
+
+**Implemented by.** v2, v3 (parsed).
+
+### SecReadStateLimit
+
+**Status:** Deprecated
+
+**Syntax.** `SecReadStateLimit N`
+
+**Semantics.** Older name of `SecConnReadStateLimit`.
+
+**Implemented by.** v2.
+
+### SecRequestEncoding
+
+**Status:** Deprecated
+
+**Syntax.** `SecRequestEncoding ENCODING`
+
+**Semantics.** Declared character encoding of requests; never implemented beyond parsing.
+
+**Implemented by.** v2.
+
+### SecStatusEngine
+
+**Status:** Deprecated
+
+**Syntax.** `SecStatusEngine On|Off`
+
+**Semantics.** Report engine version and platform to the ModSecurity project at startup.
+
+**Implemented by.** v2, v3 (parsed).
+
+### SecStreamInBodyInspection
+
+**Status:** Deprecated
+
+**Syntax.** `SecStreamInBodyInspection On|Off`
+
+**Semantics.** Expose and allow rewriting the request body as `STREAM_INPUT_BODY`.
+
+**Implemented by.** v2, v3 (parsed).
+
+### SecStreamOutBodyInspection
+
+**Status:** Deprecated
+
+**Syntax.** `SecStreamOutBodyInspection On|Off`
+
+**Semantics.** Expose and allow rewriting the response body as `STREAM_OUTPUT_BODY`.
+
+**Implemented by.** v2, v3 (parsed).
+
+### SecUnicodeCodePage
+
+**Status:** Deprecated
+
+**Syntax.** `SecUnicodeCodePage N`
+
+**Semantics.** Older way to select the code page now given as the second argument of `SecUnicodeMapFile`.
+
+**Implemented by.** v2.
+
+### SecWriteStateLimit
+
+**Status:** Deprecated
+
+**Syntax.** `SecWriteStateLimit N`
+
+**Semantics.** Older name of `SecConnWriteStateLimit`.
+
+**Implemented by.** v2.
+
+
+## Engine-specific directives
+
+Reserved names. Not specified; another engine MUST NOT give them different semantics.
+
+### SecAuditLogPrefix
+
+**Status:** Engine-specific
+
+**Syntax.** `SecAuditLogPrefix STRING`
+
+**Semantics.** libmodsecurity v3: prefix for the file names the concurrent audit logger creates.
+
+**Implemented by.** v3.
+
+### SecDataset
+
+**Status:** Engine-specific
+
+**Syntax.** `SecDataset NAME` followed by a backtick-delimited block, one entry per line
+
+**Semantics.** Coraza (its ADR-0024 lineage): an inline list consumed by `@pmFromDataset` and `@ipMatchFromDataset` without a separate file, for platforms without filesystem access. The backtick block is a lexical extension not covered by `01-lexical.md`.
+
+**Implemented by.** Coraza.
+
+### SecIgnoreRuleCompilationErrors
+
+**Status:** Engine-specific
+
+**Syntax.** `SecIgnoreRuleCompilationErrors On|Off`
+
+**Semantics.** Coraza: continue loading when a rule fails to compile instead of aborting. Does not affect unknown directives (ADR-0005).
+
+**Implemented by.** Coraza.
+
+### SecRxPreFilter
+
+**Status:** Engine-specific
+
+**Syntax.** `SecRxPreFilter On|Off`
+
+**Semantics.** Coraza (its ADR-0050): enable a literal-substring prefilter before `@rx` evaluation. Pure optimisation; no observable behaviour.
+
+**Implemented by.** Coraza.
+

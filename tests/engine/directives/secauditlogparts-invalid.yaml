@@ -1,0 +1,15 @@
+meta:
+  name: secauditlogparts-invalid
+  description: SecAuditLogParts rejects letters that do not name a part
+spec: 04-directives.md#secauditlogparts
+rules: |
+  SecRuleEngine On
+  SecAuditLogParts AXYZ
+tests:
+  - test_title: fails to load
+    stages:
+      - stage:
+          input:
+            uri: /
+          output:
+            expect_error: true

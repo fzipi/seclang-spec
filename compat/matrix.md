@@ -8,99 +8,99 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 
 ## directives (65 of 91 in all engines)
 
-| Name | v2 | v3 | coraza |
-|---|---|---|---|
-| `Include` | yes | yes | yes |
-| `SecAction` | yes | yes | yes |
-| `SecArgumentSeparator` | yes | yes | yes |
-| `SecArgumentsLimit` | yes | yes | yes |
-| `SecAuditEngine` | yes | yes | yes |
-| `SecAuditLog` | yes | yes | yes |
-| `SecAuditLog2` | yes | yes | - |
-| `SecAuditLogDirMode` | yes | yes | yes |
-| `SecAuditLogFileMode` | yes | yes | yes |
-| `SecAuditLogFormat` | yes | yes | yes |
-| `SecAuditLogParts` | yes | yes | yes |
-| `SecAuditLogPrefix` | - | yes | - |
-| `SecAuditLogRelevantStatus` | yes | yes | yes |
-| `SecAuditLogStorageDir` | yes | yes | yes |
-| `SecAuditLogType` | yes | yes | yes |
-| `SecCacheTransformations` | yes | yes | - |
-| `SecChrootDir` | yes | yes | - |
-| `SecCollectionTimeout` | yes | yes | yes |
-| `SecComponentSignature` | yes | yes | yes |
-| `SecConnEngine` | yes | yes | yes |
-| `SecConnReadStateLimit` | yes | yes | yes |
-| `SecConnWriteStateLimit` | yes | yes | yes |
-| `SecContentInjection` | yes | yes | - |
-| `SecCookieFormat` | yes | yes | yes |
-| `SecCookieV0Separator` | yes | yes | - |
-| `SecDataDir` | yes | yes | yes |
-| `SecDataset` | - | - | yes |
-| `SecDebugLog` | yes | yes | yes |
-| `SecDebugLogLevel` | yes | yes | yes |
-| `SecDefaultAction` | yes | yes | yes |
-| `SecDisableBackendCompression` | yes | yes | - |
-| `SecGeoLookupDb` | yes | yes | - |
-| `SecGsbLookupDb` | yes | yes | yes |
-| `SecGuardianLog` | yes | yes | - |
-| `SecHashEngine` | yes | yes | yes |
-| `SecHashKey` | yes | yes | yes |
-| `SecHashMethodPm` | yes | yes | yes |
-| `SecHashMethodRx` | yes | yes | yes |
-| `SecHashParam` | yes | yes | yes |
-| `SecHttpBlKey` | yes | yes | yes |
-| `SecIgnoreRuleCompilationErrors` | - | - | yes |
-| `SecInterceptOnError` | yes | yes | - |
-| `SecMarker` | yes | yes | yes |
-| `SecParseXmlIntoArgs` | yes | yes | - |
-| `SecPcreMatchLimit` | yes | yes | yes |
-| `SecPcreMatchLimitRecursion` | yes | yes | yes |
-| `SecReadStateLimit` | yes | - | - |
-| `SecRemoteRules` | yes | yes | yes |
-| `SecRemoteRulesFailAction` | yes | yes | yes |
-| `SecRequestBodyAccess` | yes | yes | yes |
-| `SecRequestBodyInMemoryLimit` | yes | yes | yes |
-| `SecRequestBodyJsonDepthLimit` | yes | yes | yes |
-| `SecRequestBodyLimit` | yes | yes | yes |
-| `SecRequestBodyLimitAction` | yes | yes | yes |
-| `SecRequestBodyNoFilesLimit` | yes | yes | yes |
-| `SecRequestEncoding` | yes | - | - |
-| `SecResponseBodyAccess` | yes | yes | yes |
-| `SecResponseBodyJsonDepthLimit` | - | - | yes |
-| `SecResponseBodyLimit` | yes | yes | yes |
-| `SecResponseBodyLimitAction` | yes | yes | yes |
-| `SecResponseBodyMimeType` | yes | yes | yes |
-| `SecResponseBodyMimeTypesClear` | yes | yes | yes |
-| `SecRule` | yes | yes | yes |
-| `SecRuleEngine` | yes | yes | yes |
-| `SecRuleInheritance` | yes | yes | - |
-| `SecRulePerfTime` | yes | yes | yes |
-| `SecRuleRemoveById` | yes | yes | yes |
-| `SecRuleRemoveByMsg` | yes | yes | yes |
-| `SecRuleRemoveByTag` | yes | yes | yes |
-| `SecRuleScript` | yes | yes | yes |
-| `SecRuleUpdateActionById` | yes | yes | yes |
-| `SecRuleUpdateTargetById` | yes | yes | yes |
-| `SecRuleUpdateTargetByMsg` | yes | yes | yes |
-| `SecRuleUpdateTargetByTag` | yes | yes | yes |
-| `SecRxPreFilter` | - | - | yes |
-| `SecSensorId` | yes | yes | yes |
-| `SecServerSignature` | yes | yes | yes |
-| `SecStatusEngine` | yes | yes | - |
-| `SecStreamInBodyInspection` | yes | yes | - |
-| `SecStreamOutBodyInspection` | yes | yes | - |
-| `SecTmpDir` | yes | yes | yes |
-| `SecTmpSaveUploadedFiles` | yes | yes | - |
-| `SecUnicodeCodePage` | yes | - | - |
-| `SecUnicodeMapFile` | yes | yes | - |
-| `SecUploadDir` | yes | yes | yes |
-| `SecUploadFileLimit` | yes | yes | yes |
-| `SecUploadFileMode` | yes | yes | yes |
-| `SecUploadKeepFiles` | yes | yes | yes |
-| `SecWebAppId` | yes | yes | yes |
-| `SecWriteStateLimit` | yes | - | - |
-| `SecXmlExternalEntity` | yes | yes | - |
+| Name | v2 | v3 | coraza | status |
+|---|---|---|---|---|
+| `Include` | yes | yes | yes | Core |
+| `SecAction` | yes | yes | yes | Core |
+| `SecArgumentSeparator` | yes | yes | yes | Core |
+| `SecArgumentsLimit` | yes | yes | yes | Core |
+| `SecAuditEngine` | yes | yes | yes | Core |
+| `SecAuditLog` | yes | yes | yes | Core |
+| `SecAuditLog2` | yes | yes | - | Deprecated |
+| `SecAuditLogDirMode` | yes | yes | yes | Extended |
+| `SecAuditLogFileMode` | yes | yes | yes | Extended |
+| `SecAuditLogFormat` | yes | yes | yes | Core |
+| `SecAuditLogParts` | yes | yes | yes | Core |
+| `SecAuditLogPrefix` | - | yes | - | Engine-specific |
+| `SecAuditLogRelevantStatus` | yes | yes | yes | Core |
+| `SecAuditLogStorageDir` | yes | yes | yes | Core |
+| `SecAuditLogType` | yes | yes | yes | Core |
+| `SecCacheTransformations` | yes | yes | - | Deprecated |
+| `SecChrootDir` | yes | yes | - | Deprecated |
+| `SecCollectionTimeout` | yes | yes | yes | Extended |
+| `SecComponentSignature` | yes | yes | yes | Core |
+| `SecConnEngine` | yes | yes | yes | Deprecated |
+| `SecConnReadStateLimit` | yes | yes | yes | Deprecated |
+| `SecConnWriteStateLimit` | yes | yes | yes | Deprecated |
+| `SecContentInjection` | yes | yes | - | Deprecated |
+| `SecCookieFormat` | yes | yes | yes | Extended |
+| `SecCookieV0Separator` | yes | yes | - | Extended |
+| `SecDataDir` | yes | yes | yes | Core |
+| `SecDataset` | - | - | yes | Engine-specific |
+| `SecDebugLog` | yes | yes | yes | Core |
+| `SecDebugLogLevel` | yes | yes | yes | Core |
+| `SecDefaultAction` | yes | yes | yes | Core |
+| `SecDisableBackendCompression` | yes | yes | - | Deprecated |
+| `SecGeoLookupDb` | yes | yes | - | Extended |
+| `SecGsbLookupDb` | yes | yes | yes | Deprecated |
+| `SecGuardianLog` | yes | yes | - | Deprecated |
+| `SecHashEngine` | yes | yes | yes | Deprecated |
+| `SecHashKey` | yes | yes | yes | Deprecated |
+| `SecHashMethodPm` | yes | yes | yes | Deprecated |
+| `SecHashMethodRx` | yes | yes | yes | Deprecated |
+| `SecHashParam` | yes | yes | yes | Deprecated |
+| `SecHttpBlKey` | yes | yes | yes | Extended |
+| `SecIgnoreRuleCompilationErrors` | - | - | yes | Engine-specific |
+| `SecInterceptOnError` | yes | yes | - | Deprecated |
+| `SecMarker` | yes | yes | yes | Core |
+| `SecParseXmlIntoArgs` | yes | yes | - | Extended |
+| `SecPcreMatchLimit` | yes | yes | yes | Extended |
+| `SecPcreMatchLimitRecursion` | yes | yes | yes | Extended |
+| `SecReadStateLimit` | yes | - | - | Deprecated |
+| `SecRemoteRules` | yes | yes | yes | Extended |
+| `SecRemoteRulesFailAction` | yes | yes | yes | Extended |
+| `SecRequestBodyAccess` | yes | yes | yes | Core |
+| `SecRequestBodyInMemoryLimit` | yes | yes | yes | Core |
+| `SecRequestBodyJsonDepthLimit` | yes | yes | yes | Core |
+| `SecRequestBodyLimit` | yes | yes | yes | Core |
+| `SecRequestBodyLimitAction` | yes | yes | yes | Core |
+| `SecRequestBodyNoFilesLimit` | yes | yes | yes | Core |
+| `SecRequestEncoding` | yes | - | - | Deprecated |
+| `SecResponseBodyAccess` | yes | yes | yes | Core |
+| `SecResponseBodyJsonDepthLimit` | - | - | yes | Engine-specific |
+| `SecResponseBodyLimit` | yes | yes | yes | Core |
+| `SecResponseBodyLimitAction` | yes | yes | yes | Core |
+| `SecResponseBodyMimeType` | yes | yes | yes | Core |
+| `SecResponseBodyMimeTypesClear` | yes | yes | yes | Core |
+| `SecRule` | yes | yes | yes | Core |
+| `SecRuleEngine` | yes | yes | yes | Core |
+| `SecRuleInheritance` | yes | yes | - | Extended |
+| `SecRulePerfTime` | yes | yes | yes | Extended |
+| `SecRuleRemoveById` | yes | yes | yes | Core |
+| `SecRuleRemoveByMsg` | yes | yes | yes | Extended |
+| `SecRuleRemoveByTag` | yes | yes | yes | Core |
+| `SecRuleScript` | yes | yes | yes | Extended |
+| `SecRuleUpdateActionById` | yes | yes | yes | Core |
+| `SecRuleUpdateTargetById` | yes | yes | yes | Core |
+| `SecRuleUpdateTargetByMsg` | yes | yes | yes | Extended |
+| `SecRuleUpdateTargetByTag` | yes | yes | yes | Core |
+| `SecRxPreFilter` | - | - | yes | Engine-specific |
+| `SecSensorId` | yes | yes | yes | Extended |
+| `SecServerSignature` | yes | yes | yes | Extended |
+| `SecStatusEngine` | yes | yes | - | Deprecated |
+| `SecStreamInBodyInspection` | yes | yes | - | Deprecated |
+| `SecStreamOutBodyInspection` | yes | yes | - | Deprecated |
+| `SecTmpDir` | yes | yes | yes | Extended |
+| `SecTmpSaveUploadedFiles` | yes | yes | - | Extended |
+| `SecUnicodeCodePage` | yes | - | - | Deprecated |
+| `SecUnicodeMapFile` | yes | yes | - | Extended |
+| `SecUploadDir` | yes | yes | yes | Core |
+| `SecUploadFileLimit` | yes | yes | yes | Extended |
+| `SecUploadFileMode` | yes | yes | yes | Core |
+| `SecUploadKeepFiles` | yes | yes | yes | Core |
+| `SecWebAppId` | yes | yes | yes | Extended |
+| `SecWriteStateLimit` | yes | - | - | Deprecated |
+| `SecXmlExternalEntity` | yes | yes | - | Extended |
 
 ## actions (33 of 48 in all engines)
 
