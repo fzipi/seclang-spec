@@ -12,7 +12,7 @@ tests and Architecture Decision Records for the places where engines diverge.
 | `spec/` | The specification, one file per topic. Every feature heading has a `**Status:**` line. |
 | `adr/` | Decisions. `Divergence` ADRs pick a behaviour where engines disagree and name the test that encodes it. |
 | `tests/` | Conformance test data (no runner). `unit/` for operators and transformations, `engine/` for everything else. |
-| `compat/` | Three-engine feature matrix. Edit `matrix.json`, regenerate `matrix.md` with `tools/matrix.py`. |
+| `compat/` | Three-engine feature matrix (`matrix.json`, rendered by `tools/matrix.py`) and `known-gaps.md`, the Core tests each engine is known to fail today. |
 | `tools/` | `validate.py` enforces the repo's invariants; CI runs it. |
 
 ## Status labels

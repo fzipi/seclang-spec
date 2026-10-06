@@ -5,6 +5,7 @@ spec: 03-processing-model.md#default-actions
 rules: |
   SecRuleEngine On
   SecDefaultAction "phase:1,log"
+  SecRule ARGS_GET:a "@streq 1" "id:4027,phase:1,pass"
 tests:
   - test_title: fails to load
     stages:

@@ -1,10 +1,10 @@
 meta:
   name: deprecated-directive-accepted
   description: A Deprecated directive is accepted and ignored (ADR-0005)
-spec: 04-directives.md#secguardianlog
+spec: 04-directives.md#sechashengine
 rules: |
   SecRuleEngine On
-  SecGuardianLog /dev/null
+  SecHashEngine Off
   SecRule ARGS_GET:a "@streq 1" "id:5300,phase:1,deny,status:403"
 tests:
   - test_title: configuration loads and the rule fires

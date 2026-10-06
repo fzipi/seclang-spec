@@ -22,4 +22,4 @@ tests:
             data: 0123456789
           output:
             non_triggered_rules: [5115]
-            interruption: {rule_id: 0, action: deny, status: 403}
+            interruption: {rule_id: 0, action: deny}

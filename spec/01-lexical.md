@@ -91,8 +91,9 @@ following a macro landed in 2026 and that case is tested in `02-grammar.md`.
 **Semantics.** The file at `PATH` is parsed in place, as if its lines replaced the
 `Include` line. If `PATH` contains `*`, it is a glob pattern; every matching file is
 included in lexicographic order. Engines MUST support absolute paths and `*` globs. A
-non-glob `PATH` that does not exist MUST be a configuration error. A glob that matches
-nothing MUST NOT be an error (engines MAY warn). Included files may themselves
+non-glob `PATH` that does not exist MUST be a configuration error. The outcome of a glob
+that matches nothing is **not specified** (see the divergence note); portable
+configurations only use globs that match at least one file. Included files may themselves
 `Include`; an engine MAY cap the total number of included files, and the cap MUST be at
 least 100.
 
@@ -104,7 +105,11 @@ directory the deployment controls.
 relative paths against `ServerRoot`. libmodsecurity v3 and Coraza resolve them against
 the directory of the including file (Coraza: `internal/seclang/parser.go`, which also
 caps includes at 100 files via `maxIncludeRecursion`). Coraza only treats `PATH` as a
-glob when it contains `*`; Apache also expands `?` and `[...]`. Only `*` is Core.
+glob when it contains `*`; Apache also expands `?` and `[...]`. Only `*` is Core. An
+empty glob is a configuration error in ModSecurity v2 (Apache 2.4 `Include`: "No matches
+for the wildcard"; `IncludeOptional` is the lenient form) and libmodsecurity v3
+(`seclang-scanner.ll`, "Not able to open file"), and only a warning in Coraza
+(`parser.go`, "empty glob result").
 
 **Tests.** `tests/engine/lexical/include-relative-file.yaml`
 

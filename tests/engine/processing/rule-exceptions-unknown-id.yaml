@@ -1,0 +1,19 @@
+meta:
+  name: rule-exceptions-unknown-id
+  description: Rule exceptions naming an id that matches no rule are silently ignored
+spec: 03-processing-model.md#rule-exceptions
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4068,phase:1,pass"
+  SecRuleRemoveById 999998
+  SecRuleUpdateTargetById 999999 "!ARGS_GET:a"
+  SecRuleUpdateActionById 999997 "pass"
+tests:
+  - test_title: configuration loads and the existing rule is untouched
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [4068]
+            no_interruption: true

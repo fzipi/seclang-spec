@@ -14,7 +14,6 @@ rules: |
   SecRuleRemoveByTag drop-me
   SecRuleUpdateTargetById 4063 "!ARGS_GET:a"
   SecRuleUpdateActionById 4064 "pass"
-  SecRuleUpdateTargetById 999999 "!ARGS_GET:a"
 tests:
   - test_title: removed and retargeted rules do not fire on a
     spec: 04-directives.md#secruleremovebytag

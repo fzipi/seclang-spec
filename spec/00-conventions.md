@@ -19,7 +19,7 @@ directly after its heading as `**Status:** <value>`:
 |-------------------|------------------------------------|
 | `Core`            | MUST be implemented as specified. Conformance requires every Core feature. Every Core feature has at least one test in `tests/`. |
 | `Extended`        | SHOULD be implemented. Fully specified. An engine declares which Extended features it supports; tests for them carry `requires:` so other engines skip them. |
-| `Deprecated`      | MUST be accepted by the parser. MAY be ignored with a warning. MUST NOT be used in new rulesets. |
+| `Deprecated`      | MUST be accepted by the parser. MAY be ignored with a warning. MUST NOT be used in new rulesets. Engines that reject one today are listed in `compat/known-gaps.md`. |
 | `Engine-specific` | Listed so the name is reserved. Not specified here; another engine MUST NOT give the name different semantics. |
 
 The initial Core set is the intersection of the three surveyed engines, restricted to
@@ -37,7 +37,8 @@ requires an ADR.
 
 An engine conforms to `seclang-spec vX.Y` when it passes every test under `tests/` that
 is not skipped by a `requires:` clause for an Extended feature it does not declare.
-Core tests can never be skipped.
+Core tests can never be skipped. `compat/known-gaps.md` lists the Core tests each
+surveyed engine fails today, so that a gap is a tracked bug rather than a surprise.
 
 An engine-tier profile that needs an Extended feature lists that feature's anchor under
 `requires:` (`NN-file.md#anchor`); every entry MUST resolve to a feature whose status is

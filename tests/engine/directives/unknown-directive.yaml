@@ -1,7 +1,7 @@
 meta:
   name: unknown-directive
   description: A directive name not defined by the specification is a configuration error (ADR-0005)
-spec: 04-directives.md#secrule
+spec: 02-grammar.md#directive-line
 rules: |
   SecRuleEngine On
   SecFrobnicate On

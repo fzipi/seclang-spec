@@ -8,7 +8,7 @@ rules: |
   SecAuditLog /dev/null
   SecAuditLogFormat JSON
   SecAuditLogParts ABIJDEFHZ
-  SecAuditLogRelevantStatus "^(?:5|4(?!04))"
+  SecAuditLogRelevantStatus "^(?:5|40[1235])"
   SecAuditLogStorageDir /tmp
   SecAuditLogType Serial
   SecDataDir /tmp

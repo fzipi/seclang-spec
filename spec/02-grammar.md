@@ -46,11 +46,16 @@ macro         = "%{" , collection , [ "." , key ] , "}" ;
 (`01-lexical.md#name-matching`). Arguments are separated by runs of whitespace; a quoted
 argument may contain whitespace. The number and meaning of arguments is fixed per
 directive and defined in `04-directives.md`. Too few or too many arguments MUST be a
-configuration error.
+configuration error. A directive name that this specification does not define MUST be a
+configuration error (ADR-0005).
 
-**Divergence notes.** None known.
+**Divergence notes.** Coraza 3.8.1 splits a directive line on the space character only
+(`internal/seclang/parser.go`, `strings.Cut(l, " ")`; `rule_parser.go` likewise), so a
+tab between arguments is a load error there; ModSecurity v2 and libmodsecurity v3 accept
+tabs. `directive-line-whitespace.yaml` fails on Coraza (`compat/known-gaps.md`).
 
-**Tests.** `tests/engine/grammar/directive-line-whitespace.yaml`
+**Tests.** `tests/engine/grammar/directive-line-whitespace.yaml`,
+`tests/engine/directives/unknown-directive.yaml`
 
 ### SecRule structure
 

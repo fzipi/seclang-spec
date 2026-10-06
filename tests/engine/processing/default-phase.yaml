@@ -1,0 +1,21 @@
+meta:
+  name: default-phase
+  description: A rule without a phase action runs in phase 2 (ADR-0017)
+spec: 03-processing-model.md#phases
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule ARGS_POST:p "@streq 1" "id:4025,pass"
+tests:
+  - test_title: phase-less rule sees the request body
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1
+          output:
+            triggered_rules: [4025]
+            no_interruption: true

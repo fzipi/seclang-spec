@@ -1,6 +1,6 @@
 meta:
   name: include-relative-file
-  description: Include loads another file; a glob with no match is not an error
+  description: Include loads another file given by a relative path
 spec: 01-lexical.md#include
 files:
   included/rules.conf: |
@@ -8,7 +8,6 @@ files:
 rules: |
   SecRuleEngine On
   Include included/rules.conf
-  Include included/nothing-*.conf
 tests:
   - test_title: rule from included file fires
     stages:

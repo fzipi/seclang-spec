@@ -5,9 +5,9 @@ spec: 03-processing-model.md#default-actions
 rules: |
   SecRuleEngine On
   SecDefaultAction "phase:1,log,deny,status:418"
-  SecRule ARGS_GET:a "@streq 1" "id:4020"
-  SecRule ARGS_GET:b "@streq 1" "id:4021,status:403"
-  SecRule ARGS_GET:c "@streq 1" "id:4022,pass"
+  SecRule ARGS_GET:a "@streq 1" "id:4020,phase:1"
+  SecRule ARGS_GET:b "@streq 1" "id:4021,phase:1,status:403"
+  SecRule ARGS_GET:c "@streq 1" "id:4022,phase:1,pass"
 tests:
   - test_title: inherits deny and status
     spec: 04-directives.md#secdefaultaction

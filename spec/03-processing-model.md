@@ -22,17 +22,22 @@ names `request`, `response` and `logging` denote phases 2, 4 and 5.
 | 5 | logging (`logging`) | the response has been sent | everything; disruptive actions have no effect |
 
 Within a phase, rules run in the order they appear in the configuration, after all
-`Include`s are expanded. A rule without a `phase` action, and without one inherited from
-`SecDefaultAction`, runs in phase 2. A rule's phase is fixed at load time; variables not
-yet available in that phase are empty. Phase 5 rules MUST run even when an earlier phase
-interrupted the transaction.
+`Include`s are expanded. A rule without a `phase` action runs in phase 2; the phase is
+**not** inherited from `SecDefaultAction` (ADR-0017). A rule's phase is fixed at load
+time; variables not yet available in that phase are empty. Phase 5 rules MUST run even
+when an earlier phase interrupted the transaction.
 
-**Divergence notes.** Coraza can optionally evaluate a rule's variables in the earliest
+**Divergence notes.** The default phase differs: ModSecurity v2 (`apache2/re.c`,
+`actionset->phase = 2`) and Coraza (`internal/corazawaf/rule.go`, `Phase_: 2`) use
+phase 2, libmodsecurity v3 (`headers/modsecurity/rule.h`, `m_phase(RequestHeadersPhase)`)
+uses phase 1. ModSecurity v2 additionally lets a phase-less rule inherit the phase of
+the most recent `SecDefaultAction`, whichever phase that names. See ADR-0017. Coraza can optionally evaluate a rule's variables in the earliest
 phase where each is available (`coraza.rule.multiphase_evaluation` build tag). That mode
 is permitted only where it is observationally equivalent to this section for every test
 in this repository.
 
-**Tests.** `tests/engine/processing/phases.yaml`
+**Tests.** `tests/engine/processing/phases.yaml`,
+`tests/engine/processing/default-phase.yaml`
 
 ### Chains
 
@@ -65,8 +70,10 @@ starter rules", v3 `src/parser/driver.cc`, Coraza `internal/seclang/rule_parser.
 **Syntax.** `SecDefaultAction "ACTIONS"`
 
 **Semantics.** A `SecDefaultAction` sets the action list that is merged into every
-`SecRule` and `SecAction` of the same phase that appears after it in the configuration,
-until another `SecDefaultAction` for that phase. The rule's own actions take precedence
+`SecRule` and `SecAction` of the same phase that appears after it in the configuration.
+At most one `SecDefaultAction` per phase MAY appear in one configuration context; a
+second one for the same phase MUST be a configuration error (ADR-0014). The phase of a
+rule is never taken from `SecDefaultAction` (`#phases`). The rule's own actions take precedence
 over inherited ones; cumulative actions (`t:`, `tag:`, `setvar:`, `ctl:`) are appended,
 except that `t:none` in the rule discards the inherited transformations.
 
@@ -77,17 +84,23 @@ contain `chain`, `skip`, `skipAfter`, `t:none`, or the metadata actions `id`, `r
 has been given for a phase, a rule of that phase that matches and names no disruptive
 action behaves as `pass`.
 
-**Divergence notes.** ModSecurity v2 (`cmd_default_action`) enforces every constraint
-above and additionally warns on `severity`, `logdata` and transformations. libmodsecurity
-v3 (`seclang-parser.yy`, "SecDefaultAction must specify a disruptive action", "not
-suitable to be part of the SecDefaultActions") enforces them except the phase, which it
-defaults to 1, and additionally rejects a second `SecDefaultAction` for the same phase in
-one context. Coraza 3.8.1 (`directiveSecDefaultAction`) performs no checks and applies a
-built-in `phase:2,log,auditlog,pass` when none is configured. See ADR-0014.
+**Divergence notes.** ModSecurity v2 (`apache2/apache2_config.c`, `cmd_default_action`)
+rejects a missing disruptive action or phase and the actions `chain`, `skip`, `skipAfter`
+and the metadata actions except `tag` (an `ENH` comment notes the gap), warns on
+`severity`, `logdata` and transformations, and lets a later `SecDefaultAction` replace an
+earlier one. libmodsecurity v3 (`src/parser/seclang-parser.yy`) rejects a missing
+disruptive action, non-runtime actions and `t:none`, defaults a missing phase to 1, and
+rejects a second `SecDefaultAction` for the same phase. Coraza 3.8.1
+(`internal/seclang/rule_parser.go`, `ParseDefaultActions`) rejects metadata actions,
+transformations, a missing phase, a missing disruptive action and a second
+`SecDefaultAction` for the same phase, but validates lazily, when the next rule is
+parsed, so a violating directive followed by no rule loads. It applies a built-in
+`phase:2,log,auditlog,pass` when none is configured. See ADR-0014.
 
 **Tests.** `tests/engine/processing/default-action.yaml`,
 `tests/engine/processing/default-action-no-phase.yaml`,
-`tests/engine/processing/default-action-no-disruptive.yaml`
+`tests/engine/processing/default-action-no-disruptive.yaml`,
+`tests/engine/processing/default-action-redefined.yaml`
 
 ### Disruptive actions
 
@@ -174,13 +187,19 @@ every rule, unanchored. The `ctl:` forms (`ruleRemoveById`, `ruleRemoveByTag`,
 transaction only.
 
 **Divergence notes.** ModSecurity v2 does not validate the range order
-(`cmd_rule_update_target_by_id` carries a `TODO` to that effect); libmodsecurity v3
+(`cmd_rule_update_target_by_id` carries a `TODO` to that effect; `rule_id_in_range` never
+checks it), so `rule-exceptions-bad-range.yaml` fails on v2; libmodsecurity v3
 (`src/rules_exceptions.cc`, "Invalid range") and Coraza (`directives.go`, "invalid
-range") reject it. Coraza accepts `SecRuleUpdateTargetByMsg` and ignores it (ADR-0005).
+range") reject it. Coraza rejects `SecRuleUpdateTargetById` with a single id that matches
+no rule (`directives.go`, `rule "%d" not found`), where ModSecurity v2 and libmodsecurity
+v3 (`rules_exceptions.cc`, exceptions are stored and applied lazily) ignore it, so
+`rule-exceptions-unknown-id.yaml` fails on Coraza. Coraza accepts
+`SecRuleUpdateTargetByMsg` and ignores it (ADR-0005). See `compat/known-gaps.md`.
 
 **Tests.** `tests/engine/processing/rule-exceptions.yaml`,
 `tests/engine/processing/rule-exceptions-update-action.yaml`,
-`tests/engine/processing/rule-exceptions-bad-range.yaml`
+`tests/engine/processing/rule-exceptions-bad-range.yaml`,
+`tests/engine/processing/rule-exceptions-unknown-id.yaml`
 
 ### ctl timing
 

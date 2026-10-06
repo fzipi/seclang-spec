@@ -35,3 +35,4 @@ Numbers 0007–0012 are reserved for the decisions listed in the design document
 | [0014](0014-secdefaultaction-constraints.md) | `SecDefaultAction` constraints | Divergence | proposed |
 | [0015](0015-mandatory-rule-id.md) | Every rule carries an id | Divergence | proposed |
 | [0016](0016-skipafter-scope.md) | `skipAfter` scope ends with the phase | Divergence | proposed |
+| [0017](0017-default-phase.md) | The default phase is 2 and is never inherited | Divergence | proposed |

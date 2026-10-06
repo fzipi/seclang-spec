@@ -376,8 +376,9 @@ recommended configurations set 13107200.
 uploads. What happens above the limit is governed by `SecRequestBodyLimitAction`. The
 value MUST be a positive integer. The value `0` is **not specified**: libmodsecurity v3
 treats it as "no limit" (`transaction.cc` tests `m_value > 0`), Coraza rejects it at
-load time (`waf.go` `Validate`, "request body limit should be bigger than 0") and
-ModSecurity v2 treats it as a zero-byte limit. Portable configurations never use `0`.
+load time (`waf.go` `Validate`, "request body limit should be bigger than 0") and so
+does ModSecurity v2 (`apache2_config.c`, "Invalid value for SecRequestBodyLimit" for
+`limit <= 0`). Portable configurations never use `0`.
 
 **Divergence notes.** The HTTP status used by `Reject` is 413 in ModSecurity v2
 (`msc_reqbody.c`, `HTTP_REQUEST_ENTITY_TOO_LARGE`) and Coraza (`transaction.go`,
@@ -516,8 +517,10 @@ libmodsecurity v3. Unspecified, and this is the one body-limit default where eng
 disagree on *behaviour* rather than on a number: configurations MUST set it.
 
 **Semantics.** `Reject`: a response larger than the limit is replaced by a `deny`
-interruption (status 403 in every engine, since the limit is reached in phase 4).
-`ProcessPartial`: the first `SecResponseBodyLimit` bytes are inspected,
+interruption whose status code is **not specified**: ModSecurity v2 (`apache2/apache2_io.c`,
+`HTTP_INTERNAL_SERVER_ERROR`) and Coraza (`transaction.go`,
+`setAndReturnBodyLimitInterruption(tx, 500)`) send 500, libmodsecurity v3 sends 403
+(`transaction.cc`). The test asserts the denial only. `ProcessPartial`: the first `SecResponseBodyLimit` bytes are inspected,
 `OUTBOUND_DATA_ERROR` is set to `1`, and the full response is delivered.
 
 **Divergence notes.** Defaults differ as listed.
@@ -694,8 +697,10 @@ each engine actually fills is a `10-logging.md` matter; Coraza does not implemen
 
 **Syntax.** `SecAuditLogRelevantStatus REGEX`
 
-**Default.** None: no status is relevant until set. Both recommended configurations set
-`"^(?:5|4(?!04))"`.
+**Default.** None: no status is relevant until set. ModSecurity's recommended
+configuration sets `"^(?:5|4(?!04))"`; Coraza's sets `"^(?:(5|4)(0|1)[0-9])$"` because
+its RE2-based regex engine has no lookahead. Regex dialect differences are specified with
+the `@rx` operator in Phase 3; portable values avoid lookaround.
 
 **Semantics.** With `SecAuditEngine RelevantOnly`, a transaction whose final HTTP status
 code, as a decimal string, matches `REGEX` is logged even if no rule marked it relevant.
@@ -882,7 +887,7 @@ be written for each.
 
 **Semantics.** Cookie header syntax: 0 for Netscape-style, 1 for RFC 2965 version-1 cookies. Default 0 everywhere. Version-1 cookies are obsolete; Coraza accepts and ignores the directive (ADR-0005), which is why it is Extended although both recommended configurations set it to 0.
 
-**Implemented by.** v2, v3; Coraza parses only.
+**Implemented by.** v2, v3 (which rejects the value `1`); Coraza parses only.
 
 ### SecCookieV0Separator
 
@@ -972,7 +977,7 @@ be written for each.
 
 **Semantics.** Whether a nested configuration context (Apache `<Location>` and similar) inherits the parent's rules. Default `On`. Only meaningful where the host has nested contexts.
 
-**Implemented by.** v2, v3.
+**Implemented by.** v2; v3 accepts `Off` and rejects `On`; Coraza does not know the name.
 
 ### SecRulePerfTime
 
@@ -1012,7 +1017,7 @@ be written for each.
 
 **Semantics.** Replace the `Server` response header value the host would send. Requires host support.
 
-**Implemented by.** v2, v3, Coraza (parsed).
+**Implemented by.** v2, Coraza (parsed); v3 rejects it (`seclang-parser.yy`, "not supported").
 
 ### SecTmpDir
 
@@ -1098,7 +1103,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Cache transformation results across rules; experimental in v2 and never recommended.
 
-**Implemented by.** v2, v3 (parsed).
+**Implemented by.** v2; v3 rejects it; Coraza does not know the name.
 
 ### SecChrootDir
 
@@ -1108,7 +1113,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Chroot the Apache process after startup.
 
-**Implemented by.** v2, v3 (parsed).
+**Implemented by.** v2; v3 rejects it; Coraza does not know the name.
 
 ### SecConnEngine
 
@@ -1118,7 +1123,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Connection-limiting engine using the two state-limit directives. Only v2 implements it.
 
-**Implemented by.** v2; v3, Coraza parse only.
+**Implemented by.** v2; v3 and Coraza parse only.
 
 ### SecConnReadStateLimit
 
@@ -1148,7 +1153,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Enable the `append` and `prepend` actions.
 
-**Implemented by.** v2, v3 (parsed).
+**Implemented by.** v2; v3 accepts `Off` and rejects `On`; Coraza does not know the name.
 
 ### SecDisableBackendCompression
 
@@ -1158,7 +1163,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Remove `Accept-Encoding` on the way to the backend so response bodies can be inspected uncompressed.
 
-**Implemented by.** v2, v3 (parsed).
+**Implemented by.** v2; v3 accepts `Off` and rejects `On`; Coraza does not know the name.
 
 ### SecGsbLookupDb
 
@@ -1168,7 +1173,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Google Safe Browsing database for `@gsbLookup`; the underlying API was retired.
 
-**Implemented by.** v2; v3, Coraza parse only.
+**Implemented by.** v2; v3 rejects it; Coraza parses only.
 
 ### SecGuardianLog
 
@@ -1178,7 +1183,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Pipe a per-request line to the `httpd-guardian` script.
 
-**Implemented by.** v2, v3 (parsed).
+**Implemented by.** v2; v3 rejects it (`seclang-parser.yy`, "not supported"); Coraza does not know the name.
 
 ### SecHashEngine
 
@@ -1188,7 +1193,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Response-rewriting hash engine protecting links and forms against tampering.
 
-**Implemented by.** v2; v3, Coraza parse only.
+**Implemented by.** v2; v3 and Coraza accept `Off` and v3 rejects `On`.
 
 ### SecHashKey
 
@@ -1198,7 +1203,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Hash engine key material.
 
-**Implemented by.** v2; v3, Coraza parse only.
+**Implemented by.** v2; v3 rejects it; Coraza parses only.
 
 ### SecHashMethodPm
 
@@ -1208,7 +1213,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Which response elements the hash engine rewrites, by phrase.
 
-**Implemented by.** v2; v3, Coraza parse only.
+**Implemented by.** v2; v3 rejects it; Coraza parses only.
 
 ### SecHashMethodRx
 
@@ -1218,7 +1223,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Which response elements the hash engine rewrites, by regex.
 
-**Implemented by.** v2; v3, Coraza parse only.
+**Implemented by.** v2; v3 rejects it; Coraza parses only.
 
 ### SecHashParam
 
@@ -1228,7 +1233,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Query parameter carrying the hash.
 
-**Implemented by.** v2; v3, Coraza parse only.
+**Implemented by.** v2; v3 rejects it; Coraza parses only.
 
 ### SecInterceptOnError
 
@@ -1238,7 +1243,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Deny the request when a rule-processing error occurs.
 
-**Implemented by.** v2, v3 (parsed).
+**Implemented by.** v2; v3 accepts `Off` and rejects `On`; Coraza does not know the name.
 
 ### SecReadStateLimit
 
@@ -1278,7 +1283,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Expose and allow rewriting the request body as `STREAM_INPUT_BODY`.
 
-**Implemented by.** v2, v3 (parsed).
+**Implemented by.** v2; v3 rejects it; Coraza does not know the name.
 
 ### SecStreamOutBodyInspection
 
@@ -1288,7 +1293,7 @@ Apache-era or single-engine features that no current ruleset relies on.
 
 **Semantics.** Expose and allow rewriting the response body as `STREAM_OUTPUT_BODY`.
 
-**Implemented by.** v2, v3 (parsed).
+**Implemented by.** v2; v3 rejects it; Coraza does not know the name.
 
 ### SecUnicodeCodePage
 

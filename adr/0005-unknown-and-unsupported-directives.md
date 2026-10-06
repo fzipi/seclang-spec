@@ -46,8 +46,17 @@ what rules see. A user who sets them and gets no warning has a false sense of co
 
 ## Consequences
 
-- For ModSecurity v2 and v3: no change for unknown names; v3 should warn where it parses
-  and ignores (e.g. `SecConnEngine`).
+- For ModSecurity v2: no change.
+- For libmodsecurity v3: it rejects several Deprecated and Extended names outright
+  (`seclang-parser.yy`, "is not supported": `SecServerSignature`,
+  `SecCacheTransformations`, `SecChrootDir`, `SecGsbLookupDb`, `SecGuardianLog`,
+  `SecStreamInBodyInspection`, `SecStreamOutBodyInspection`, `SecHashKey`,
+  `SecHashParam`, `SecHashMethodRx`, `SecHashMethodPm`, and the `On` value of
+  `SecHashEngine`, `SecInterceptOnError`, `SecContentInjection`,
+  `SecRuleInheritance`, `SecDisableBackendCompression`), which rule 2 forbids; it should
+  accept and warn. Where it parses and ignores (e.g. `SecConnEngine Off`) it should warn.
+- For Coraza: fourteen Deprecated names are unknown to its parser (`compat/matrix.md`,
+  `-` in the Coraza column), which rule 2 forbids; add them as accepted-and-warned.
 - For Coraza: log a warning in `directiveUnsupported`; implement `SecArgumentSeparator`
   and `SecRequestBodyNoFilesLimit` or list them as gaps.
 - For rule authors: a Deprecated directive in a shared configuration is safe on every
