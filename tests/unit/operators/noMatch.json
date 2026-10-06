@@ -1,0 +1,26 @@
+[
+ {
+  "input": "",
+  "param": "",
+  "name": "noMatch",
+  "type": "op",
+  "ret": 0,
+  "spec": "06-operators.md#nomatch"
+ },
+ {
+  "input": "",
+  "param": "TestCase",
+  "name": "noMatch",
+  "ret": 0,
+  "type": "op",
+  "spec": "06-operators.md#nomatch"
+ },
+ {
+  "input": "TestCase",
+  "param": "",
+  "type": "op",
+  "ret": 0,
+  "name": "noMatch",
+  "spec": "06-operators.md#nomatch"
+ }
+]

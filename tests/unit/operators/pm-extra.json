@@ -1,0 +1,27 @@
+[
+ {
+  "type": "op",
+  "name": "pm",
+  "param": "forbidden secret",
+  "input": "This is FORBIDDEN",
+  "ret": 1,
+  "spec": "06-operators.md#pm",
+  "note": "matching is case-insensitive"
+ },
+ {
+  "type": "op",
+  "name": "pm",
+  "param": "forbidden secret",
+  "input": "a SeCrEt place",
+  "ret": 1,
+  "spec": "06-operators.md#pm"
+ },
+ {
+  "type": "op",
+  "name": "pm",
+  "param": "forbidden secret",
+  "input": "nothing here",
+  "ret": 0,
+  "spec": "06-operators.md#pm"
+ }
+]

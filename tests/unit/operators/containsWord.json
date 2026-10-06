@@ -1,0 +1,122 @@
+[
+ {
+  "param": "",
+  "input": "",
+  "name": "containsWord",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "param": "TestCase",
+  "input": "",
+  "name": "containsWord",
+  "type": "op",
+  "ret": 0,
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "containsWord",
+  "input": "TestCase",
+  "param": "",
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "param": "abc",
+  "input": "abcdefghi",
+  "ret": 0,
+  "type": "op",
+  "name": "containsWord",
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "param": "def",
+  "input": "abcdefghi",
+  "type": "op",
+  "ret": 0,
+  "name": "containsWord",
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "input": "abcdefghi",
+  "param": "ghi",
+  "type": "op",
+  "ret": 0,
+  "name": "containsWord",
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "name": "containsWord",
+  "type": "op",
+  "ret": 1,
+  "param": "abc",
+  "input": "abc def ghi",
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "name": "containsWord",
+  "type": "op",
+  "ret": 1,
+  "input": "abc def ghi",
+  "param": "def",
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "containsWord",
+  "param": "ghi",
+  "input": "abc def ghi",
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "param": "abc",
+  "input": "abc\\0def ghi",
+  "name": "containsWord",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "param": "def",
+  "input": "abc\\0def ghi",
+  "name": "containsWord",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "name": "containsWord",
+  "ret": 1,
+  "type": "op",
+  "input": "x",
+  "param": "x",
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "containsWord",
+  "param": "x",
+  "input": " x ",
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "input": "xyz",
+  "param": "y",
+  "name": "containsWord",
+  "ret": 0,
+  "type": "op",
+  "spec": "06-operators.md#containsword"
+ },
+ {
+  "name": "containsWord",
+  "ret": 1,
+  "type": "op",
+  "input": "hidingX<-not on word boundary, but is later on->hiding",
+  "param": "hiding",
+  "spec": "06-operators.md#containsword"
+ }
+]

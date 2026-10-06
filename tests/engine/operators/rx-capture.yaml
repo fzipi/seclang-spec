@@ -1,0 +1,18 @@
+meta:
+  name: rx-capture
+  description: "@rx with capture stores the match and groups in TX:0..9"
+spec: 06-operators.md#rx
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:v "@rx ^user-(\d+)$" "id:6200,phase:1,pass,capture,chain"
+    SecRule TX:1 "@eq 42"
+  SecRule ARGS_GET:v "@rx (?i)^USER" "id:6201,phase:1,pass"
+tests:
+  - test_title: capture group and inline flag
+    stages:
+      - stage:
+          input:
+            uri: /?v=user-42
+          output:
+            triggered_rules: [6200, 6201]
+            no_interruption: true

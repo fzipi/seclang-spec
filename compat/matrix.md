@@ -183,52 +183,52 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 
 ## operators (29 of 44 in all engines)
 
-| Name | v2 | v3 | coraza |
-|---|---|---|---|
-| `beginsWith` | yes | yes | yes |
-| `contains` | yes | yes | yes |
-| `containsWord` | yes | yes | - |
-| `detectSQLi` | yes | yes | yes |
-| `detectXSS` | yes | yes | yes |
-| `endsWith` | yes | yes | yes |
-| `eq` | yes | yes | yes |
-| `fuzzyHash` | yes | yes | - |
-| `ge` | yes | yes | yes |
-| `geoLookup` | yes | yes | yes |
-| `gsbLookup` | yes | yes | - |
-| `gt` | yes | yes | yes |
-| `inspectFile` | yes | yes | yes |
-| `ipMatch` | yes | yes | yes |
-| `ipMatchF` | yes | yes | yes |
-| `ipMatchFromDataset` | - | - | yes |
-| `ipMatchFromFile` | yes | yes | yes |
-| `le` | yes | yes | yes |
-| `lt` | yes | yes | yes |
-| `noMatch` | yes | yes | yes |
-| `pm` | yes | yes | yes |
-| `pmf` | yes | yes | yes |
-| `pmFromDataset` | - | - | yes |
-| `pmFromFile` | yes | yes | yes |
-| `rbl` | yes | yes | yes |
-| `restpath` | - | - | yes |
-| `rsub` | yes | yes | - |
-| `rx` | yes | yes | yes |
-| `rxGlobal` | - | yes | - |
-| `streq` | yes | yes | yes |
-| `strmatch` | yes | yes | yes |
-| `unconditionalMatch` | yes | yes | yes |
-| `validateByteRange` | yes | yes | yes |
-| `validateDTD` | yes | yes | - |
-| `validateHash` | yes | yes | - |
-| `validateNid` | - | - | yes |
-| `validateSchema` | yes | yes | yes |
-| `validateUrlEncoding` | yes | yes | yes |
-| `validateUtf8Encoding` | yes | yes | yes |
-| `verifyCC` | yes | yes | - |
-| `verifyCPF` | yes | yes | - |
-| `verifySSN` | yes | yes | - |
-| `verifySVNR` | - | yes | - |
-| `within` | yes | yes | yes |
+| Name | v2 | v3 | coraza | status |
+|---|---|---|---|---|
+| `beginsWith` | yes | yes | yes | Core |
+| `contains` | yes | yes | yes | Core |
+| `containsWord` | yes | yes | - | Extended |
+| `detectSQLi` | yes | yes | yes | Core |
+| `detectXSS` | yes | yes | yes | Core |
+| `endsWith` | yes | yes | yes | Core |
+| `eq` | yes | yes | yes | Core |
+| `fuzzyHash` | yes | yes | - | Extended |
+| `ge` | yes | yes | yes | Core |
+| `geoLookup` | yes | yes | yes | Extended |
+| `gsbLookup` | yes | yes | - | Deprecated |
+| `gt` | yes | yes | yes | Core |
+| `inspectFile` | yes | yes | yes | Extended |
+| `ipMatch` | yes | yes | yes | Core |
+| `ipMatchF` | yes | yes | yes | - |
+| `ipMatchFromDataset` | - | - | yes | Engine-specific |
+| `ipMatchFromFile` | yes | yes | yes | Extended |
+| `le` | yes | yes | yes | Core |
+| `lt` | yes | yes | yes | Core |
+| `noMatch` | yes | yes | yes | Extended |
+| `pm` | yes | yes | yes | Core |
+| `pmf` | yes | yes | yes | - |
+| `pmFromDataset` | - | - | yes | Engine-specific |
+| `pmFromFile` | yes | yes | yes | Core |
+| `rbl` | yes | yes | yes | Extended |
+| `restpath` | - | - | yes | Engine-specific |
+| `rsub` | yes | yes | - | Extended |
+| `rx` | yes | yes | yes | Core |
+| `rxGlobal` | - | yes | - | Engine-specific |
+| `streq` | yes | yes | yes | Core |
+| `strmatch` | yes | yes | yes | Extended |
+| `unconditionalMatch` | yes | yes | yes | Core |
+| `validateByteRange` | yes | yes | yes | Core |
+| `validateDTD` | yes | yes | - | Extended |
+| `validateHash` | yes | yes | - | Extended |
+| `validateNid` | - | - | yes | Engine-specific |
+| `validateSchema` | yes | yes | yes | Extended |
+| `validateUrlEncoding` | yes | yes | yes | Core |
+| `validateUtf8Encoding` | yes | yes | yes | Core |
+| `verifyCC` | yes | yes | - | Extended |
+| `verifyCPF` | yes | yes | - | Extended |
+| `verifySSN` | yes | yes | - | Extended |
+| `verifySVNR` | - | yes | - | Engine-specific |
+| `within` | yes | yes | yes | Core |
 
 ## transformations (33 of 38 in all engines)
 

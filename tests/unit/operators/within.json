@@ -1,0 +1,58 @@
+[
+ {
+  "param": "",
+  "input": "",
+  "name": "within",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#within"
+ },
+ {
+  "name": "within",
+  "type": "op",
+  "ret": 1,
+  "input": "",
+  "param": "TestCase",
+  "spec": "06-operators.md#within"
+ },
+ {
+  "param": "",
+  "input": "TestCase",
+  "type": "op",
+  "ret": 0,
+  "name": "within",
+  "spec": "06-operators.md#within"
+ },
+ {
+  "input": "abc",
+  "param": "abcdefghi",
+  "ret": 1,
+  "type": "op",
+  "name": "within",
+  "spec": "06-operators.md#within"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "within",
+  "param": "abcdefghi",
+  "input": "def",
+  "spec": "06-operators.md#within"
+ },
+ {
+  "name": "within",
+  "ret": 1,
+  "type": "op",
+  "input": "ghi",
+  "param": "abcdefghi",
+  "spec": "06-operators.md#within"
+ },
+ {
+  "input": "ghij",
+  "param": "abcdefghi",
+  "name": "within",
+  "type": "op",
+  "ret": 0,
+  "spec": "06-operators.md#within"
+ }
+]

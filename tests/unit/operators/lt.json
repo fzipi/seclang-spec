@@ -1,0 +1,98 @@
+[
+ {
+  "input": "",
+  "param": "0",
+  "name": "lt",
+  "type": "op",
+  "ret": 0,
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "param": "5",
+  "input": "",
+  "name": "lt",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "name": "lt",
+  "type": "op",
+  "ret": 0,
+  "input": "5",
+  "param": "xxx",
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "input": "-1",
+  "param": "xxx",
+  "name": "lt",
+  "ret": 1,
+  "type": "op",
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "type": "op",
+  "ret": 0,
+  "name": "lt",
+  "param": "-1",
+  "input": "xxx",
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "param": "5",
+  "input": "xxx",
+  "ret": 1,
+  "type": "op",
+  "name": "lt",
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "name": "lt",
+  "ret": 1,
+  "type": "op",
+  "param": "0",
+  "input": "-5",
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "name": "lt",
+  "ret": 0,
+  "type": "op",
+  "input": "0",
+  "param": "0",
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "param": "0",
+  "input": "5",
+  "ret": 0,
+  "type": "op",
+  "name": "lt",
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "param": "5",
+  "input": "0",
+  "name": "lt",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "name": "lt",
+  "type": "op",
+  "ret": 0,
+  "input": "5",
+  "param": "5",
+  "spec": "06-operators.md#lt"
+ },
+ {
+  "param": "5",
+  "input": "10",
+  "name": "lt",
+  "type": "op",
+  "ret": 0,
+  "spec": "06-operators.md#lt"
+ }
+]

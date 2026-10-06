@@ -1,0 +1,554 @@
+[
+ {
+  "input": "",
+  "param": "d+",
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 0,
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "",
+  "param": "\\d*",
+  "name": "verifyCC",
+  "ret": 0,
+  "type": "op",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 0,
+  "input": "TestCase",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "ret": 0,
+  "type": "op",
+  "input": "TestCase",
+  "param": "TestCase",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": ".*",
+  "input": "TestCase",
+  "name": "verifyCC",
+  "ret": 0,
+  "type": "op",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "5484605089158216",
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "input": "5574407071707154",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "5351341509714210",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "5585166974020647",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "5492180332479256",
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "5111178142162816",
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "5511424748431031",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "5259964281562326",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "input": "5138342589974385",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "5362069587634979",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "4916545704601136",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "4539501231827691",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "4556338049595394",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "4929326438756024",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "4485432027326322",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "4532104980682081",
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "4485974616349298",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "4916580487207199",
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "4532009746910413",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "4024007144622932",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "4556324125126",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "4067482954141",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "input": "4532402654980",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "4539709679875",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "4024007182237",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "343918934573386",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "input": "344881778330710",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "input": "345439478558905",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "346465614421111",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "input": "372263817755618",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "6011402777433576",
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "6011890045362751",
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "6011439091242416",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "input": "30162519308318",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "30311556856867",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "input": "36850112043985",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "201427829075664",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "201434726660424",
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "201453368666085",
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "input": "210091499965007",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "210072739882947",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "180013970064072",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "3096676276259096",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "3158726040010070",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "input": "3096531217494742",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "869974262335041",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "input": "869905005856398",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "869950500085465",
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d+)(?:[^\\d]|$)",
+  "input": "1234567890012345",
+  "type": "op",
+  "ret": 0,
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "input": "4417123456789113",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "input": "4408041234567893",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 0,
+  "type": "op",
+  "name": "verifyCC",
+  "input": "4408041234567890",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 0,
+  "type": "op",
+  "name": "verifyCC",
+  "input": "4417123456789112",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 1,
+  "input": "a5484605089158216",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "verifyCC",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "input": "a5484605089158216b",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "verifyCC",
+  "input": "5484605089158216b",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "ret": 1,
+  "type": "op",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "input": "5484-6050-8915-8216",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "input": "5484605089158217",
+  "name": "verifyCC",
+  "ret": 0,
+  "type": "op",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "5574407071807154",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "type": "op",
+  "ret": 0,
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "name": "verifyCC",
+  "type": "op",
+  "ret": 0,
+  "input": "5-484-6050-8915-8216",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "ret": 0,
+  "type": "op",
+  "name": "verifyCC",
+  "input": "5484 6050 8915 8216",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "input": "15484605089158216",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "name": "verifyCC",
+  "ret": 0,
+  "type": "op",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "type": "op",
+  "ret": 0,
+  "name": "verifyCC",
+  "input": "154846050891582162",
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "spec": "06-operators.md#verifycc"
+ },
+ {
+  "param": "(?:^|[^\\d])(\\d{4}\\-?\\d{4}\\-?\\d{2}\\-?\\d{2}\\-?\\d{1,4})(?:[^\\d]|$)",
+  "input": "54846050891582162",
+  "type": "op",
+  "ret": 0,
+  "name": "verifyCC",
+  "spec": "06-operators.md#verifycc"
+ }
+]

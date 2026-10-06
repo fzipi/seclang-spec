@@ -1,0 +1,29 @@
+meta:
+  name: pmfromfile
+  description: "@pmFromFile loads phrases from a file relative to the configuration; matching is case-insensitive"
+spec: 06-operators.md#pmfromfile
+files:
+  phrases.txt: |
+    # comment line
+    forbidden
+    secret word
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:q "@pmFromFile phrases.txt" "id:6210,phase:1,deny,status:403"
+tests:
+  - test_title: phrase inside the value, different case
+    stages:
+      - stage:
+          input:
+            uri: /?q=this%20is%20FORBIDDEN%20here
+          output:
+            triggered_rules: [6210]
+            interruption: {rule_id: 6210, action: deny, status: 403}
+  - test_title: comment line is not a phrase
+    stages:
+      - stage:
+          input:
+            uri: /?q=%23%20comment%20line
+          output:
+            non_triggered_rules: [6210]
+            no_interruption: true

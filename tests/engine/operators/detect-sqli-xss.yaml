@@ -1,0 +1,33 @@
+meta:
+  name: detect-sqli-xss
+  description: "@detectSQLi and @detectXSS via libinjection"
+spec: 06-operators.md#detectsqli
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:q "@detectSQLi" "id:6230,phase:1,pass"
+  SecRule ARGS_GET:q "@detectXSS" "id:6231,phase:1,pass"
+tests:
+  - test_title: classic SQL injection
+    stages:
+      - stage:
+          input:
+            uri: "/?q=1%27%20or%201%3D1--"
+          output:
+            triggered_rules: [6230]
+            non_triggered_rules: [6231]
+  - test_title: script tag
+    spec: 06-operators.md#detectxss
+    stages:
+      - stage:
+          input:
+            uri: "/?q=%3Cscript%3Ealert(1)%3C/script%3E"
+          output:
+            triggered_rules: [6231]
+            non_triggered_rules: [6230]
+  - test_title: benign text
+    stages:
+      - stage:
+          input:
+            uri: "/?q=hello%20world"
+          output:
+            non_triggered_rules: [6230, 6231]

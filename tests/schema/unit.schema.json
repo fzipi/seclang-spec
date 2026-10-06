@@ -12,7 +12,7 @@
     "properties": {
       "type": {"enum": ["op", "tfn"], "description": "op = operator, tfn = transformation"},
       "name": {"type": "string", "minLength": 1, "description": "Canonical operator or transformation name"},
-      "param": {"type": "string", "description": "Operator parameter (the text after @name)"},
+      "param": {"type": "string", "description": "Operator parameter (the text after @name); absent for operators that take none"},
       "input": {"type": "string", "description": "Value under test; JSON escapes allowed"},
       "output": {"type": "string", "description": "Transformation result"},
       "ret": {"enum": [0, 1], "description": "op: 1 if matched. tfn: 1 if the value changed"},
@@ -21,7 +21,6 @@
       "re_groups": {"type": "array", "items": {"type": "string"}, "description": "For @rx: the full match followed by the capture groups, as the capture action stores them in TX:0..9"}
     },
     "allOf": [
-      {"if": {"properties": {"type": {"const": "op"}}}, "then": {"required": ["param"]}},
       {"if": {"properties": {"type": {"const": "tfn"}}}, "then": {"required": ["output"]}}
     ]
   }

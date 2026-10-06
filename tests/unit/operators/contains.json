@@ -1,0 +1,82 @@
+[
+ {
+  "param": "",
+  "input": "",
+  "name": "contains",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#contains"
+ },
+ {
+  "name": "contains",
+  "ret": 0,
+  "type": "op",
+  "input": "",
+  "param": "TestCase",
+  "spec": "06-operators.md#contains"
+ },
+ {
+  "input": "TestCase",
+  "param": "",
+  "type": "op",
+  "ret": 1,
+  "name": "contains",
+  "spec": "06-operators.md#contains"
+ },
+ {
+  "input": "abcdefghi",
+  "param": "abc",
+  "type": "op",
+  "ret": 1,
+  "name": "contains",
+  "spec": "06-operators.md#contains"
+ },
+ {
+  "name": "contains",
+  "ret": 1,
+  "type": "op",
+  "param": "def",
+  "input": "abcdefghi",
+  "spec": "06-operators.md#contains"
+ },
+ {
+  "name": "contains",
+  "ret": 1,
+  "type": "op",
+  "param": "ghi",
+  "input": "abcdefghi",
+  "spec": "06-operators.md#contains"
+ },
+ {
+  "input": "abcdefghi",
+  "param": "ghij",
+  "name": "contains",
+  "type": "op",
+  "ret": 0,
+  "spec": "06-operators.md#contains"
+ },
+ {
+  "input": "x",
+  "param": "x",
+  "name": "contains",
+  "ret": 1,
+  "type": "op",
+  "spec": "06-operators.md#contains"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "contains",
+  "input": "xyz",
+  "param": "y",
+  "spec": "06-operators.md#contains"
+ },
+ {
+  "param": "hiding",
+  "input": "hidinX<-not quite, but is later on->hiding",
+  "ret": 1,
+  "type": "op",
+  "name": "contains",
+  "spec": "06-operators.md#contains"
+ }
+]

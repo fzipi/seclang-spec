@@ -1,0 +1,58 @@
+[
+ {
+  "input": "",
+  "param": "",
+  "name": "streq",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#streq"
+ },
+ {
+  "type": "op",
+  "ret": 0,
+  "name": "streq",
+  "param": "TestCase",
+  "input": "",
+  "spec": "06-operators.md#streq"
+ },
+ {
+  "name": "streq",
+  "type": "op",
+  "ret": 0,
+  "input": "TestCase",
+  "param": "",
+  "spec": "06-operators.md#streq"
+ },
+ {
+  "type": "op",
+  "ret": 0,
+  "name": "streq",
+  "input": "abcdefghi",
+  "param": "abc",
+  "spec": "06-operators.md#streq"
+ },
+ {
+  "name": "streq",
+  "type": "op",
+  "ret": 0,
+  "param": "def",
+  "input": "abcdefghi",
+  "spec": "06-operators.md#streq"
+ },
+ {
+  "ret": 0,
+  "type": "op",
+  "name": "streq",
+  "input": "abcdefghi",
+  "param": "ghi",
+  "spec": "06-operators.md#streq"
+ },
+ {
+  "input": "abcdefghi",
+  "param": "abcdefghi",
+  "name": "streq",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#streq"
+ }
+]

@@ -37,4 +37,5 @@ Numbers 0009–0012 are reserved for the decisions listed in the design document
 | [0015](0015-mandatory-rule-id.md) | Every rule carries an id | Divergence | proposed |
 | [0016](0016-skipafter-scope.md) | `skipAfter` scope ends with the phase | Divergence | proposed |
 | [0017](0017-default-phase.md) | The default phase is 2 and is never inherited | Divergence | proposed |
+| [0018](0018-regex-dialect.md) | Core regular-expression syntax is the RE2-compatible subset | Divergence | proposed |
 | [0019](0019-duration-units.md) | `DURATION` is Extended with unspecified units | Clarification | proposed |

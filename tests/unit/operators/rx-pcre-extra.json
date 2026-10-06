@@ -1,0 +1,21 @@
+[
+ {
+  "type": "op",
+  "name": "rx",
+  "param": "<\\?(?!xml)",
+  "input": "<?php",
+  "ret": 1,
+  "re_groups": [
+   "<?"
+  ],
+  "spec": "06-operators.md#rx-pcre-extensions"
+ },
+ {
+  "type": "op",
+  "name": "rx",
+  "param": "<\\?(?!xml)",
+  "input": "<?xml",
+  "ret": 0,
+  "spec": "06-operators.md#rx-pcre-extensions"
+ }
+]

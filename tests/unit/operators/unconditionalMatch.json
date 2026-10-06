@@ -1,0 +1,26 @@
+[
+ {
+  "input": "",
+  "param": "",
+  "name": "unconditionalMatch",
+  "ret": 1,
+  "type": "op",
+  "spec": "06-operators.md#unconditionalmatch"
+ },
+ {
+  "name": "unconditionalMatch",
+  "type": "op",
+  "ret": 1,
+  "input": "",
+  "param": "TestCase",
+  "spec": "06-operators.md#unconditionalmatch"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "unconditionalMatch",
+  "input": "TestCase",
+  "param": "",
+  "spec": "06-operators.md#unconditionalmatch"
+ }
+]

@@ -1068,85 +1068,99 @@
     "name": "beginsWith",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "contains",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "containsWord",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "detectSQLi",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "detectXSS",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "endsWith",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "eq",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "fuzzyHash",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "ge",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "geoLookup",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "gsbLookup",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Deprecated"
    },
    {
     "name": "gt",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "inspectFile",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "ipMatch",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "ipMatchF",
@@ -1158,37 +1172,43 @@
     "name": "ipMatchFromDataset",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "ipMatchFromFile",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "le",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "lt",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "noMatch",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "pm",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "pmf",
@@ -1200,133 +1220,155 @@
     "name": "pmFromDataset",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "pmFromFile",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "rbl",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "restpath",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "rsub",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "rx",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "rxGlobal",
     "v2": false,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Engine-specific"
    },
    {
     "name": "streq",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "strmatch",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "unconditionalMatch",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "validateByteRange",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "validateDTD",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "validateHash",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "validateNid",
     "v2": false,
     "v3": false,
-    "coraza": true
+    "coraza": true,
+    "status": "Engine-specific"
    },
    {
     "name": "validateSchema",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Extended"
    },
    {
     "name": "validateUrlEncoding",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "validateUtf8Encoding",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    },
    {
     "name": "verifyCC",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "verifyCPF",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "verifySSN",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Extended"
    },
    {
     "name": "verifySVNR",
     "v2": false,
     "v3": true,
-    "coraza": false
+    "coraza": false,
+    "status": "Engine-specific"
    },
    {
     "name": "within",
     "v2": true,
     "v3": true,
-    "coraza": true
+    "coraza": true,
+    "status": "Core"
    }
   ],
   "transformations": [

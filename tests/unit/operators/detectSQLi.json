@@ -1,0 +1,23 @@
+[
+ {
+  "input": "",
+  "name": "detectSQLi",
+  "ret": 0,
+  "type": "op",
+  "spec": "06-operators.md#detectsqli"
+ },
+ {
+  "type": "op",
+  "ret": 0,
+  "name": "detectSQLi",
+  "input": "this is not isqli",
+  "spec": "06-operators.md#detectsqli"
+ },
+ {
+  "input": "ascii(substring(version() from 1 for 1))",
+  "type": "op",
+  "ret": 1,
+  "name": "detectSQLi",
+  "spec": "06-operators.md#detectsqli"
+ }
+]

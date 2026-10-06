@@ -1,0 +1,42 @@
+[
+ {
+  "param": "TestCase",
+  "input": "",
+  "name": "strmatch",
+  "type": "op",
+  "ret": 0,
+  "spec": "06-operators.md#strmatch"
+ },
+ {
+  "type": "op",
+  "ret": 1,
+  "name": "strmatch",
+  "input": "abcdefghi",
+  "param": "abc",
+  "spec": "06-operators.md#strmatch"
+ },
+ {
+  "param": "def",
+  "input": "abcdefghi",
+  "type": "op",
+  "ret": 1,
+  "name": "strmatch",
+  "spec": "06-operators.md#strmatch"
+ },
+ {
+  "input": "abcdefghi",
+  "param": "ghi",
+  "type": "op",
+  "ret": 1,
+  "name": "strmatch",
+  "spec": "06-operators.md#strmatch"
+ },
+ {
+  "input": "abcdefghi",
+  "param": "ghij",
+  "name": "strmatch",
+  "ret": 0,
+  "type": "op",
+  "spec": "06-operators.md#strmatch"
+ }
+]

@@ -50,12 +50,17 @@ class SchemaCheckTests(unittest.TestCase):
         self.assertEqual(validate.check_tests(self.root), [])
 
     def test_unit_schema_violation_is_reported_with_path(self):
-        bad = [{"type": "op", "name": "rx", "input": "x", "ret": 1}]  # op without param
+        bad = [{"type": "tfn", "name": "lowercase", "input": "x", "ret": 1}]  # tfn without output
         (self.root / "tests/unit/bad.json").write_text(json.dumps(bad))
         errors = validate.check_tests(self.root)
         self.assertEqual(len(errors), 1)
         self.assertIn("tests/unit/bad.json", errors[0])
-        self.assertIn("param", errors[0])
+        self.assertIn("output", errors[0])
+
+    def test_operator_without_param_is_valid(self):
+        ok = [{"type": "op", "name": "detectSQLi", "input": "x", "ret": 0, "spec": "06-operators.md#detectsqli"}]
+        (self.root / "tests/unit/ok.json").write_text(json.dumps(ok))
+        self.assertEqual(validate.check_tests(self.root), [])
 
     def test_engine_unknown_field_is_reported(self):
         (self.root / "tests/engine/e.yaml").write_text(GOOD_ENGINE.replace("no_interruption", "no_interuption"))

@@ -1,0 +1,23 @@
+[
+ {
+  "input": "",
+  "type": "op",
+  "ret": 0,
+  "name": "detectXSS",
+  "spec": "06-operators.md#detectxss"
+ },
+ {
+  "ret": 0,
+  "type": "op",
+  "name": "detectXSS",
+  "input": "this is not an XSS",
+  "spec": "06-operators.md#detectxss"
+ },
+ {
+  "input": "<a href=\"javascript:alert(1)\">)",
+  "ret": 1,
+  "type": "op",
+  "name": "detectXSS",
+  "spec": "06-operators.md#detectxss"
+ }
+]

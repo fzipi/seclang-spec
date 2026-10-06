@@ -1,0 +1,114 @@
+[
+ {
+  "input": "",
+  "param": "",
+  "name": "validateUrlEncoding",
+  "type": "op",
+  "ret": 0,
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "param": "",
+  "input": "Hello%20World!",
+  "type": "op",
+  "ret": 0,
+  "name": "validateUrlEncoding",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "param": "",
+  "input": "Hello+World!",
+  "ret": 0,
+  "type": "op",
+  "name": "validateUrlEncoding",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "input": "HelloWorld!",
+  "param": "",
+  "ret": 0,
+  "type": "op",
+  "name": "validateUrlEncoding",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "param": "",
+  "input": "%00Hello%20World!",
+  "ret": 0,
+  "type": "op",
+  "name": "validateUrlEncoding",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "param": "",
+  "input": "Hello%20World!%00",
+  "type": "op",
+  "ret": 0,
+  "name": "validateUrlEncoding",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "ret": 0,
+  "type": "op",
+  "name": "validateUrlEncoding",
+  "input": "%00",
+  "param": "",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "param": "",
+  "input": "%ff",
+  "name": "validateUrlEncoding",
+  "ret": 0,
+  "type": "op",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "ret": 1,
+  "type": "op",
+  "name": "validateUrlEncoding",
+  "param": "",
+  "input": "%0",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "input": "%f",
+  "param": "",
+  "name": "validateUrlEncoding",
+  "type": "op",
+  "ret": 1,
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "name": "validateUrlEncoding",
+  "ret": 1,
+  "type": "op",
+  "param": "",
+  "input": "%",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "name": "validateUrlEncoding",
+  "type": "op",
+  "ret": 1,
+  "input": "%0z",
+  "param": "",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "name": "validateUrlEncoding",
+  "ret": 1,
+  "type": "op",
+  "input": "%z0",
+  "param": "",
+  "spec": "06-operators.md#validateurlencoding"
+ },
+ {
+  "param": "",
+  "input": "%0%",
+  "ret": 1,
+  "type": "op",
+  "name": "validateUrlEncoding",
+  "spec": "06-operators.md#validateurlencoding"
+ }
+]

@@ -1,0 +1,27 @@
+meta:
+  name: ipmatch
+  description: "@ipMatch with IPv4 and IPv6 addresses and CIDR ranges"
+spec: 06-operators.md#ipmatch
+rules: |
+  SecRuleEngine On
+  SecRule REMOTE_ADDR "@ipMatch 192.0.2.1,198.51.100.0/24,2001:db8::/32" "id:6220,phase:1,deny,status:403"
+tests:
+  - test_title: IPv4 in range
+    stages:
+      - stage:
+          input: {uri: /, remote_addr: 198.51.100.77}
+          output:
+            interruption: {rule_id: 6220, action: deny, status: 403}
+  - test_title: IPv6 in range
+    stages:
+      - stage:
+          input: {uri: /, remote_addr: "2001:db8:1::5"}
+          output:
+            interruption: {rule_id: 6220, action: deny, status: 403}
+  - test_title: address outside
+    stages:
+      - stage:
+          input: {uri: /, remote_addr: 203.0.113.1}
+          output:
+            non_triggered_rules: [6220]
+            no_interruption: true

@@ -1,0 +1,45 @@
+meta:
+  name: numeric
+  description: Numeric operators on a count and on a non-numeric value
+spec: 06-operators.md#lt
+rules: |
+  SecRuleEngine On
+  SecRule &ARGS_GET "@lt 3" "id:6240,phase:1,pass"
+  SecRule &ARGS_GET "@gt 1" "id:6241,phase:1,pass"
+  SecRule &ARGS_GET "@ge 2" "id:6242,phase:1,pass"
+  SecRule &ARGS_GET "@le 2" "id:6243,phase:1,pass"
+  SecRule &ARGS_GET "@eq 2" "id:6244,phase:1,pass"
+  SecRule ARGS_GET:a "@eq 0" "id:6245,phase:1,pass"
+tests:
+  - test_title: two arguments; non-numeric value compares as zero
+    stages:
+      - stage:
+          input:
+            uri: /?a=abc&b=2
+          output:
+            triggered_rules: [6240, 6241, 6242, 6243, 6244, 6245]
+            no_interruption: true
+  - test_title: gt
+    spec: 06-operators.md#gt
+    stages:
+      - stage:
+          input: {uri: '/?a=abc&b=2'}
+          output: {triggered_rules: [6241]}
+  - test_title: ge
+    spec: 06-operators.md#ge
+    stages:
+      - stage:
+          input: {uri: '/?a=abc&b=2'}
+          output: {triggered_rules: [6242]}
+  - test_title: le
+    spec: 06-operators.md#le
+    stages:
+      - stage:
+          input: {uri: '/?a=abc&b=2'}
+          output: {triggered_rules: [6243]}
+  - test_title: eq
+    spec: 06-operators.md#eq
+    stages:
+      - stage:
+          input: {uri: '/?a=abc&b=2'}
+          output: {triggered_rules: [6244, 6245]}
