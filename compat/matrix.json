@@ -1,0 +1,2338 @@
+{
+ "generated": "2026-10-06",
+ "engines": {
+  "v2": "ModSecurity v2 (owasp-modsecurity/ModSecurity branch v2/master, 2026-09)",
+  "v3": "libmodsecurity v3.0.16 (owasp-modsecurity/ModSecurity branch v3/master)",
+  "coraza": "Coraza v3.8.1 (corazawaf/coraza)"
+ },
+ "categories": {
+  "directives": [
+   {
+    "name": "Include",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecAction",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecArgumentSeparator",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecArgumentsLimit",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecAuditEngine",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecAuditLog",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecAuditLog2",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecAuditLogDirMode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecAuditLogFileMode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecAuditLogFormat",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecAuditLogParts",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecAuditLogPrefix",
+    "v2": false,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecAuditLogRelevantStatus",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecAuditLogStorageDir",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecAuditLogType",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecCacheTransformations",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecChrootDir",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecCollectionTimeout",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecComponentSignature",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecConnEngine",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecConnReadStateLimit",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecConnWriteStateLimit",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecContentInjection",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecCookieFormat",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecCookieV0Separator",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecDataDir",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "secdataset",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "SecDebugLog",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecDebugLogLevel",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecDefaultAction",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecDisableBackendCompression",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecGeoLookupDb",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecGsbLookupDb",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecGuardianLog",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecHashEngine",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecHashKey",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecHashMethodPm",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecHashMethodRx",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecHashParam",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecHttpBlKey",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "secignorerulecompilationerrors",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "SecInterceptOnError",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecMarker",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecParseXmlIntoArgs",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecPcreMatchLimit",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecPcreMatchLimitRecursion",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecReadStateLimit",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SecRemoteRules",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRemoteRulesFailAction",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRequestBodyAccess",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRequestBodyInMemoryLimit",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRequestBodyJsonDepthLimit",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRequestBodyLimit",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRequestBodyLimitAction",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRequestBodyNoFilesLimit",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRequestEncoding",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SecResponseBodyAccess",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "secresponsebodyjsondepthlimit",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "SecResponseBodyLimit",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecResponseBodyLimitAction",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecResponseBodyMimeType",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecResponseBodyMimeTypesClear",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRule",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRuleEngine",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRuleInheritance",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecRulePerfTime",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRuleRemoveById",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRuleRemoveByMsg",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRuleRemoveByTag",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRuleScript",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRuleUpdateActionById",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRuleUpdateTargetById",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRuleUpdateTargetByMsg",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecRuleUpdateTargetByTag",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "secrxprefilter",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "SecSensorId",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecServerSignature",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecStatusEngine",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecStreamInBodyInspection",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecStreamOutBodyInspection",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecTmpDir",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecTmpSaveUploadedFiles",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecUnicodeCodePage",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "secunicodemap",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "SecUnicodeMapFile",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SecUploadDir",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecUploadFileLimit",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecUploadFileMode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecUploadKeepFiles",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecWebAppId",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SecWriteStateLimit",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SecXmlExternalEntity",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   }
+  ],
+  "actions": [
+   {
+    "name": "accuracy",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "allow",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "append",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "auditlog",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "block",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "capture",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "chain",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ctl",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "deny",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "deprecatevar",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "drop",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "exec",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "expirevar",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "id",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "initcol",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "log",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "logdata",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "marker",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "maturity",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "msg",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "multiMatch",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "noauditlog",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "nolog",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "pass",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "pause",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "phase",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "prepend",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "proxy",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "redirect",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "rev",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "sanitiseArg",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "sanitiseMatched",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "sanitiseMatchedBytes",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "sanitiseRequestHeader",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "sanitiseResponseHeader",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "setenv",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "setrsc",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "setsid",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "setuid",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "setvar",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "severity",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "skip",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "skipAfter",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "status",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "t",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "tag",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ver",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "xmlns",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   }
+  ],
+  "ctl": [
+   {
+    "name": "auditEngine",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "auditLogParts",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "debugLogLevel",
+    "v2": true,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "forceRequestBodyVariable",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "HashEnforcement",
+    "v2": true,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "HashEngine",
+    "v2": true,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "parseXmlIntoArgs",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "requestBodyAccess",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "requestBodyLimit",
+    "v2": true,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "requestBodyProcessor",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "responseBodyAccess",
+    "v2": true,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "responseBodyLimit",
+    "v2": true,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "responseBodyProcessor",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "ruleEngine",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ruleRemoveById",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ruleRemoveByMsg",
+    "v2": true,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "ruleRemoveByTag",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ruleRemoveTargetById",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ruleRemoveTargetByMsg",
+    "v2": true,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "ruleRemoveTargetByTag",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   }
+  ],
+  "operators": [
+   {
+    "name": "beginsWith",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "contains",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "containsWord",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "detectSQLi",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "detectXSS",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "endsWith",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "eq",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "fuzzyHash",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "ge",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "geoLookup",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "gsbLookup",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "gt",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "inspectFile",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ipMatch",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ipMatchF",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ipMatchFromDataset",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "ipMatchFromFile",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "le",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "lt",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "noMatch",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "pm",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "pmf",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "pmFromDataset",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "pmFromFile",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "rbl",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "restpath",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "rsub",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "rx",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "rxGlobal",
+    "v2": false,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "streq",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "strmatch",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "unconditionalMatch",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "validateByteRange",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "validateDTD",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "validateHash",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "validateNid",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "validateSchema",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "validateUrlEncoding",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "validateUtf8Encoding",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "verifyCC",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "verifyCPF",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "verifySSN",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "verifySVNR",
+    "v2": false,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "within",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   }
+  ],
+  "transformations": [
+   {
+    "name": "base64Decode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "base64DecodeExt",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "base64Encode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "cmdLine",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "compressWhitespace",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "cssDecode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "escapeSeqDecode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "hexDecode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "hexEncode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "htmlEntityDecode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "jsDecode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "length",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "lowercase",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "md5",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "none",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "normalisePath",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "normalisePathWin",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "normalizePath",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "normalizePathWin",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "parityEven7bit",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "parityOdd7bit",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "parityZero7bit",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "removeComments",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "removeCommentsChar",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "removeNulls",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "removeWhitespace",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "replaceComments",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "replaceNulls",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "sha1",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "sqlHexDecode",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "trim",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "trimLeft",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "trimRight",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "uppercase",
+    "v2": false,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "urlDecode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "urlDecodeUni",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "urlEncode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "utf8toUnicode",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   }
+  ],
+  "variables": [
+   {
+    "name": "ARGS",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ARGS_COMBINED_SIZE",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ARGS_GET",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ARGS_GET_NAMES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ARGS_NAMES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ARGS_PATH",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "ARGS_POST",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ARGS_POST_NAMES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ARGUMENTS_LIMIT_REACHED",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "AUTH_TYPE",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "DURATION",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "ENV",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "FILES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "FILES_COMBINED_SIZE",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "FILES_NAMES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "FILES_SIZES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "FILES_TMP_CONTENT",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "FILES_TMPNAMES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "FULL_REQUEST",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "FULL_REQUEST_LENGTH",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "GEO",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "GLOBAL",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "HIGHEST_SEVERITY",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "INBOUND_DATA_ERROR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "IP",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "JSON",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "MATCHED_VAR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "MATCHED_VAR_NAME",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "MATCHED_VARS",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "MATCHED_VARS_NAMES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "MODSEC_BUILD",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MSC_PCRE_ERROR",
+    "v2": false,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MSC_PCRE_LIMITS_EXCEEDED",
+    "v2": false,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_BOUNDARY_QUOTED",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_BOUNDARY_WHITESPACE",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_CRLF_LF_LINES",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_CRLF_LINE",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_DATA_AFTER",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "MULTIPART_DATA_BEFORE",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_DUPLICATE_PART_HEADER",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "MULTIPART_FILE_LIMIT_EXCEEDED",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_FILENAME",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "MULTIPART_FILENAME_CHARSET",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "MULTIPART_FILENAME_LANGUAGE",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "MULTIPART_HEADER_FOLDING",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_INVALID_HEADER_FOLDING",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_INVALID_PART",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_INVALID_QUOTING",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "MULTIPART_LF_LINE",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_MISSING_SEMICOLON",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "MULTIPART_NAME",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "MULTIPART_PART_HEADERS",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "MULTIPART_STRICT_ERROR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "MULTIPART_UNMATCHED_BOUNDARY",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "OUTBOUND_DATA_ERROR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "PATH_INFO",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "PERF_ALL",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_COMBINED",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_GC",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_LOGGING",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_PHASE1",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_PHASE2",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_PHASE3",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_PHASE4",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_PHASE5",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_RULES",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_SREAD",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "PERF_SWRITE",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "QUERY_STRING",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REMOTE_ADDR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REMOTE_HOST",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REMOTE_PORT",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REMOTE_USER",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "REQBODY_ERROR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQBODY_ERROR_MSG",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQBODY_PROCESSOR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQBODY_PROCESSOR_ERROR",
+    "v2": false,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQBODY_PROCESSOR_ERROR_MSG",
+    "v2": false,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_BASENAME",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_BODY",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_BODY_LENGTH",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_COOKIES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_COOKIES_NAMES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_FILENAME",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_HEADERS",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_HEADERS_NAMES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_LINE",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_METHOD",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_PROTOCOL",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_URI",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_URI_RAW",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "REQUEST_XML",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "RES_BODY_ERROR",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "RES_BODY_ERROR_MSG",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "RES_BODY_PROCESSOR",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "RES_BODY_PROCESSOR_ERROR",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "RES_BODY_PROCESSOR_ERROR_MSG",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "RESOURCE",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "RESPONSE_ARGS",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "RESPONSE_BODY",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "RESPONSE_CONTENT_LENGTH",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "RESPONSE_CONTENT_TYPE",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "RESPONSE_HEADERS",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "RESPONSE_HEADERS_NAMES",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "RESPONSE_PROTOCOL",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "RESPONSE_STATUS",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "RESPONSE_XML",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "RULE",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SCRIPT_BASENAME",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SCRIPT_FILENAME",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SCRIPT_GID",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SCRIPT_GROUPNAME",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SCRIPT_MODE",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SCRIPT_UID",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SCRIPT_USERNAME",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SDBM_DELETE_ERROR",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "SERVER_ADDR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SERVER_NAME",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SERVER_PORT",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "SESSION",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "SESSIONID",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "STATUS",
+    "v2": false,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "STATUS_LINE",
+    "v2": true,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "STREAM_INPUT_BODY",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "STREAM_OUTPUT_BODY",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "TIME",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "TIME_DAY",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "TIME_EPOCH",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "TIME_HOUR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "TIME_MIN",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "TIME_MON",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "TIME_SEC",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "TIME_WDAY",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "TIME_YEAR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "TX",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "UNIQUE_ID",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "URI_PARSE_ERROR",
+    "v2": false,
+    "v3": false,
+    "coraza": true
+   },
+   {
+    "name": "URLENCODED_ERROR",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   },
+   {
+    "name": "USER",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "USERAGENT_IP",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "USERID",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "WEBAPPID",
+    "v2": true,
+    "v3": true,
+    "coraza": false
+   },
+   {
+    "name": "WEBSERVER_ERROR_LOG",
+    "v2": true,
+    "v3": false,
+    "coraza": false
+   },
+   {
+    "name": "XML",
+    "v2": true,
+    "v3": true,
+    "coraza": true
+   }
+  ]
+ }
+}
