@@ -1,0 +1,23 @@
+meta:
+  name: secresponsebodyaccess-off
+  description: With SecResponseBodyAccess Off, RESPONSE_BODY is empty
+spec: 04-directives.md#secresponsebodyaccess
+rules: |
+  SecRuleEngine On
+  SecResponseBodyAccess Off
+  SecResponseBodyMimeType text/plain
+  SecRule RESPONSE_BODY "@contains leak" "id:5108,phase:4,deny,status:403"
+tests:
+  - test_title: response body is not inspected
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 200
+            headers:
+              Content-Type: text/plain
+            data: this is a leak
+          output:
+            non_triggered_rules: [5108]
+            no_interruption: true

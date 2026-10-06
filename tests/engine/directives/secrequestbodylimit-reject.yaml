@@ -1,0 +1,23 @@
+meta:
+  name: secrequestbodylimit-reject
+  description: A body above SecRequestBodyLimit with Reject interrupts the transaction
+spec: 04-directives.md#secrequestbodylimit
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRequestBodyLimit 10
+  SecRequestBodyLimitAction Reject
+  SecRule ARGS_POST:p "@streq 1" "id:5102,phase:2,pass"
+tests:
+  - test_title: twenty-byte body is rejected before phase 2 rules run
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1&filler=0123456789
+          output:
+            non_triggered_rules: [5102]
+            interruption: {rule_id: 0, action: deny}

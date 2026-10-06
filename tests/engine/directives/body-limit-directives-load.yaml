@@ -1,0 +1,24 @@
+meta:
+  name: body-limit-directives-load
+  description: Body limit directives whose effect is not observable through rules load with valid values
+spec: 04-directives.md#secrequestbodyinmemorylimit
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRequestBodyLimit 13107200
+  SecRequestBodyNoFilesLimit 131072
+  SecRequestBodyInMemoryLimit 131072
+  SecRequestBodyLimitAction Reject
+  SecResponseBodyLimit 524288
+  SecResponseBodyLimitAction ProcessPartial
+  SecRule ARGS_GET:a "@streq 1" "id:5114,phase:1,deny,status:403"
+tests:
+  - test_title: configuration loads and a rule fires
+    spec: 04-directives.md#secrequestbodynofileslimit
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5114]
+            interruption: {rule_id: 5114, action: deny, status: 403}

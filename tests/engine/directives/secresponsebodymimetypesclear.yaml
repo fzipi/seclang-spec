@@ -1,0 +1,38 @@
+meta:
+  name: secresponsebodymimetypesclear
+  description: SecResponseBodyMimeTypesClear empties the list so previously listed types are no longer inspected
+spec: 04-directives.md#secresponsebodymimetypesclear
+rules: |
+  SecRuleEngine On
+  SecResponseBodyAccess On
+  SecResponseBodyMimeType text/plain
+  SecResponseBodyMimeTypesClear
+  SecResponseBodyMimeType application/json
+  SecRule RESPONSE_BODY "@contains leak" "id:5110,phase:4,deny,status:403"
+tests:
+  - test_title: text/plain was cleared
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 200
+            headers:
+              Content-Type: text/plain
+            data: this is a leak
+          output:
+            non_triggered_rules: [5110]
+            no_interruption: true
+  - test_title: application/json is inspected
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 200
+            headers:
+              Content-Type: application/json
+            data: '{"x":"this is a leak"}'
+          output:
+            triggered_rules: [5110]
+            interruption: {rule_id: 5110, action: deny, status: 403}

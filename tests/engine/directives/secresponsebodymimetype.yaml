@@ -1,0 +1,37 @@
+meta:
+  name: secresponsebodymimetype
+  description: Only responses whose Content-Type is listed are inspected
+spec: 04-directives.md#secresponsebodymimetype
+rules: |
+  SecRuleEngine On
+  SecResponseBodyAccess On
+  SecResponseBodyMimeTypesClear
+  SecResponseBodyMimeType text/plain
+  SecRule RESPONSE_BODY "@contains leak" "id:5109,phase:4,deny,status:403"
+tests:
+  - test_title: unlisted type is not inspected
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 200
+            headers:
+              Content-Type: application/octet-stream
+            data: this is a leak
+          output:
+            non_triggered_rules: [5109]
+            no_interruption: true
+  - test_title: listed type is inspected
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 200
+            headers:
+              Content-Type: text/plain
+            data: this is a leak
+          output:
+            triggered_rules: [5109]
+            interruption: {rule_id: 5109, action: deny, status: 403}

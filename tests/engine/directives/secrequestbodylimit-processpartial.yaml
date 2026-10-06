@@ -1,0 +1,23 @@
+meta:
+  name: secrequestbodylimit-processpartial
+  description: With ProcessPartial the request continues and INBOUND_DATA_ERROR is set
+spec: 04-directives.md#secrequestbodylimitaction
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRequestBodyLimit 10
+  SecRequestBodyLimitAction ProcessPartial
+  SecRule INBOUND_DATA_ERROR "@eq 1" "id:5103,phase:2,pass"
+tests:
+  - test_title: oversize body sets the error flag and is not rejected
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1&filler=0123456789
+          output:
+            triggered_rules: [5103]
+            no_interruption: true

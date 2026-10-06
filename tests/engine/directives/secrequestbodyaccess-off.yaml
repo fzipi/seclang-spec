@@ -1,0 +1,21 @@
+meta:
+  name: secrequestbodyaccess-off
+  description: With SecRequestBodyAccess Off, the body is not read and ARGS_POST is empty
+spec: 04-directives.md#secrequestbodyaccess
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess Off
+  SecRule ARGS_POST:p "@streq 1" "id:5101,phase:2,deny,status:403"
+tests:
+  - test_title: body argument is not seen
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1
+          output:
+            non_triggered_rules: [5101]
+            no_interruption: true

@@ -1,0 +1,35 @@
+meta:
+  name: secrequestbodyjsondepthlimit
+  description: JSON nested deeper than SecRequestBodyJsonDepthLimit is a body processing error
+spec: 04-directives.md#secrequestbodyjsondepthlimit
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRequestBodyJsonDepthLimit 2
+  SecRule REQUEST_HEADERS:Content-Type "@beginsWith application/json" "id:5112,phase:1,pass,nolog,ctl:requestBodyProcessor=JSON"
+  SecRule REQBODY_ERROR "@eq 1" "id:5113,phase:2,pass"
+tests:
+  - test_title: depth three exceeds limit two
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/json
+            data: '{"a":{"b":{"c":1}}}'
+          output:
+            triggered_rules: [5113]
+            no_interruption: true
+  - test_title: depth two is accepted
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/json
+            data: '{"a":{"b":1}}'
+          output:
+            non_triggered_rules: [5113]
+            no_interruption: true

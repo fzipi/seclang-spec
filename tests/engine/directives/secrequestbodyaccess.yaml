@@ -1,0 +1,21 @@
+meta:
+  name: secrequestbodyaccess
+  description: With SecRequestBodyAccess On, urlencoded body arguments are visible in phase 2
+spec: 04-directives.md#secrequestbodyaccess
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule ARGS_POST:p "@streq 1" "id:5100,phase:2,deny,status:403"
+tests:
+  - test_title: body argument matches
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1
+          output:
+            triggered_rules: [5100]
+            interruption: {rule_id: 5100, action: deny, status: 403}

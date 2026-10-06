@@ -1,0 +1,17 @@
+meta:
+  name: secargumentseparator
+  description: SecArgumentSeparator changes the character that separates urlencoded arguments
+spec: 04-directives.md#secargumentseparator
+rules: |
+  SecRuleEngine On
+  SecArgumentSeparator ;
+  SecRule ARGS_GET:b "@streq 2" "id:5106,phase:1,deny,status:403"
+tests:
+  - test_title: semicolon-separated query string yields two arguments
+    stages:
+      - stage:
+          input:
+            uri: /?a=1;b=2
+          output:
+            triggered_rules: [5106]
+            interruption: {rule_id: 5106, action: deny, status: 403}

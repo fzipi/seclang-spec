@@ -1,0 +1,23 @@
+meta:
+  name: secresponsebodyaccess
+  description: With SecResponseBodyAccess On and an inspected MIME type, RESPONSE_BODY is available in phase 4
+spec: 04-directives.md#secresponsebodyaccess
+rules: |
+  SecRuleEngine On
+  SecResponseBodyAccess On
+  SecResponseBodyMimeType text/plain
+  SecRule RESPONSE_BODY "@contains leak" "id:5107,phase:4,deny,status:403"
+tests:
+  - test_title: response body is inspected
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 200
+            headers:
+              Content-Type: text/plain
+            data: this is a leak
+          output:
+            triggered_rules: [5107]
+            interruption: {rule_id: 5107, action: deny, status: 403}

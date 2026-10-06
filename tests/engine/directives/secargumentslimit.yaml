@@ -1,0 +1,19 @@
+meta:
+  name: secargumentslimit
+  description: Arguments beyond SecArgumentsLimit are not added to ARGS
+spec: 04-directives.md#secargumentslimit
+rules: |
+  SecRuleEngine On
+  SecArgumentsLimit 2
+  SecRule &ARGS_GET "@eq 2" "id:5104,phase:1,pass"
+  SecRule ARGS_GET:c "@streq 3" "id:5105,phase:1,pass"
+tests:
+  - test_title: third argument is dropped
+    stages:
+      - stage:
+          input:
+            uri: /?a=1&b=2&c=3
+          output:
+            triggered_rules: [5104]
+            non_triggered_rules: [5105]
+            no_interruption: true

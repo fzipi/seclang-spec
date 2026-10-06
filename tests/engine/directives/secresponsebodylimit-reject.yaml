@@ -1,0 +1,25 @@
+meta:
+  name: secresponsebodylimit-reject
+  description: A response above SecResponseBodyLimit with Reject is denied in phase 4
+spec: 04-directives.md#secresponsebodylimitaction
+rules: |
+  SecRuleEngine On
+  SecResponseBodyAccess On
+  SecResponseBodyMimeType text/plain
+  SecResponseBodyLimit 5
+  SecResponseBodyLimitAction Reject
+  SecRule RESPONSE_BODY "@contains 0123" "id:5115,phase:4,pass"
+tests:
+  - test_title: oversize response is rejected before phase 4 rules run
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 200
+            headers:
+              Content-Type: text/plain
+            data: 0123456789
+          output:
+            non_triggered_rules: [5115]
+            interruption: {rule_id: 0, action: deny, status: 403}

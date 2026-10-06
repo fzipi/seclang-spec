@@ -299,6 +299,277 @@ matches `REGEX`.
 
 ## Engine and body directives
 
+### SecArgumentSeparator
+
+**Status:** Core
+
+**Syntax.** `SecArgumentSeparator CHAR`
+
+**Default.** `&` (all engines).
+
+**Scope.** Main configuration; applies to every transaction.
+
+**Semantics.** The single character that separates `name=value` pairs when parsing the
+query string and `application/x-www-form-urlencoded` request bodies into `ARGS_GET` and
+`ARGS_POST`. Changing it to `;` supports applications that use the W3C-recommended
+alternative separator.
+
+**Divergence notes.** ModSecurity v2 (`apache2/msc_parsers.c`) and libmodsecurity v3
+(`src/transaction.cc`, `m_secArgumentSeparator`) implement it for both the query string
+and the body. Coraza 3.8.1 parses the directive and ignores it
+(`directivesmap.gen.go` maps it to `directiveUnsupported`), so the test fails there: a
+Core gap (ADR-0005).
+
+**Tests.** `tests/engine/directives/secargumentseparator.yaml`
+
+### SecArgumentsLimit
+
+**Status:** Core
+
+**Syntax.** `SecArgumentsLimit N`
+
+**Default.** 1000 in ModSecurity v2 (`ARGUMENTS_LIMIT`) and Coraza (`waf.go`);
+libmodsecurity v3 applies no limit until the directive is set. Unspecified.
+
+**Semantics.** At most `N` arguments are added to `ARGS_GET` and `ARGS_POST` combined;
+arguments parsed after the limit is reached are discarded and do not appear in any
+collection or count. Engines SHOULD log the discard at debug level. Coraza additionally
+exposes `ARGUMENTS_LIMIT_REACHED` (Engine-specific, `05-variables.md`).
+
+**Divergence notes.** None for the discard behaviour (v2 `msc_parsers.c` "Skipping
+request argument, over limit"; v3 `transaction.cc` same message; Coraza `waf.go`).
+
+**Tests.** `tests/engine/directives/secargumentslimit.yaml`
+
+### SecRequestBodyAccess
+
+**Status:** Core
+
+**Syntax.** `SecRequestBodyAccess On|Off`
+
+**Default.** `Off` in ModSecurity v2 and Coraza; unset in libmodsecurity v3, which
+behaves as `Off`. Normative default: `Off`.
+
+**Semantics.** When `On`, the engine buffers the request body up to
+`SecRequestBodyLimit`, runs the body processor selected by `Content-Type` or
+`ctl:requestBodyProcessor`, and populates `ARGS_POST`, `REQUEST_BODY`, `FILES*`, `XML`
+and `JSON` before phase 2. When `Off`, the body is not read and those variables are
+empty. `ctl:requestBodyAccess` overrides the value for one transaction when set in
+phase 1.
+
+**Divergence notes.** None known.
+
+**Tests.** `tests/engine/directives/secrequestbodyaccess.yaml`,
+`tests/engine/directives/secrequestbodyaccess-off.yaml`
+
+### SecRequestBodyLimit
+
+**Status:** Core
+
+**Syntax.** `SecRequestBodyLimit BYTES`
+
+**Default.** 134217728 (128 MiB) in ModSecurity v2 (`REQUEST_BODY_DEFAULT_LIMIT`) and
+Coraza (`waf.go`); libmodsecurity v3 applies no limit until set. Unspecified; both
+recommended configurations set 13107200.
+
+**Semantics.** The maximum request body size the engine will buffer, including file
+uploads. What happens above the limit is governed by `SecRequestBodyLimitAction`. The
+value MUST be a positive integer. The value `0` is **not specified**: libmodsecurity v3
+treats it as "no limit" (`transaction.cc` tests `m_value > 0`), Coraza rejects it at
+load time (`waf.go` `Validate`, "request body limit should be bigger than 0") and
+ModSecurity v2 treats it as a zero-byte limit. Portable configurations never use `0`.
+
+**Divergence notes.** The HTTP status used by `Reject` is 413 in ModSecurity v2
+(`msc_reqbody.c`, `HTTP_REQUEST_ENTITY_TOO_LARGE`) and Coraza (`transaction.go`,
+`setAndReturnBodyLimitInterruption(tx, 413)`) but 403 in libmodsecurity v3
+(`transaction.cc`, `m_it.status = 403`). The tests therefore assert only that the
+transaction is denied. Coraza also caps the value at 1 GiB.
+
+**Tests.** `tests/engine/directives/secrequestbodylimit-reject.yaml`,
+`tests/engine/directives/body-limit-directives-load.yaml`
+
+### SecRequestBodyLimitAction
+
+**Status:** Core
+
+**Syntax.** `SecRequestBodyLimitAction Reject|ProcessPartial`
+
+**Default.** `Reject` in ModSecurity v2 (`REQUEST_BODY_LIMIT_ACTION_REJECT`) and Coraza;
+unset in libmodsecurity v3. Unspecified.
+
+**Semantics.** `Reject`: when the body exceeds `SecRequestBodyLimit` the transaction is
+interrupted with a `deny` before phase 2 rules run; the interruption carries no rule id
+(adapters report `rule_id: 0`). `ProcessPartial`: the first `SecRequestBodyLimit` bytes
+are buffered and processed, the rest is discarded, `INBOUND_DATA_ERROR` is set to `1`,
+and phase 2 rules run normally. In `DetectionOnly`, `Reject` MUST NOT interrupt.
+
+**Divergence notes.** Status code for `Reject` differs (see `#secrequestbodylimit`).
+
+**Tests.** `tests/engine/directives/secrequestbodylimit-processpartial.yaml`,
+`tests/engine/directives/secrequestbodylimit-reject.yaml`
+
+### SecRequestBodyNoFilesLimit
+
+**Status:** Core
+
+**Syntax.** `SecRequestBodyNoFilesLimit BYTES`
+
+**Default.** 1048576 (1 MiB) in ModSecurity v2 (`REQUEST_BODY_NO_FILES_DEFAULT_LIMIT`)
+and Coraza; unset in libmodsecurity v3. Unspecified.
+
+**Semantics.** A second size limit that excludes the bytes of uploaded files in
+`multipart/form-data` bodies, so that large uploads can be allowed while keeping the
+inspected part of the body small. Exceeding it MUST be treated as exceeding
+`SecRequestBodyLimit` under `SecRequestBodyLimitAction`.
+
+**Divergence notes.** The enforcement path differs: ModSecurity v2 rejects
+(`msc_reqbody.c`); libmodsecurity v3 sets `REQBODY_ERROR`, `REQBODY_ERROR_MSG` and
+`INBOUND_DATA_ERROR` (`transaction.cc`); Coraza 3.8.1 reads the directive but
+implements no logic (`waf.go`, "TODO ... no logic based on it is implemented", issue
+896). Until a Divergence ADR fixes the observable behaviour, the test only checks that
+the directive loads. A Core gap for Coraza (ADR-0005).
+
+**Tests.** `tests/engine/directives/body-limit-directives-load.yaml`
+
+### SecRequestBodyInMemoryLimit
+
+**Status:** Core
+
+**Syntax.** `SecRequestBodyInMemoryLimit BYTES`
+
+**Default.** 131072 in ModSecurity v2 (`REQUEST_BODY_DEFAULT_INMEMORY_LIMIT`); equal to
+`SecRequestBodyLimit` in Coraza (`waf.go`); unset in libmodsecurity v3. Unspecified.
+
+**Semantics.** The number of request body bytes held in memory before the engine spools
+the remainder to a temporary file. It has no effect on rule evaluation; it exists so
+that deployments can bound memory use (see Coraza's `RATIONALE.md`). Engines without
+filesystem access MAY treat it as equal to `SecRequestBodyLimit`.
+
+**Divergence notes.** Defaults differ as listed; no observable rule-level divergence.
+
+**Tests.** `tests/engine/directives/body-limit-directives-load.yaml`
+
+### SecRequestBodyJsonDepthLimit
+
+**Status:** Core
+
+**Syntax.** `SecRequestBodyJsonDepthLimit N`
+
+**Default.** 10000 in ModSecurity v2 (`REQUEST_BODY_JSON_DEPTH_DEFAULT_LIMIT`) and
+libmodsecurity v3 (`json.cc`, `json_depth_limit_default`); 1024 in Coraza (`waf.go`,
+`DefaultRequestBodyJsonDepthLimit`). Unspecified.
+
+**Semantics.** The maximum nesting depth of a JSON request body processed by the `JSON`
+body processor. A body nested deeper MUST be treated as a body processing error:
+`REQBODY_ERROR` is set to `1` and `REQBODY_ERROR_MSG` describes the failure; rules then
+decide what to do, as OWASP CRS rule 200002 does.
+
+**Divergence notes.** Defaults differ as listed.
+
+**Tests.** `tests/engine/directives/secrequestbodyjsondepthlimit.yaml`
+
+### SecResponseBodyAccess
+
+**Status:** Core
+
+**Syntax.** `SecResponseBodyAccess On|Off`
+
+**Default.** `Off` in ModSecurity v2 and Coraza; unset in libmodsecurity v3, which
+behaves as `Off`. Normative default: `Off`.
+
+**Semantics.** When `On`, and the response `Content-Type` is listed by
+`SecResponseBodyMimeType`, the engine buffers the response body up to
+`SecResponseBodyLimit` and makes it available as `RESPONSE_BODY` in phase 4. When `Off`,
+phase 4 runs with an empty `RESPONSE_BODY`.
+
+**Divergence notes.** None known.
+
+**Tests.** `tests/engine/directives/secresponsebodyaccess.yaml`,
+`tests/engine/directives/secresponsebodyaccess-off.yaml`
+
+### SecResponseBodyLimit
+
+**Status:** Core
+
+**Syntax.** `SecResponseBodyLimit BYTES`
+
+**Default.** 524288 (512 KiB) in ModSecurity v2 (`RESPONSE_BODY_DEFAULT_LIMIT`) and
+Coraza (`waf.go`); libmodsecurity v3 applies no limit until set. Unspecified.
+
+**Semantics.** The maximum response body size the engine will buffer. Behaviour above
+the limit is governed by `SecResponseBodyLimitAction`.
+
+**Divergence notes.** None beyond the defaults.
+
+**Tests.** `tests/engine/directives/secresponsebodylimit-processpartial.yaml`,
+`tests/engine/directives/body-limit-directives-load.yaml`
+
+### SecResponseBodyLimitAction
+
+**Status:** Core
+
+**Syntax.** `SecResponseBodyLimitAction Reject|ProcessPartial`
+
+**Default.** `Reject` in ModSecurity v2 (`RESPONSE_BODY_LIMIT_ACTION_REJECT`);
+`ProcessPartial` in Coraza (`waf.go`, `BodyLimitActionProcessPartial`); unset in
+libmodsecurity v3. Unspecified, and this is the one body-limit default where engines
+disagree on *behaviour* rather than on a number: configurations MUST set it.
+
+**Semantics.** `Reject`: a response larger than the limit is replaced by a `deny`
+interruption (status 403 in every engine, since the limit is reached in phase 4).
+`ProcessPartial`: the first `SecResponseBodyLimit` bytes are inspected,
+`OUTBOUND_DATA_ERROR` is set to `1`, and the full response is delivered.
+
+**Divergence notes.** Defaults differ as listed.
+
+**Tests.** `tests/engine/directives/secresponsebodylimit-reject.yaml`,
+`tests/engine/directives/secresponsebodylimit-processpartial.yaml`
+
+### SecResponseBodyMimeType
+
+**Status:** Core
+
+**Syntax.** `SecResponseBodyMimeType TYPE [TYPE ...]`
+
+**Default.** ModSecurity v2 inspects `text/plain` and `text/html`
+(`apache2_config.c`); libmodsecurity v3 inspects every type until the directive is set
+(`transaction.cc`, the type check runs only when `m_set`); Coraza inspects none until set
+(`transaction.go`, `IsResponseBodyProcessable`). Unspecified; both recommended
+configurations set the list.
+
+**Semantics.** Adds the given media types to the set whose response bodies are buffered
+and inspected (`#secresponsebodyaccess`). Multiple occurrences accumulate. Types are
+compared case-insensitively against the response `Content-Type` with any parameters
+(`; charset=…`) removed. The tests use bare `Content-Type` values so that parameter
+stripping is not what they measure.
+
+**Divergence notes.** Defaults differ as listed.
+
+**Tests.** `tests/engine/directives/secresponsebodymimetype.yaml`
+
+### SecResponseBodyMimeTypesClear
+
+**Status:** Core
+
+**Syntax.** `SecResponseBodyMimeTypesClear`
+
+**Semantics.** Empties the set of inspected response media types, including any engine
+default, so that a following `SecResponseBodyMimeType` defines it from scratch.
+
+**Divergence notes.** None known.
+
+**Tests.** `tests/engine/directives/secresponsebodymimetypesclear.yaml`
+
+### SecResponseBodyJsonDepthLimit
+
+**Status:** Engine-specific
+
+**Syntax.** `SecResponseBodyJsonDepthLimit N`
+
+**Semantics.** Coraza only (its ADR-0059): the response-side counterpart of
+`SecRequestBodyJsonDepthLimit` for the response JSON body processor, default 1024.
+Neither ModSecurity branch parses response bodies as JSON.
+
 ### SecRuleEngine
 
 **Status:** Core
