@@ -15,7 +15,7 @@ class ConvertTests(unittest.TestCase):
 
     def test_only_the_runner_escapes_are_decoded(self):
         # The v3 unit runner (test/unit/unit_test.cc) decodes \xHH, \uHHHH, \0, \b, \t, \n, \r and nothing else.
-        self.assertEqual(import_sts.unescape("a\\x41\\u0042"), "aAB")
+        self.assertEqual(import_sts.unescape("a\\x41\\u0042"), "a\\x41B")  # \\xHH stays: it means one raw byte
         self.assertEqual(import_sts.unescape("x\\0y\\ty\\n\\r\\b"), "x\0y\ty\n\r\b")
         self.assertEqual(import_sts.unescape("\\d\\(\\\\"), "\\d\\(\\\\")  # regex escapes and double backslash untouched
         case = {"type": "op", "name": "rx", "param": "a\\d", "input": "a1", "ret": 1}

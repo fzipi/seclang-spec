@@ -216,7 +216,7 @@
   "spec": "06-operators.md#validateutf8encoding"
  },
  {
-  "input": "\u0000ä",
+  "input": "\u0000\\xe4",
   "param": "",
   "name": "validateUtf8Encoding",
   "ret": 1,
@@ -227,7 +227,7 @@
   "name": "validateUtf8Encoding",
   "ret": 1,
   "type": "op",
-  "input": "ä",
+  "input": "\\xe4",
   "param": "",
   "spec": "06-operators.md#validateutf8encoding"
  },
@@ -235,7 +235,7 @@
   "name": "validateUtf8Encoding",
   "type": "op",
   "ret": 1,
-  "input": "\u0003¿",
+  "input": "\\x03\\xbf",
   "param": "",
   "spec": "06-operators.md#validateutf8encoding"
  },
@@ -243,7 +243,7 @@
   "type": "op",
   "ret": 1,
   "name": "validateUtf8Encoding",
-  "input": "É;",
+  "input": "\\xc9\\x3b",
   "param": "",
   "spec": "06-operators.md#validateutf8encoding"
  },
@@ -252,7 +252,7 @@
   "ret": 1,
   "type": "op",
   "param": "",
-  "input": "ÿ\u0000",
+  "input": "\\xFF\u0000",
   "spec": "06-operators.md#validateutf8encoding"
  }
 ]

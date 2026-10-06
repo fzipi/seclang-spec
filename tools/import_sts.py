@@ -17,7 +17,6 @@ FIELDS = ("input", "output", "param")
 HAND_MAINTAINED = {("transformations", "base64Decode"), ("operators", "pmFromFile")}  # pmFromFile cases need corpus-internal files
 
 
-_HEX = re.compile(r"\\x([0-9a-fA-F]{2})")
 _UNI = re.compile(r"\\u([0-9a-fA-F]{4})")
 _SIMPLE = {"\\0": "\0", "\\b": "\b", "\\t": "\t", "\\n": "\n", "\\r": "\r"}
 
@@ -25,12 +24,13 @@ _SIMPLE = {"\\0": "\0", "\\b": "\b", "\\t": "\t", "\\n": "\n", "\\r": "\r"}
 def unescape(s: str) -> str:
     """Decode exactly the escapes the libmodsecurity unit runner decodes after JSON parsing.
 
-    test/unit/unit_test.cc replaces \\xHH, \\uHHHH, \\0, \\b, \\t, \\n, \\r; everything else
-    (regex escapes such as \\d, and \\\\) is left as written.
+    test/unit/unit_test.cc replaces \\xHH, \\uHHHH, \\0, \\b, \\t, \\n, \\r. All but \\xHH are
+    decoded here; \\xHH denotes one raw byte, which JSON cannot carry, so it is kept
+    literally and adapters decode it (tests/README.md). Regex escapes such as \\d and \\\\
+    are left as written.
     """
     if "\\" not in s:
         return s
-    s = _HEX.sub(lambda m: chr(int(m.group(1), 16)), s)
     s = _UNI.sub(lambda m: chr(int(m.group(1), 16)), s)
     for k, v in _SIMPLE.items():
         s = s.replace(k, v)
