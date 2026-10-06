@@ -54,6 +54,10 @@ def check_tests(root: Path) -> list[str]:
         for err in sorted(schemas[tier].iter_errors(data), key=lambda e: list(map(str, e.absolute_path))):
             where = "/".join(map(str, err.absolute_path)) or "<root>"
             errors.append(f"{rel}: {where}: {err.message}")
+        if isinstance(data, dict):
+            for key in data.get("files") or {}:
+                if ".." in str(key).split("/"):
+                    errors.append(f"{rel}: files: {key}: path segments must not be '..'")
     for tier, suffix in (("unit", ".json"), ("engine", ".yaml")):
         for path in sorted((root / "tests" / tier).rglob("*")):
             if path.is_file() and path.suffix != suffix:
@@ -222,7 +226,14 @@ def check_matrix(root: Path) -> list[str]:
     return []
 
 
-MATRIX_SPEC_FILES = {"directives": "04-directives.md"}
+MATRIX_SPEC_FILES = {
+    "directives": ("04-directives.md", ""),
+    "variables": ("05-variables.md", ""),
+    "operators": ("06-operators.md", ""),
+    "transformations": ("07-transformations.md", ""),
+    "actions": ("08-actions.md", ""),
+    "ctl": ("08-actions.md", "ctl"),
+}
 
 
 def check_matrix_status(root: Path) -> list[str]:
@@ -233,13 +244,13 @@ def check_matrix_status(root: Path) -> list[str]:
         return []  # check_matrix reports these
     features = spec_features(root)
     errors = []
-    for category, spec_file in MATRIX_SPEC_FILES.items():
+    for category, (spec_file, prefix) in MATRIX_SPEC_FILES.items():
         rows = {row["name"]: row for row in matrix["categories"].get(category, [])}
         if not any("status" in row for row in rows.values()):
             continue
-        by_anchor = {f"{spec_file}#{slug(name)}": name for name in rows}
+        by_anchor = {f"{spec_file}#{prefix}{slug(name)}": name for name in rows}
         for name, row in sorted(rows.items()):
-            anchor = f"{spec_file}#{slug(name)}"
+            anchor = f"{spec_file}#{prefix}{slug(name)}"
             status = row.get("status")
             spec_status = features.get(anchor)
             if status is None and spec_status is None:
@@ -254,7 +265,11 @@ def check_matrix_status(root: Path) -> list[str]:
                 for e in _matrix.ENGINES:
                     if not row.get(e):
                         errors.append(f"compat/matrix.json: {category}/{name}: Core but absent in {e}")
-        for anchor in sorted(a for a in features if a.startswith(spec_file + "#")):
+        for anchor in sorted(a for a in features if a.startswith(f"{spec_file}#{prefix}")):
+            if prefix == "" and category != "directives" and any(
+                a2 != "" and anchor.startswith(f"{spec_file}#{a2}") for (f2, a2) in MATRIX_SPEC_FILES.values() if f2 == spec_file
+            ):
+                continue  # heading belongs to a prefixed category sharing this file (ctl: in 08)
             if anchor not in by_anchor:
                 errors.append(f"spec/{anchor}: no matching row in compat/matrix.json {category}")
     return errors

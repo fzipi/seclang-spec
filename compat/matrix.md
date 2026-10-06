@@ -155,7 +155,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `ver` | yes | yes | yes |
 | `xmlns` | yes | yes | - |
 
-## ctl (10 of 20 in all engines)
+## ctl (10 of 21 in all engines)
 
 | Name | v2 | v3 | coraza |
 |---|---|---|---|
@@ -163,6 +163,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `auditLogParts` | yes | yes | yes |
 | `debugLogLevel` | yes | - | yes |
 | `forceRequestBodyVariable` | yes | yes | yes |
+| `forceResponseBodyVariable` | - | - | yes |
 | `HashEnforcement` | yes | - | yes |
 | `HashEngine` | yes | - | yes |
 | `parseXmlIntoArgs` | yes | yes | - |
@@ -180,7 +181,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `ruleRemoveTargetByMsg` | yes | - | yes |
 | `ruleRemoveTargetByTag` | yes | yes | yes |
 
-## operators (28 of 44 in all engines)
+## operators (29 of 44 in all engines)
 
 | Name | v2 | v3 | coraza |
 |---|---|---|---|
@@ -222,7 +223,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `validateNid` | - | - | yes |
 | `validateSchema` | yes | yes | yes |
 | `validateUrlEncoding` | yes | yes | yes |
-| `validateUtf8Encoding` | yes | yes | - |
+| `validateUtf8Encoding` | yes | yes | yes |
 | `verifyCC` | yes | yes | - |
 | `verifyCPF` | yes | yes | - |
 | `verifySSN` | yes | yes | - |

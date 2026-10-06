@@ -387,3 +387,34 @@ class MatrixStatusTests(unittest.TestCase):
         m["categories"]["operators"] = [{"name": "rx", "v2": True, "v3": True, "coraza": True}]
         (self.root / "compat/matrix.json").write_text(json.dumps(m))
         self.assertEqual(validate.check_matrix_status(self.root), [])
+
+
+class Phase3ToolingTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = make_repo(Path(self._tmp.name))
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_ctl_rows_resolve_to_prefixed_anchor(self):
+        m = {"generated": "x", "engines": {"v2": "", "v3": "", "coraza": ""},
+             "categories": {"ctl": [{"name": "ruleEngine", "v2": True, "v3": True, "coraza": True, "status": "Core"}]}}
+        (self.root / "compat/matrix.json").write_text(json.dumps(m))
+        (self.root / "spec/08-actions.md").write_text("# Actions\n\n### ctl:ruleEngine\n\n**Status:** Core\n")
+        self.assertEqual(validate.check_matrix_status(self.root), [])
+        (self.root / "spec/08-actions.md").write_text("# Actions\n\n### ruleEngine\n\n**Status:** Core\n")
+        errors = validate.check_matrix_status(self.root)
+        self.assertTrue(any("ruleEngine" in e for e in errors))
+
+    def test_files_key_with_dotdot_is_rejected(self):
+        prof = GOOD_ENGINE.replace("rules: |", "files:\n  ../x.conf: SecRuleEngine On\nrules: |")
+        (self.root / "tests/engine/e.yaml").write_text(prof)
+        errors = validate.check_tests(self.root)
+        self.assertTrue(any("tests/engine/e.yaml" in e and ".." in e for e in errors))
+
+    def test_unit_case_may_carry_re_groups(self):
+        case = [{"type": "op", "name": "rx", "param": "(a)(b)", "input": "ab", "ret": 1, "re_groups": ["ab", "a", "b"],
+                 "spec": "06-operators.md#rx"}]
+        (self.root / "tests/unit/rx.json").write_text(json.dumps(case))
+        self.assertEqual(validate.check_tests(self.root), [])

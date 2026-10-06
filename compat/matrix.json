@@ -1055,6 +1055,12 @@
     "v2": true,
     "v3": true,
     "coraza": true
+   },
+   {
+    "name": "forceResponseBodyVariable",
+    "v2": false,
+    "v3": false,
+    "coraza": true
    }
   ],
   "operators": [
@@ -1290,7 +1296,7 @@
     "name": "validateUtf8Encoding",
     "v2": true,
     "v3": true,
-    "coraza": false
+    "coraza": true
    },
    {
     "name": "verifyCC",
