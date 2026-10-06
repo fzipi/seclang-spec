@@ -1,0 +1,14 @@
+[
+  {"type": "tfn", "name": "base64Decode", "input": "", "output": "", "ret": 0,
+   "spec": "07-transformations.md#base64decode"},
+  {"type": "tfn", "name": "base64Decode", "input": "VGVzdENhc2U=", "output": "TestCase", "ret": 1,
+   "spec": "07-transformations.md#base64decode"},
+  {"type": "tfn", "name": "base64Decode", "input": "VGVzdENhc2Ux", "output": "TestCase1", "ret": 1,
+   "spec": "07-transformations.md#base64decode"},
+  {"type": "tfn", "name": "base64Decode", "input": "VGVzdABDYXNl", "output": "Test\u0000Case", "ret": 1,
+   "spec": "07-transformations.md#base64decode",
+   "note": "NUL bytes in the decoded value are preserved"},
+  {"type": "tfn", "name": "base64Decode", "input": "VGVzdENhc2U=\u0000VGVzdENhc2U=", "output": "TestCase", "ret": 1,
+   "spec": "07-transformations.md#base64decode",
+   "note": "decoding stops at the first character outside the alphabet"}
+]

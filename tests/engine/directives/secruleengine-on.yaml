@@ -1,0 +1,27 @@
+meta:
+  name: secruleengine-on
+  description: SecRuleEngine On evaluates rules and honours disruptive actions
+spec: 04-directives.md#secruleengine
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:attack "@streq 1" "id:1001,phase:1,deny,status:403,log,msg:'engine test'"
+tests:
+  - test_title: matching request is denied
+    stages:
+      - stage:
+          input:
+            uri: /?attack=1
+          output:
+            triggered_rules: [1001]
+            interruption:
+              rule_id: 1001
+              action: deny
+              status: 403
+  - test_title: non-matching request passes
+    stages:
+      - stage:
+          input:
+            uri: /?attack=0
+          output:
+            non_triggered_rules: [1001]
+            no_interruption: true

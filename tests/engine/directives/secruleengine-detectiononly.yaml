@@ -1,0 +1,16 @@
+meta:
+  name: secruleengine-detectiononly
+  description: SecRuleEngine DetectionOnly evaluates and logs but never interrupts
+spec: 04-directives.md#secruleengine
+rules: |
+  SecRuleEngine DetectionOnly
+  SecRule ARGS_GET:attack "@streq 1" "id:1001,phase:1,deny,status:403,log,msg:'engine test'"
+tests:
+  - test_title: matching request is logged, not denied
+    stages:
+      - stage:
+          input:
+            uri: /?attack=1
+          output:
+            triggered_rules: [1001]
+            no_interruption: true

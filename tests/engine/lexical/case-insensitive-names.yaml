@@ -1,0 +1,19 @@
+meta:
+  name: case-insensitive-names
+  description: Directive, operator, action and transformation names match case-insensitively (ADR-0002)
+spec: 01-lexical.md#name-matching
+rules: |
+  SECRULEENGINE On
+  secrule ARGS_GET:a "@CONTAINS x" "ID:1002,PHASE:1,T:LOWERCASE,DENY,STATUS:403,LOG"
+tests:
+  - test_title: mixed-case names load and the rule fires
+    stages:
+      - stage:
+          input:
+            uri: /?a=X
+          output:
+            triggered_rules: [1002]
+            interruption:
+              rule_id: 1002
+              action: deny
+              status: 403

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/OWASP/seclang-spec/tests/schema/unit.schema.json",
+  "title": "SecLang unit-tier test file (operators and transformations)",
+  "description": "SecRules Test Set compatible. One file per operator or transformation; an array of cases.",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["type", "name", "input", "ret"],
+    "properties": {
+      "type": {"enum": ["op", "tfn"], "description": "op = operator, tfn = transformation"},
+      "name": {"type": "string", "minLength": 1, "description": "Canonical operator or transformation name"},
+      "param": {"type": "string", "description": "Operator parameter (the text after @name)"},
+      "input": {"type": "string", "description": "Value under test; JSON escapes allowed"},
+      "output": {"type": "string", "description": "Transformation result"},
+      "ret": {"enum": [0, 1], "description": "op: 1 if matched. tfn: 1 if the value changed"},
+      "spec": {"type": "string", "pattern": "^[0-9]{2}-[a-z0-9-]+\\.md#[a-z0-9-]+$", "description": "Spec anchor, e.g. 07-transformations.md#base64decode"},
+      "status": {"enum": ["Core", "Extended", "Deprecated"]},
+      "note": {"type": "string"}
+    },
+    "allOf": [
+      {"if": {"properties": {"type": {"const": "op"}}}, "then": {"required": ["param"]}},
+      {"if": {"properties": {"type": {"const": "tfn"}}}, "then": {"required": ["output"]}}
+    ]
+  }
+}

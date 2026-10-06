@@ -1,0 +1,16 @@
+meta:
+  name: secruleengine-off
+  description: SecRuleEngine Off does not evaluate rules at all
+spec: 04-directives.md#secruleengine
+rules: |
+  SecRuleEngine Off
+  SecRule ARGS_GET:attack "@streq 1" "id:1001,phase:1,deny,status:403,log,msg:'engine test'"
+tests:
+  - test_title: matching request is neither logged nor denied
+    stages:
+      - stage:
+          input:
+            uri: /?attack=1
+          output:
+            non_triggered_rules: [1001]
+            no_interruption: true
