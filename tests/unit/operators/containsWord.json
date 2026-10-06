@@ -73,7 +73,7 @@
  },
  {
   "param": "abc",
-  "input": "abc\\0def ghi",
+  "input": "abc\u0000def ghi",
   "name": "containsWord",
   "type": "op",
   "ret": 1,
@@ -81,7 +81,7 @@
  },
  {
   "param": "def",
-  "input": "abc\\0def ghi",
+  "input": "abc\u0000def ghi",
   "name": "containsWord",
   "type": "op",
   "ret": 1,

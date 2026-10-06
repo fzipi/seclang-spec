@@ -17,9 +17,9 @@ FIELDS = ("input", "output", "param")
 HAND_MAINTAINED = {("transformations", "base64Decode"), ("operators", "pmFromFile")}  # pmFromFile cases need corpus-internal files
 
 
-_HEX = re.compile(r"\\\\x([0-9a-fA-F]{2})")
-_UNI = re.compile(r"\\\\u([0-9a-fA-F]{4})")
-_SIMPLE = {"\\\\0": "\\0", "\\\\b": "\\b", "\\\\t": "\\t", "\\\\n": "\\n", "\\\\r": "\\r"}
+_HEX = re.compile(r"\\x([0-9a-fA-F]{2})")
+_UNI = re.compile(r"\\u([0-9a-fA-F]{4})")
+_SIMPLE = {"\\0": "\0", "\\b": "\b", "\\t": "\t", "\\n": "\n", "\\r": "\r"}
 
 
 def unescape(s: str) -> str:
