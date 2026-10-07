@@ -1,0 +1,44 @@
+name: pages
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "0.166.0"
+          extended: true
+      - id: pages
+        if: github.event_name == 'push'
+        uses: actions/configure-pages@v5
+      - run: hugo -s site --gc --minify --baseURL "${{ steps.pages.outputs.base_url || 'https://example.invalid' }}/"
+      - run: site/smoke.sh
+      - if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/public
+  deploy:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

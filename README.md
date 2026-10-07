@@ -1,5 +1,8 @@
 # SecLang Specification
 
+Published at <https://fzipi.github.io/seclang-spec/> (built from this repository by
+`.github/workflows/pages.yml`; see `site/README.md`).
+
 A formal specification of **SecLang**, the rule language implemented by
 [ModSecurity](https://github.com/owasp-modsecurity/ModSecurity) (v2 and libmodsecurity
 v3) and [Coraza](https://github.com/corazawaf/coraza), with engine-neutral conformance
