@@ -8,7 +8,8 @@ import data
 import engine_tier
 import gaps
 import mscapi
-from data import Interruption, Output
+import unit_tier
+from data import Interruption, Output, UnitCase
 
 needs_engine = unittest.skipUnless(os.environ.get(mscapi.ENV), f"{mscapi.ENV} not set")
 
@@ -181,6 +182,73 @@ class EngineSmokeTests(unittest.TestCase):
         self.assertIn("hit", o.log)
         self.assertEqual(o2.triggered, {3})
         self.assertIsNone(o2.interruption)
+
+
+def case(**kw):
+    base = dict(type="op", name="rx", param=None, input="", output="", ret=0, spec="", re_groups=[])
+    base.update(kw)
+    return UnitCase(**base)
+
+
+class UnitRulesTests(unittest.TestCase):
+    def test_unit_rules_without_param(self):
+        r = unit_tier.unit_rules(case(name="validateUrlEncoding"))
+        self.assertIn(b'SecRule REQUEST_BODY "@validateUrlEncoding" "id:2,phase:2,pass,log,msg:\'m\'"\n', r)
+
+    def test_unit_rules_param_is_bytes_verbatim(self):
+        r = unit_tier.unit_rules(case(param="a\\\"b\u00e9"))
+        self.assertIn(b'"@rx a\\"b\xe9"', r)
+
+    def test_unit_rules_capture_adds_tx_rules(self):
+        r = unit_tier.unit_rules(case(param="(a)", re_groups=["a", "a"]))
+        self.assertIn(b",capture", r)
+        self.assertIn(b'SecRule TX:0 "@unconditionalMatch" "id:10,phase:2,pass,log,t:hexEncode,msg:\'%{MATCHED_VAR}\'"', r)
+        self.assertIn(b'SecRule TX:9 "@unconditionalMatch" "id:19,', r)
+
+    def test_unit_rules_transformation(self):
+        r = unit_tier.unit_rules(case(type="tfn", name="lowercase"))
+        self.assertIn(b'"id:2,phase:2,pass,log,t:lowercase,t:hexEncode,msg:\'%{MATCHED_VAR}\'"', r)
+
+    def test_messages_empty_output(self):
+        lines = [b'ModSecurity: Warning. Matched x [file "a"] [id "2"] [rev ""] [msg ""] [data ""]',
+                 b'ModSecurity: Warning. Matched x [id "10"] [msg "4100"]']
+        self.assertEqual(unit_tier.messages(lines), {2: b"", 10: b"4100"})
+
+    def test_check_unit(self):
+        c = case(type="tfn", name="lowercase", input="A", output="a", ret=1)
+        self.assertEqual(unit_tier.check_unit(c, unit_tier.UnitResult(True, "a", [])), [])
+        self.assertEqual(len(unit_tier.check_unit(c, unit_tier.UnitResult(True, "A", []))), 1)
+        self.assertEqual(len(unit_tier.check_unit(c, unit_tier.UnitResult(False, "", []))), 1)
+        o = case(param="(a)(b)", input="xab", ret=1, re_groups=["ab", "a", "b"])
+        self.assertEqual(unit_tier.check_unit(o, unit_tier.UnitResult(True, "", ["ab", "a", "b"])), [])
+        self.assertEqual(len(unit_tier.check_unit(o, unit_tier.UnitResult(True, "", ["ab", "a"]))), 1)
+        self.assertEqual(len(unit_tier.check_unit(o, unit_tier.UnitResult(False, "", []))), 2)
+
+
+@needs_engine
+class UnitSmokeTests(unittest.TestCase):
+    def run_case(self, c):
+        ms = mscapi.ModSecurity()
+        with tempfile.TemporaryDirectory() as d:
+            rules = unit_tier.load_rules(ms, c, Path(d))
+            try:
+                return unit_tier.run_unit(ms, rules, c)
+            finally:
+                rules.close()
+
+    def test_operator_with_groups(self):
+        r = self.run_case(case(param="^(A)(.)", input="AbC\u0000\u00ff", ret=1, re_groups=["Ab", "A", "b"]))
+        self.assertTrue(r.matched)
+        self.assertEqual(r.groups, ["Ab", "A", "b"])
+        self.assertFalse(self.run_case(case(param="zzz", input="abc")).matched)
+
+    def test_transformation_output_with_nul(self):
+        r = self.run_case(case(type="tfn", name="lowercase", input="AbC\u0000\u00ff" + "x" * 300))
+        self.assertTrue(r.matched)
+        self.assertEqual(r.output, "abc\u0000\u00ff" + "x" * 300)
+        empty = self.run_case(case(type="tfn", name="lowercase", input=""))
+        self.assertTrue(empty.matched)
+        self.assertEqual(empty.output, "")
 
 
 if __name__ == "__main__":
