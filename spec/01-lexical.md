@@ -66,18 +66,21 @@ the most exercised lexical feature in practice.
 **Status:** Core
 
 **Syntax.** A directive argument is either a bare token, which extends to the next
-whitespace, or a string delimited by double quotes `"`. Inside double quotes, `\"` is a
-literal double quote and `\\` is a literal backslash; any other backslash sequence is
-passed through unchanged to the directive, which may interpret it (regular expressions
-do, for example).
+whitespace, or a string delimited by double quotes `"`. Inside double quotes the only
+escape is `\"`, which yields a literal double quote without ending the argument. Every
+other backslash, including `\\`, is passed through unchanged to the directive, which may
+interpret it (regular expressions do: CRS writes `\\` to mean one literal backslash and
+`\(` for a parenthesis, and both reach the regex engine as written).
 
 **Semantics.** The quotes are delimiters, not part of the argument. An argument that
 contains whitespace, `"` or begins with `@` or `!` SHOULD be quoted. Single quotes are
 not argument delimiters at this level; they delimit values *inside* an action list and
 are defined in `02-grammar.md#action-list`.
 
-**Divergence notes.** None known. Engines differ in how they parse `\"` inside the
-action list after macro expansion; a libmodsecurity v3 fix for an escaped quote
+**Divergence notes.** Verified for Coraza by `adapters/coraza` (`\"` becomes `"`, `\\`
+stays two characters); Apache's configuration reader gives ModSecurity v2 the same
+behaviour. Engines differ in how they parse `\"` inside the action list after macro
+expansion; a libmodsecurity v3 fix for an escaped quote
 following a macro landed in 2026 and that case is tested in `02-grammar.md`.
 
 **Tests.** `tests/engine/lexical/quoted-arguments.yaml`

@@ -72,7 +72,7 @@ def main(src: Path, dest: Path, anchors: dict[str, str]) -> dict[str, int]:
             anchor = anchors.get(name) or anchors.get(name.lower())
             if not anchor or (tier, name) in HAND_MAINTAINED:
                 continue
-            cases = [c for c in (convert_case(c, anchor) for c in json.loads(path.read_text())) if c]
+            cases = [c for c in (convert_case(dict(c, name=name), anchor) for c in json.loads(path.read_text())) if c]
             if not cases:
                 continue
             (dest / tier).mkdir(parents=True, exist_ok=True)

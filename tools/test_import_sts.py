@@ -60,6 +60,15 @@ class ConvertTests(unittest.TestCase):
                 "# Ops\n\n### rx\n\n**Status:** Core\n\n### noMatch\n\n**Status:** Extended\n\n### gsbLookup\n\n**Status:** Deprecated\n\n### rxGlobal\n\n**Status:** Engine-specific\n")
             self.assertEqual(set(import_sts.anchors_from_spec(root)), {"rx", "nomatch"})
 
+    def test_case_name_is_the_file_stem(self):
+        # The corpus names cmdLine.json cases "cmd_line"; the engines know the transformation as cmdLine.
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "src"; dest = Path(tmp) / "dest"
+            (src / "operators").mkdir(parents=True); (src / "transformations").mkdir()
+            (src / "transformations" / "cmdLine.json").write_text(json.dumps([{"type": "tfn", "name": "cmd_line", "input": "A", "output": "a", "ret": 1}]))
+            import_sts.main(src, dest, {"cmdline": "07-transformations.md#cmdline"})
+            self.assertEqual(json.loads((dest / "transformations" / "cmdLine.json").read_text())[0]["name"], "cmdLine")
+
     def test_hand_maintained_files_are_not_overwritten(self):
         with tempfile.TemporaryDirectory() as tmp:
             src = Path(tmp) / "src"; dest = Path(tmp) / "dest"

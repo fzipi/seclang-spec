@@ -94,7 +94,10 @@ case-sensitively. An empty `STRING` matches every value.
 **Semantics.** Matches when `STRING` occurs anywhere in the value, byte-wise and
 case-sensitively. An empty `STRING` matches every value.
 
-**Divergence notes.** None known.
+**Divergence notes.** Coraza 3.8.1 rejects an operator with an empty parameter at load
+time ("empty data"); this affects `@beginsWith`, `@contains`, `@endsWith`, `@streq` and
+`@within` alike (`compat/known-gaps.md`). ModSecurity accepts it, as the corpus cases
+inherited from its unit tests show.
 
 **Tests.** `tests/unit/operators/contains.json`
 

@@ -399,7 +399,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Decodes pairs of hexadecimal digits into bytes.
+**Semantics.** Decodes pairs of hexadecimal digits into bytes. ModSecurity v2 and v3 decode every complete pair and stop at the first non-hex character or odd trailing digit; Coraza 3.8.1 returns the input unchanged in those cases (`compat/known-gaps.md`).
 
 **Implemented by.** v2, v3, Coraza.
 

@@ -29,9 +29,10 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 | `tests/unit/transformations/urlDecodeUni.json` | Coraza | one full-width `%u` case decodes differently | `07-transformations.md#urldecodeuni` |
 | `tests/engine/actions/allow.yaml` | Coraza | `allow` also skips the logging phase | `08-actions.md#allow` |
 | `tests/unit/transformations/htmlEntityDecode.json` | Coraza | `&nbsp;` decodes to UTF-8 `C2 A0` (two cases) | `07-transformations.md#htmlentitydecode` |
-| `tests/unit/transformations/removeWhitespace.json`, `lowercase.json` | Coraza | rune-based folding of non-ASCII bytes | `07-transformations.md#removewhitespace`, `#lowercase` |
 | `tests/engine/body/no-processor.yaml`, `tests/engine/actions/ctl-options.yaml` | libmodsecurity v3 | `ctl:forceRequestBodyVariable` parsed but not implemented | ADR-0022 |
 | `tests/engine/variables/multipart.yaml` | Coraza | `FILES` members keyed by the empty string, so `FILES:field` selects nothing | `05-variables.md#files` |
+| `tests/unit/operators/beginsWith.json`, `tests/unit/operators/contains.json`, `tests/unit/operators/endsWith.json`, `tests/unit/operators/streq.json`, `tests/unit/operators/within.json` | Coraza | an empty operator parameter is a load error ("empty data"); the spec says an empty string matches every value (one case per file) | `06-operators.md#contains` |
+| `tests/unit/transformations/hexDecode.json` | Coraza | input with an odd length or a non-hex character is returned unchanged instead of decoding the valid pairs (three cases) | `07-transformations.md#hexdecode` |
 
 ## Divergences no test can observe
 
