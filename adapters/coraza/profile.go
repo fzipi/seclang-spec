@@ -175,8 +175,18 @@ func latin1(s string) []byte {
 	return b
 }
 
-// escapeParam makes a byte string safe inside a double-quoted directive argument.
+// escapeParam makes a byte string safe inside a double-quoted directive argument. The
+// only escape the engines process is \" (01-lexical.md#quoting-and-escapes); every other
+// backslash is literal, so backslashes are left alone.
 func escapeParam(p string) string {
-	p = strings.ReplaceAll(p, `\`, `\\`)
 	return strings.ReplaceAll(p, `"`, `\"`)
+}
+
+// byteString turns raw engine bytes into the one-code-point-per-byte form of tests/unit.
+func byteString(b []byte) string {
+	r := make([]rune, len(b))
+	for i, c := range b {
+		r[i] = rune(c)
+	}
+	return string(r)
 }

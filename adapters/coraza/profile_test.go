@@ -53,7 +53,7 @@ func TestLatin1AndEscape(t *testing.T) {
 	if got := latin1("Aé\u0000"); string(got) != "A\xe9\x00" || len(got) != 3 {
 		t.Fatalf("latin1 = %q", got)
 	}
-	if got := escapeParam(`a"b\c`); got != `a\"b\\c` {
+	if got := escapeParam(`a"b\c`); got != `a\"b\c` {
 		t.Fatalf("escapeParam = %q", got)
 	}
 }

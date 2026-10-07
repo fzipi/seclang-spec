@@ -3,7 +3,10 @@ package coraza
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"testing"
+
+	"github.com/corazawaf/coraza/v3"
 )
 
 // implemented lists the Extended feature anchors Coraza 3.8.1 implements; profiles whose
@@ -86,6 +89,86 @@ func TestEngine(t *testing.T) {
 				t.Skip("requires " + reason)
 			}
 			reportGated(t, p.Path, gaps, runProfile(t, p))
+		})
+	}
+}
+
+// Extended features Coraza 3.8.1 does not implement; their unit files exist for the other
+// engines and are skipped here (00-conventions.md: Extended tests are skipped, not failed).
+var unsupportedOperators = map[string]bool{"containsWord": true, "verifyCC": true, "verifycpf": true, "verifyssn": true}
+var unsupportedTransformations = map[string]bool{"parityEven7bit": true, "parityOdd7bit": true, "parityZero7bit": true, "sqlHexDecode": true}
+var unsupportedAnchors = map[string]bool{"06-operators.md#rx-pcre-extensions": true}
+
+func hasControlChars(s string) bool {
+	for _, r := range s {
+		if r < 0x20 {
+			return true
+		}
+	}
+	return false
+}
+
+func TestUnit(t *testing.T) {
+	root := RepoRoot()
+	gaps, err := LoadGaps(filepath.Join(root, "compat", "known-gaps.md"), "coraza")
+	if err != nil {
+		t.Fatal(err)
+	}
+	files, err := LoadUnitCases(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	paths := make([]string, 0, len(files))
+	for p := range files {
+		paths = append(paths, p)
+	}
+	sort.Strings(paths)
+	for _, path := range paths {
+		cases := files[path]
+		t.Run(path, func(t *testing.T) {
+			if len(cases) > 0 && cases[0].Type == "op" && unsupportedOperators[cases[0].Name] {
+				t.Skip("operator not implemented by Coraza (Extended)")
+			}
+			if len(cases) > 0 && cases[0].Type == "tfn" && unsupportedTransformations[cases[0].Name] {
+				t.Skip("transformation not implemented by Coraza (Extended)")
+			}
+			if len(cases) > 0 && unsupportedAnchors[cases[0].Spec] {
+				t.Skip("Extended feature not implemented by Coraza: " + cases[0].Spec)
+			}
+			var failures []string
+			wafs := map[string]coraza.WAF{}
+			skipped := 0
+			for _, c := range cases {
+				if hasControlChars(c.Param) {
+					skipped++ // a control character cannot be written inside a directive argument
+					continue
+				}
+				key := c.Type + "\x00" + c.Name + "\x00" + c.Param + "\x00" + fmt.Sprint(len(c.ReGroups) > 0)
+				waf, ok := wafs[key]
+				if !ok {
+					var err error
+					waf, err = wafFor(c, t.TempDir())
+					if err != nil {
+						failures = append(failures, fmt.Sprintf("@%s %q: rule failed to load: %v", c.Name, c.Param, err))
+						wafs[key] = nil
+						continue
+					}
+					wafs[key] = waf
+				}
+				if waf == nil {
+					continue
+				}
+				r, err := runUnitWith(waf, c)
+				if err != nil {
+					failures = append(failures, fmt.Sprintf("%s %q on %q: %v", c.Name, c.Param, c.Input, err))
+					continue
+				}
+				failures = append(failures, CheckUnit(c, r)...)
+			}
+			if skipped > 0 {
+				t.Logf("%d case(s) skipped: parameter contains control characters", skipped)
+			}
+			reportGated(t, path, gaps, failures)
 		})
 	}
 }
