@@ -5,6 +5,14 @@ A formal specification of **SecLang**, the rule language implemented by
 v3) and [Coraza](https://github.com/corazawaf/coraza), with engine-neutral conformance
 tests and Architecture Decision Records for the places where engines diverge.
 
+**Status: Draft 0.1 (2026-10-07).** The specification covers the whole language in
+`spec/00` to `spec/10`: conventions, lexical structure, grammar, processing model,
+directives, variables, operators, transformations, actions, body processors and logging.
+It ships 98 engine-tier test profiles and 62 unit-tier files holding about
+4,280 cases, 21 ADRs (all `proposed`), a three-engine compatibility matrix and a
+table of the Core tests each engine fails today. The engines surveyed were ModSecurity
+v2 (`v2/master`, 2026-09), libmodsecurity v3.0.16 and Coraza v3.8.1.
+
 ## Layout
 
 | Path | What |
@@ -13,6 +21,7 @@ tests and Architecture Decision Records for the places where engines diverge.
 | `adr/` | Decisions. `Divergence` ADRs pick a behaviour where engines disagree and name the test that encodes it. |
 | `tests/` | Conformance test data (no runner). `unit/` for operators and transformations, `engine/` for everything else. |
 | `compat/` | Three-engine feature matrix (`matrix.json`, rendered by `tools/matrix.py`) and `known-gaps.md`, the Core tests each engine is known to fail today. |
+| `docs/superpowers/` | The design document and the per-phase implementation plans this draft was built from. |
 | `tools/` | `validate.py` enforces the repo's invariants; CI runs it. `import_sts.py` regenerates the unit tier from the SecRules Test Set. |
 
 ## Status labels
@@ -41,3 +50,12 @@ engine profiles whose `requires` lists a feature you do not implement, and asser
 
 Open an ADR for any behavioural decision; add or update tests in the same change; run
 the validator. The design document is in `docs/superpowers/specs/`.
+
+## How an engine adopts this
+
+1. Write an adapter that loads `tests/unit` and `tests/engine` (`tests/README.md`),
+   skipping engine profiles whose `requires:` names an Extended feature you do not
+   implement.
+2. Compare your failures with `compat/known-gaps.md`; a failure not listed there is either
+   a bug in your engine or a bug in this specification. Open an issue for the latter.
+3. Review the ADRs; two engines agreeing moves an ADR from `proposed` to `accepted`.
