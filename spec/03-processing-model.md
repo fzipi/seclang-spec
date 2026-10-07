@@ -153,12 +153,17 @@ the skip ends with the phase: rules of later phases MUST run normally (ADR-0016)
 
 **Divergence notes.** ModSecurity v2 (`apache2/re.c`, `skip_after` is local to the
 per-phase rule loop) and the ModSecurity reference manual scope the skip to the current
-phase. libmodsecurity v3 (`Transaction::m_marker`, reset only when the marker is reached)
-and Coraza 3.8.1 (`Transaction.SkipAfter`, same) carry an unreached skip into later
-phases, silently disabling every rule until the marker. See ADR-0016.
+phase. libmodsecurity v3 (`Transaction::m_marker`) and Coraza 3.8.1
+(`Transaction.SkipAfter`) store the pending marker on the transaction and clear it only
+when a marker of that name is evaluated. Because markers are phase-less and both engines
+evaluate every marker in every phase, a marker placed among later-phase rules is still
+reached in the current phase and the outcome matches this section (verified for Coraza
+by `adapters/coraza`). The behaviours differ only when **no** marker of that name exists:
+v3 and Coraza then skip every remaining rule of every later phase. See ADR-0016.
 
 **Tests.** `tests/engine/processing/skip-and-skipafter.yaml`,
-`tests/engine/processing/skipafter-later-phase.yaml`
+`tests/engine/processing/skipafter-later-phase.yaml`,
+`tests/engine/processing/skipafter-missing-marker.yaml`
 
 ### Rule exceptions
 
@@ -210,16 +215,24 @@ v3 (`rules_exceptions.cc`, exceptions are stored and applied lazily) ignore it, 
 `08-actions.md` and their statuses fixed by ADR-0006.
 
 **Semantics.** A `ctl` action runs when its rule matches, in that rule's phase, and its
-effect lasts for the remainder of the transaction. Options that change engine state
-(`ruleEngine`, `auditEngine`, `auditLogParts`, `requestBodyAccess`,
-`requestBodyProcessor`, `forceRequestBodyVariable`) take effect immediately for
-everything evaluated afterwards. Options that edit rules (`ruleRemoveById`,
-`ruleRemoveByTag`, `ruleRemoveTargetById`, `ruleRemoveTargetByTag`) affect rules
-evaluated afterwards in the current transaction only and never persist. Options that
+effect lasts for the remainder of the transaction. Options that edit rules
+(`ruleRemoveById`, `ruleRemoveByTag`, `ruleRemoveTargetById`, `ruleRemoveTargetByTag`)
+take effect immediately: the next rule evaluated in the same phase already sees them.
+`ctl:ruleEngine` takes effect at the start of the **next** phase; whether it also stops
+the remaining rules of the current phase is **not specified**, so a rule that disables
+the engine SHOULD be the last rule of its phase that matters. The other state options
+(`auditEngine`, `auditLogParts`, `requestBodyAccess`, `requestBodyProcessor`,
+`forceRequestBodyVariable`) apply to whatever the engine does after the rule matched. Options that
 control request body handling (`requestBodyAccess`, `requestBodyProcessor`,
 `forceRequestBodyVariable`) have an effect only when set in phase 1, before the body is
 read.
 
-**Divergence notes.** None known for the Core options.
+**Divergence notes.** ModSecurity v2 re-checks the engine state before every rule
+(`apache2/re.c`, `is_enabled == MODSEC_DISABLED` inside the rule loop), so
+`ctl:ruleEngine=Off` also silences the rest of the current phase; libmodsecurity v3
+(`src/transaction.cc`, "Rule engine disabled, returning" at phase entry) and Coraza
+(`transaction.go`, `IsRuleEngineOff()` at phase entry) only check when a phase starts.
+Rule-removal options are immediate in all three (v2 same loop, v3 `rules_set.cc`
+`m_exceptions`, Coraza `rulegroup.go` `ruleRemoveByID`).
 
 **Tests.** `tests/engine/processing/ctl-timing.yaml`

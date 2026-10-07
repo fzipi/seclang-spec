@@ -18,9 +18,12 @@ not reached before the end of the current phase:
   is evaluated, so an unreached skip continues into the next phases.
 - Coraza 3.8.1 (`Transaction.SkipAfter`, `internal/corazawaf/rulegroup.go`): same as v3.
 
-A ruleset that uses `skipAfter` to jump past the rest of a phase 1 block, with the marker
-placed among phase 1 rules, behaves identically everywhere. One whose marker is absent in
-the current phase disables every later rule on v3 and Coraza.
+Markers are phase-less and all three engines evaluate every `SecMarker` in every phase,
+so a marker placed anywhere later in the configuration is reached in the current phase
+and clears the skip (verified for Coraza by `adapters/coraza`:
+`skipafter-later-phase.yaml` passes). The engines differ only when no marker of that
+name exists: v2 ends the skip with the phase, v3 and Coraza disable every remaining rule
+of every later phase.
 
 ## Decision
 
@@ -43,6 +46,7 @@ is encountered. Normative text: `spec/03-processing-model.md#flow-control`.
 ## Tests
 
 - `tests/engine/processing/skipafter-later-phase.yaml`
+- `tests/engine/processing/skipafter-missing-marker.yaml`
 
 ## References
 

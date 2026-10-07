@@ -20,13 +20,14 @@ rules: |
   SecRule ARGS_POST:p "@streq 1" "id:7152,phase:2,pass"
   SecRule REQBODY_PROCESSOR "@streq JSON" "id:7153,phase:2,pass"
   SecRule REQUEST_BODY "@contains hello" "id:7154,phase:2,pass"
+  SecRule ARGS_GET:a "@streq 0" "id:7155,phase:2,pass"
 tests:
-  - test_title: "ctl:ruleEngine=Off stops evaluation"
+  - test_title: "ctl:ruleEngine=Off stops evaluation from the next phase"
     spec: 08-actions.md#ctlruleengine
     stages:
       - stage:
-          input: {uri: '/?a=1', headers: {X-Opt: ruleEngine}}
-          output: {triggered_rules: [7100], non_triggered_rules: [7150, 7151], no_interruption: true}
+          input: {uri: '/?a=0', headers: {X-Opt: ruleEngine}}
+          output: {triggered_rules: [7100], non_triggered_rules: [7155], no_interruption: true}
   - test_title: "ctl:ruleRemoveById"
     spec: 08-actions.md#ctlruleremovebyid
     stages:

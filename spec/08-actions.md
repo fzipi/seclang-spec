@@ -227,7 +227,10 @@ exclusion mechanism and by logs.
 is present, marks the transaction for the audit log. The default when neither `log`
 nor `nolog` is given.
 
-**Divergence notes.** None known.
+**Divergence notes.** Coraza 3.8.1 logs a match only when `log` is given explicitly or
+inherited from `SecDefaultAction` (`internal/corazawaf/transaction.go`, `r.Log`); CRS
+sets `log` in its default actions, so this is rarely visible. Recorded in
+`compat/known-gaps.md` under unobservable divergences.
 
 **Tests.** `tests/engine/actions/metadata-and-log-actions.yaml`
 
@@ -496,7 +499,9 @@ the three values above), so it is Extended.
 
 **Syntax.** `ctl:ruleEngine=On|Off|DetectionOnly`
 
-**Semantics.** Overrides `SecRuleEngine` for the rest of this transaction.
+**Semantics.** Overrides `SecRuleEngine` from the next phase onward
+(`03-processing-model.md#ctl-timing`); its effect on the remaining rules of the current
+phase is not specified.
 
 **Tests.** `tests/engine/actions/ctl-options.yaml`,
 `tests/engine/processing/ctl-timing.yaml`

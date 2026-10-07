@@ -1,0 +1,19 @@
+meta:
+  name: skipafter-missing-marker
+  description: A skipAfter naming a marker that does not exist ends with the phase (ADR-0016)
+spec: 03-processing-model.md#flow-control
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4054,phase:1,pass,skipAfter:NOWHERE"
+  SecRule ARGS_GET:a "@streq 1" "id:4055,phase:1,pass"
+  SecRule ARGS_GET:a "@streq 1" "id:4056,phase:2,pass"
+tests:
+  - test_title: phase 2 rules run although the marker never appears
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [4054, 4056]
+            non_triggered_rules: [4055]
+            no_interruption: true

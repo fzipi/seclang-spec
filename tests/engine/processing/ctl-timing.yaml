@@ -1,15 +1,15 @@
 meta:
   name: ctl-timing
-  description: ctl actions take effect when their rule matches and affect later rules
+  description: Rule-removal ctl options act on the next rule; ctl:ruleEngine acts from the next phase
 spec: 03-processing-model.md#ctl-timing
 rules: |
   SecRuleEngine On
   SecRule ARGS_GET:a "@streq 1" "id:4090,phase:1,pass,nolog,ctl:ruleRemoveById=4091"
   SecRule ARGS_GET:a "@streq 1" "id:4091,phase:1,deny,status:403"
-  SecRule ARGS_GET:a "@streq 1" "id:4092,phase:2,pass,nolog,ctl:ruleEngine=Off"
+  SecRule ARGS_GET:a "@streq 1" "id:4092,phase:1,pass,nolog,ctl:ruleEngine=Off"
   SecRule ARGS_GET:a "@streq 1" "id:4093,phase:2,deny,status:403"
 tests:
-  - test_title: later rules see the ctl effects
+  - test_title: removal is immediate, engine off applies to the next phase
     stages:
       - stage:
           input:
