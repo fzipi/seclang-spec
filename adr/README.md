@@ -45,3 +45,4 @@ promoted into the spec (Extension).
 | [0022](0022-request-body-without-processor.md) | `REQUEST_BODY` without a body processor | Divergence | proposed |
 | [0023](0023-reference-adapters.md) | Reference adapters live in this repository | Clarification | proposed |
 | [0024](0024-ipmatch-invalid-entries.md) | Unparsable `@ipMatch` entries are configuration errors | Divergence | proposed |
+| [0025](0025-secrequestbodyinmemorylimit-extended.md) | `SecRequestBodyInMemoryLimit` is Extended, not Core | Divergence | proposed |

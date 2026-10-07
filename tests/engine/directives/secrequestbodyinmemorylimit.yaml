@@ -1,0 +1,19 @@
+meta:
+  name: secrequestbodyinmemorylimit
+  description: SecRequestBodyInMemoryLimit loads with a valid value and does not disturb rule evaluation (Extended, ADR-0025)
+spec: 04-directives.md#secrequestbodyinmemorylimit
+requires: [04-directives.md#secrequestbodyinmemorylimit]
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRequestBodyInMemoryLimit 131072
+  SecRule ARGS_GET:a "@streq 1" "id:5130,phase:1,deny,status:403"
+tests:
+  - test_title: directive loads; rule fires
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [5130]
+            interruption: {rule_id: 5130, action: deny, status: 403}

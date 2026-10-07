@@ -64,7 +64,7 @@ explicitly, as both engines' recommended configuration files do.
 | [SecRemoteRules](#secremoterules) | Extended | yes | yes | yes | Load rules from a URL |
 | [SecRemoteRulesFailAction](#secremoterulesfailaction) | Extended | yes | yes | yes | Behaviour when remote rules fail to load |
 | [SecRequestBodyAccess](#secrequestbodyaccess) | Core | yes | yes | yes | Buffer and inspect request bodies |
-| [SecRequestBodyInMemoryLimit](#secrequestbodyinmemorylimit) | Deprecated | yes | - | yes | Memory buffer size before spooling to disk |
+| [SecRequestBodyInMemoryLimit](#secrequestbodyinmemorylimit) | Extended | yes | - | yes | Memory buffer size before spooling to disk |
 | [SecRequestBodyJsonDepthLimit](#secrequestbodyjsondepthlimit) | Core | yes | yes | yes | Maximum JSON nesting depth |
 | [SecRequestBodyLimit](#secrequestbodylimit) | Core | yes | yes | yes | Maximum request body size |
 | [SecRequestBodyLimitAction](#secrequestbodylimitaction) | Core | yes | yes | yes | What to do above the limit |
@@ -434,7 +434,7 @@ the directive loads. A Core gap for Coraza (ADR-0005).
 
 ### SecRequestBodyInMemoryLimit
 
-**Status:** Deprecated
+**Status:** Extended
 
 **Syntax.** `SecRequestBodyInMemoryLimit BYTES`
 
@@ -442,12 +442,16 @@ the directive loads. A Core gap for Coraza (ADR-0005).
 `SecRequestBodyLimit` in Coraza (`waf.go`). Unspecified.
 
 **Semantics.** The number of request body bytes held in memory before the engine spools
-the remainder to a temporary file (ModSecurity v2 only). It has no effect on rule
-evaluation; engines without spooling MUST accept it and MAY ignore it (ADR-0005).
+the remainder to a temporary file (ModSecurity v2 `apache2/msc_reqbody.c`, Coraza
+`internal/corazawaf/body_buffer.go`). It has no effect on rule evaluation; it exists so
+that deployments can bound memory use. Extended rather than Core because libmodsecurity
+v3 rejects it (ADR-0025); a profile that uses it declares `requires:`.
 
 **Divergence notes.** libmodsecurity v3 rejects the directive with "is no longer
-supported" (`seclang-parser.yy`), which ADR-0005 lists among the Deprecated names v3
-should accept and warn about. Verified by `adapters/libmodsecurity`.
+supported" (`seclang-parser.yy`), so the matrix lists it absent there and the profile
+below is skipped by its adapter.
+
+**Tests.** `tests/engine/directives/secrequestbodyinmemorylimit.yaml`
 
 ### SecRequestBodyJsonDepthLimit
 

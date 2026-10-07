@@ -12,7 +12,9 @@ from pathlib import Path
 from data import Interruption, Output, Profile, Stage
 from mscapi import ModSecurity, RulesSet
 
-_LINE = re.compile(rb"^\[[^\]]*\] \[.*?\] \[(\d+)\] (.*)$")
+# The URI field may contain "] [N] "; the greedy match takes the LAST "] [level] " of the
+# line, which only a message text of that exact shape could spoof.
+_LINE = re.compile(rb"^\[[^\]]*\] \[.*\] \[(\d+)\] (.*)$")
 _BLOCK = re.compile(rb"^\(Rule: (\d+)\) ")
 # Disruptive action names as v3 prints them (lower-cased; v3.0.16 misspells redirect).
 # "block" is resolved against the intervention in run_stage.

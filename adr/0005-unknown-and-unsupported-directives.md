@@ -53,8 +53,7 @@ what rules see. A user who sets them and gets no warning has a false sense of co
   `SecStreamInBodyInspection`, `SecStreamOutBodyInspection`, `SecHashKey`,
   `SecHashParam`, `SecHashMethodRx`, `SecHashMethodPm`, and the `On` value of
   `SecHashEngine`, `SecInterceptOnError`, `SecContentInjection`,
-  `SecRuleInheritance`, `SecDisableBackendCompression`; and `SecRequestBodyInMemoryLimit`,
-  "is no longer supported"), which rule 2 forbids; it should
+  `SecRuleInheritance`, `SecDisableBackendCompression`), which rule 2 forbids; it should
   accept and warn. Where it parses and ignores (e.g. `SecConnEngine Off`) it should warn.
 - For Coraza: fourteen Deprecated names are unknown to its parser (`compat/matrix.md`,
   `-` in the Coraza column), which rule 2 forbids; add them as accepted-and-warned.

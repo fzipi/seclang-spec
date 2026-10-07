@@ -5,11 +5,11 @@ spec: 05-variables.md#matched_var
 rules: |
   SecRuleEngine On
   SecRule ARGS_GET:a "@streq hello" "id:6060,phase:1,pass,t:lowercase,chain"
-    SecRule MATCHED_VAR "@streq hello"
+    SecRule MATCHED_VAR "@streq hello" "t:none"
   SecRule ARGS_GET:a "@streq hello" "id:6061,phase:1,pass,t:lowercase,chain"
-    SecRule MATCHED_VAR_NAME "@streq ARGS_GET:a"
+    SecRule MATCHED_VAR_NAME "@streq ARGS_GET:a" "t:none"
   SecRule ARGS_GET:b|ARGS_GET:c "@rx ^v" "id:6062,phase:1,pass,chain"
-    SecRule &MATCHED_VARS "@eq 2"
+    SecRule &MATCHED_VARS "@eq 2" "t:none"
 tests:
   - test_title: matched variables carry the transformed value and the full name
     stages:

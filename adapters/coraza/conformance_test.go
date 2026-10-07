@@ -11,7 +11,7 @@ import (
 
 // implemented lists the Extended feature anchors Coraza 3.8.1 implements; profiles whose
 // requires: names anything else are skipped.
-var implemented = map[string]bool{}
+var implemented = map[string]bool{"04-directives.md#secrequestbodyinmemorylimit": true}
 
 func needsUnimplemented(p Profile) (string, bool) {
 	for _, r := range p.Requires {

@@ -5,7 +5,7 @@ spec: 06-operators.md#rx
 rules: |
   SecRuleEngine On
   SecRule ARGS_GET:v "@rx ^user-(\d+)$" "id:6200,phase:1,pass,capture,chain"
-    SecRule TX:1 "@eq 42"
+    SecRule TX:1 "@eq 42" "t:none"
   SecRule ARGS_GET:v "@rx (?i)^USER" "id:6201,phase:1,pass"
 tests:
   - test_title: capture group and inline flag

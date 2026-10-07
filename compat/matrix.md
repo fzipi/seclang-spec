@@ -60,7 +60,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `SecRemoteRules` | yes | yes | yes | Extended |
 | `SecRemoteRulesFailAction` | yes | yes | yes | Extended |
 | `SecRequestBodyAccess` | yes | yes | yes | Core |
-| `SecRequestBodyInMemoryLimit` | yes | - | yes | Deprecated |
+| `SecRequestBodyInMemoryLimit` | yes | - | yes | Extended |
 | `SecRequestBodyJsonDepthLimit` | yes | yes | yes | Core |
 | `SecRequestBodyLimit` | yes | yes | yes | Core |
 | `SecRequestBodyLimitAction` | yes | yes | yes | Core |

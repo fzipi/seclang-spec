@@ -1,0 +1,34 @@
+meta:
+  name: chain-member-without-actions
+  description: A chain member may omit the action list; the chain still evaluates and later directives still load
+spec: 02-grammar.md#secrule-structure
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:2020,phase:1,deny,status:403,chain"
+    SecRule ARGS_GET:b "@streq 2"
+  SecRule ARGS_GET:c "@streq 1" "id:2021,phase:1,pass"
+tests:
+  - test_title: chain with an actionless member matches
+    stages:
+      - stage:
+          input:
+            uri: /?a=1&b=2
+          output:
+            triggered_rules: [2020]
+            interruption: {rule_id: 2020, action: deny, status: 403}
+  - test_title: actionless member that does not match leaves the chain unmatched
+    stages:
+      - stage:
+          input:
+            uri: /?a=1&b=3
+          output:
+            non_triggered_rules: [2020]
+            no_interruption: true
+  - test_title: directive after the actionless member loads
+    stages:
+      - stage:
+          input:
+            uri: /?c=1
+          output:
+            triggered_rules: [2021]
+            no_interruption: true

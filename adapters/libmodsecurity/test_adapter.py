@@ -159,7 +159,7 @@ class DebugLogTests(unittest.TestCase):
         self.assertIsNone(d)
 
     def test_uri_with_brackets(self):
-        line = b"[1.2] [/x] [9] y] [4] z\n" + b"[1.2] [/?a=1] [4] (Rule: 8) Executing unconditional rule...\n"
+        line = b"[1.2] [/x] [4] y?a=1] [4] (Rule: 8) Executing unconditional rule...\n"
         t, _ = engine_tier.parse_debug_log(line)
         self.assertEqual(t, {8})
 
