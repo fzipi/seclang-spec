@@ -25,7 +25,7 @@
  },
  {
   "ret": 1,
-  "input": "\\a\b\\f\n\r\t\\v\\?\\'\\\"\u0000\\12\\123\u0000ÿ",
+  "input": "\\a\\b\\f\\n\\r\\t\\v\\?\\'\\\"\\0\\12\\123\u0000ÿ",
   "name": "escapeSeqDecode",
   "type": "tfn",
   "output": "\u0007\b\f\n\r\t\u000b?'\"\u0000\nS\u0000ÿ",
@@ -34,13 +34,13 @@
  {
   "ret": 1,
   "type": "tfn",
-  "input": "\\a\b\\f\n\r\t\\v\u0000\\?\\'\\\"\u0000\\12\\123\u0000ÿ",
+  "input": "\\a\\b\\f\\n\\r\\t\\v\u0000\\?\\'\\\"\\0\\12\\123\u0000ÿ",
   "name": "escapeSeqDecode",
   "output": "\u0007\b\f\n\r\t\u000b\u0000?'\"\u0000\nS\u0000ÿ",
   "spec": "07-transformations.md#escapeseqdecode"
  },
  {
-  "input": "\\8\\9\\666\\xag\\xga\u0000123",
+  "input": "\\8\\9\\666\\xag\\xga\\0123",
   "type": "tfn",
   "name": "escapeSeqDecode",
   "ret": 1,
@@ -73,7 +73,7 @@
  },
  {
   "name": "escapeSeqDecode",
-  "input": "\u0000",
+  "input": "\\0",
   "type": "tfn",
   "ret": 1,
   "output": "\u0000",
@@ -82,7 +82,7 @@
  {
   "output": "\u0001",
   "ret": 1,
-  "input": "\u00001",
+  "input": "\\01",
   "name": "escapeSeqDecode",
   "type": "tfn",
   "spec": "07-transformations.md#escapeseqdecode"
@@ -90,7 +90,7 @@
  {
   "ret": 1,
   "name": "escapeSeqDecode",
-  "input": "\u000012",
+  "input": "\\012",
   "type": "tfn",
   "output": "\n",
   "spec": "07-transformations.md#escapeseqdecode"

@@ -15,15 +15,23 @@ framework. The schemas in `schema/` are the contract.
 operator matches, or when a transformation changed its input. `input`/`output` are JSON
 strings, so `\u0000` and other escapes are legal. They are **byte strings**: every code
 point MUST be at most U+00FF and denotes exactly one byte, so adapters encode them with
-Latin-1 (never UTF-8) before handing them to the engine. This is how the SecRules Test
-Set is written too: non-ASCII text appears as the bytes of its UTF-8 encoding, one code
-point per byte. Unlike that corpus, these files carry no second layer of backslash
-escapes; adapters MUST NOT unescape anything after JSON parsing. Cases imported from the corpus are converted on import.
+Latin-1 (never UTF-8) before handing them to the engine. The importer derives them from
+the SecRules Test Set the way libmodsecurity's own runner does (`test/unit/unit_test.cc`
+`json2bin`): a literal `\xHH` or `\uHHHH` sequence in the corpus becomes one byte (the
+low 8 bits), every other character becomes the bytes of its UTF-8 encoding, and no other
+backslash sequence is decoded. Adapters MUST NOT unescape anything after JSON parsing. Cases imported from the corpus are converted on import.
 
 **Engine** profiles load `rules`, then run each stage's `input` as a transaction. When a
 stage has a `response`, the adapter must feed it as the backend response so phases 3–5
 run. `output` asserts on rule IDs and interruption only; log wording is never asserted
 beyond `log_contains`/`no_log_contains` substrings.
+
+## Interruptions
+
+`interruption` is the engine's disruptive result for the transaction: `deny`, `drop` or
+`redirect` with the rule id (0 when a body limit rather than a rule caused it) and status.
+`allow` is not an interruption in any engine; profiles observe it through
+`triggered_rules`/`non_triggered_rules` and assert `no_interruption: true`.
 
 ## What "triggered" means
 

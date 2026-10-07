@@ -24,6 +24,9 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 | `tests/unit/transformations/cssDecode.json` | Coraza | six-digit escapes above U+FFFF decode to U+FFFD (two cases) | `07-transformations.md#cssdecode` |
 | `tests/unit/transformations/urlDecodeUni.json` | Coraza | one full-width `%u` case decodes differently | `07-transformations.md#urldecodeuni` |
 | `tests/engine/variables/key-case.yaml` | Coraza (`coraza.rule.case_sensitive_args_keys` build only) | `ARGS` keys compared exactly | ADR-0008 |
+| `tests/engine/actions/allow.yaml` | Coraza | `allow` also skips the logging phase | `08-actions.md#allow` |
+| `tests/unit/transformations/htmlEntityDecode.json` | Coraza | `&nbsp;` decodes to UTF-8 `C2 A0` (two cases) | `07-transformations.md#htmlentitydecode` |
+| `tests/unit/transformations/removeWhitespace.json`, `lowercase.json` | Coraza | rune-based folding of non-ASCII bytes | `07-transformations.md#removewhitespace`, `#lowercase` |
 
 Not listed: differences the specification leaves unspecified (defaults, status codes,
 empty `Include` globs), since no test asserts on them.

@@ -1,20 +1,20 @@
 meta:
   name: t-none
-  description: "t:none discards transformations inherited from SecDefaultAction"
+  description: "t:none is accepted anywhere and resets the transformation list; only later t: actions apply"
 spec: 07-transformations.md#none
 rules: |
   SecRuleEngine On
-  SecDefaultAction "phase:1,log,pass,t:lowercase"
-  SecRule ARGS_GET:a "@streq abc" "id:7000,phase:1"
-  SecRule ARGS_GET:a "@streq ABC" "id:7001,phase:1,t:none"
-  SecRule ARGS_GET:a "@streq abc" "id:7002,phase:1,t:none"
+  SecRule ARGS_GET:a "@streq ABC" "id:7000,phase:1,pass,t:none"
+  SecRule ARGS_GET:a "@streq abc" "id:7001,phase:1,pass,t:none,t:lowercase"
+  SecRule ARGS_GET:a "@streq ABC" "id:7002,phase:1,pass,t:lowercase,t:none"
+  SecRule ARGS_GET:a "@streq abc" "id:7003,phase:1,pass,t:lowercase,t:none"
 tests:
-  - test_title: inherited lowercase applies unless reset
+  - test_title: t:none resets what came before it
     stages:
       - stage:
           input:
             uri: /?a=ABC
           output:
-            triggered_rules: [7000, 7001]
-            non_triggered_rules: [7002]
+            triggered_rules: [7000, 7001, 7002]
+            non_triggered_rules: [7003]
             no_interruption: true

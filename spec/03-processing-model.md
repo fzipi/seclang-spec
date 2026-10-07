@@ -74,12 +74,13 @@ starter rules", v3 `src/parser/driver.cc`, Coraza `internal/seclang/rule_parser.
 At most one `SecDefaultAction` per phase MAY appear in one configuration context; a
 second one for the same phase MUST be a configuration error (ADR-0014). The phase of a
 rule is never taken from `SecDefaultAction` (`#phases`). The rule's own actions take precedence
-over inherited ones; cumulative actions (`t:`, `tag:`, `setvar:`, `ctl:`) are appended,
-except that `t:none` in the rule discards the inherited transformations.
+over inherited ones; cumulative actions (`tag:`, `setvar:`, `ctl:`) are appended.
 
 The action list MUST contain a `phase` and exactly one disruptive action, and MUST NOT
-contain `chain`, `skip`, `skipAfter`, `t:none`, or the metadata actions `id`, `rev`,
-`msg`, `tag`, `severity`, `ver`, `accuracy`, `maturity` and `logdata`. A violating
+contain `chain`, `skip`, `skipAfter`, any transformation (`t:`, including `t:none`), or
+the metadata actions `id`, `rev`, `msg`, `tag`, `severity`, `ver`, `accuracy`,
+`maturity` and `logdata`. Because no transformation can be inherited, a rule's `t:` list
+is always its own. A violating
 `SecDefaultAction` MUST be a configuration error (ADR-0014). When no `SecDefaultAction`
 has been given for a phase, a rule of that phase that matches and names no disruptive
 action behaves as `pass`.

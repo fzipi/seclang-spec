@@ -11,13 +11,13 @@
   "output": "/foo/bar/baz",
   "ret": 1,
   "name": "normalisePathWin",
-  "input": "\\foo\bar\baz",
+  "input": "\\foo\\bar\\baz",
   "type": "tfn",
   "spec": "07-transformations.md#normalisepathwin"
  },
  {
   "type": "tfn",
-  "input": "\\foo\bar\u0000\baz",
+  "input": "\\foo\\bar\u0000\\baz",
   "name": "normalisePathWin",
   "ret": 1,
   "output": "/foo/bar\u0000/baz",
@@ -114,7 +114,7 @@
  {
   "ret": 1,
   "name": "normalisePathWin",
-  "input": "\\dir\\foo\\\bar",
+  "input": "\\dir\\foo\\\\bar",
   "type": "tfn",
   "output": "/dir/foo/bar",
   "spec": "07-transformations.md#normalisepathwin"
@@ -123,7 +123,7 @@
   "output": "dir/foo/bar/",
   "ret": 1,
   "type": "tfn",
-  "input": "dir\\foo\\\bar\\",
+  "input": "dir\\foo\\\\bar\\",
   "name": "normalisePathWin",
   "spec": "07-transformations.md#normalisepathwin"
  },
@@ -146,21 +146,21 @@
  {
   "ret": 1,
   "type": "tfn",
-  "input": "dir\\.\\..\\.\\..\\..\\foo\bar",
+  "input": "dir\\.\\..\\.\\..\\..\\foo\\bar",
   "name": "normalisePathWin",
   "output": "../../foo/bar",
   "spec": "07-transformations.md#normalisepathwin"
  },
  {
   "output": "../../foo/bar",
-  "input": "dir\\.\\..\\.\\..\\..\\foo\bar\\.",
+  "input": "dir\\.\\..\\.\\..\\..\\foo\\bar\\.",
   "type": "tfn",
   "name": "normalisePathWin",
   "ret": 1,
   "spec": "07-transformations.md#normalisepathwin"
  },
  {
-  "input": "dir\\.\\..\\.\\..\\..\\foo\bar\\.\\",
+  "input": "dir\\.\\..\\.\\..\\..\\foo\\bar\\.\\",
   "type": "tfn",
   "name": "normalisePathWin",
   "ret": 1,
@@ -168,7 +168,7 @@
   "spec": "07-transformations.md#normalisepathwin"
  },
  {
-  "input": "dir\\.\\..\\.\\..\\..\\foo\bar\\..",
+  "input": "dir\\.\\..\\.\\..\\..\\foo\\bar\\..",
   "name": "normalisePathWin",
   "type": "tfn",
   "ret": 1,
@@ -178,14 +178,14 @@
  {
   "ret": 1,
   "name": "normalisePathWin",
-  "input": "dir\\.\\..\\.\\..\\..\\foo\bar\\..\\",
+  "input": "dir\\.\\..\\.\\..\\..\\foo\\bar\\..\\",
   "type": "tfn",
   "output": "../../foo/",
   "spec": "07-transformations.md#normalisepathwin"
  },
  {
   "output": "../../foo/bar/",
-  "input": "dir\\.\\..\\.\\..\\..\\foo\bar\\",
+  "input": "dir\\.\\..\\.\\..\\..\\foo\\bar\\",
   "name": "normalisePathWin",
   "type": "tfn",
   "ret": 1,
@@ -193,7 +193,7 @@
  },
  {
   "output": "../../foo/bar",
-  "input": "dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\bar",
+  "input": "dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\\bar",
   "name": "normalisePathWin",
   "type": "tfn",
   "ret": 1,
@@ -202,7 +202,7 @@
  {
   "output": "../../foo/bar/",
   "name": "normalisePathWin",
-  "input": "dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\bar\\\\",
+  "input": "dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\\bar\\\\",
   "type": "tfn",
   "ret": 1,
   "spec": "07-transformations.md#normalisepathwin"
@@ -242,7 +242,7 @@
  {
   "output": "/etc/passwd",
   "ret": 1,
-  "input": "\\.\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\u0000\\..\\etc\\.\\passwd",
+  "input": "\\.\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\0\\..\\etc\\.\\passwd",
   "name": "normalisePathWin",
   "type": "tfn",
   "spec": "07-transformations.md#normalisepathwin"

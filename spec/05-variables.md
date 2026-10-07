@@ -578,8 +578,10 @@ Empty for `MULTIPART` bodies (use `FILES*` and `ARGS_POST`).
 **Status:** Core
 
 **Semantics.** Collection available when the `XML` body processor ran. Two selectors are
-Core: `XML:/*` yields the text content of every element, and `XML://@*` yields the value
-of every attribute. Any other XPath expression is Extended.
+Core: `XML:/*` yields the document's text content (as one value from the root element in
+libxml2-based engines, as one value per non-blank text node in Coraza; rules MUST NOT
+depend on the split), and `XML://@*` yields the value of every attribute. Any other XPath
+expression is Extended.
 
 **Divergence notes.** ModSecurity v2 and libmodsecurity v3 evaluate arbitrary XPath with
 libxml2 (`src/variables/xml.cc`); Coraza (`internal/bodyprocessors/xml.go`) implements
@@ -594,10 +596,12 @@ exactly the two Core selectors.
 **Status:** Core
 
 **Semantics.** Scalar: the value of the most recently matched variable, **after**
-transformations, available to the rest of the same rule (chain members, `setvar`,
-`logdata`) and to later rules until the next match.
+transformations, available to the rest of the same rule and chain (`setvar`, `logdata`,
+chain members). Its value in later rules is **not specified**.
 
-**Divergence notes.** None known.
+**Divergence notes.** ModSecurity v2 keeps it until the next match; libmodsecurity v3
+clears it after every rule (`src/rules_set.cc`, `cleanMatchedVars`); Coraza keeps
+`MATCHED_VAR` but resets `MATCHED_VARS` before each rule.
 
 **Tests.** `tests/engine/variables/matched-vars.yaml`
 
@@ -616,10 +620,11 @@ variable.
 
 **Status:** Core
 
-**Semantics.** Collection of every variable value that matched in the most recent rule
-(an operator may match several members), after transformations.
+**Semantics.** Collection of every variable value that matched in the current rule (an
+operator may match several members), after transformations; available to chain members
+and the rule's own actions. Its contents in later rules are **not specified**.
 
-**Divergence notes.** None known.
+**Divergence notes.** As `MATCHED_VAR`.
 
 **Tests.** `tests/engine/variables/matched-vars.yaml`
 

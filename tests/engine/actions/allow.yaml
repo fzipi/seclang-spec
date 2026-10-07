@@ -17,7 +17,7 @@ tests:
           output:
             triggered_rules: [7070, 7074]
             non_triggered_rules: [7072, 7073]
-            interruption: {rule_id: 7070, action: allow}
+            no_interruption: true
   - test_title: "allow:phase skips the rest of phase 1 only"
     stages:
       - stage:

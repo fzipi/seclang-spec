@@ -30,10 +30,11 @@ Two tiers, both with a JSON Schema in `tests/schema/`:
 1. **Unit tier**, `tests/unit/**/*.json`: the SecRules Test Set field names, plus
    optional `spec`, `note` and `re_groups` fields. Two deliberate differences from the
    corpus: `input`, `output` and `param` are plain JSON strings with no second layer of
-   backslash escapes (the corpus's runners unescape `\\xHH`, `\\uHHHH`, `\\0`, `\\b`, `\\t`,
-   `\\n`, `\\r` after parsing; `tools/import_sts.py` does it once, on import), and they
-   are byte strings: every code point is at most U+00FF and denotes one byte, which the
-   validator enforces, so adapters encode them with Latin-1.
+   backslash escapes (libmodsecurity's runner decodes `\\xHH` and `\\uHHHH` in `input` and
+   `output` after parsing, to one byte each, and nothing else; `tools/import_sts.py`
+   applies exactly that model once, on import), and they are byte strings: every code
+   point is at most U+00FF and denotes one byte, which the validator enforces, so adapters
+   encode them with Latin-1.
 2. **Engine tier**, `tests/engine/**/*.yaml`: one profile per file in the Coraza
    profile / go-ftw shape (`meta`, `rules`, `tests[].stages[].stage.{input,output}`),
    plus `spec`, `requires`, a `stage.response` block for synthetic backend responses,

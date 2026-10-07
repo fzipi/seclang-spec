@@ -165,9 +165,13 @@ unchanged.
 
 **Semantics.** Decodes `&#NNN;` and `&#xHH;` numeric references (the `;` optional) and
 the named entities `&quot; &amp; &lt; &gt; &nbsp;`; other named entities are left as is.
-Code points above U+00FF are encoded as UTF-8 in the output.
+A numeric reference yields one byte, the low 8 bits of the code point (ModSecurity v2
+`msc_util.c`, libmodsecurity v3 `html_entity_decode.cc`).
 
-**Divergence notes.** None known.
+**Divergence notes.** Coraza 3.8.1 (`internal/transformations/html_entity_decode.go`,
+`html.UnescapeString`) decodes every HTML5 named entity and emits UTF-8, so `&nbsp;`
+yields `C2 A0` instead of the byte `A0` and two imported cases fail there
+(`compat/known-gaps.md`).
 
 **Tests.** `tests/unit/transformations/htmlEntityDecode.json`
 
@@ -177,9 +181,10 @@ Code points above U+00FF are encoded as UTF-8 in the output.
 
 **Syntax.** `t:jsDecode`
 
-**Semantics.** Decodes JavaScript escapes: `\uHHHH` (code points above U+00FF become
-UTF-8, surrogate pairs are not combined), `\xHH`, octal `\ooo`, and `\b \f \n \r \t \v`;
-a backslash before any other byte is removed.
+**Semantics.** Decodes JavaScript escapes: `\uHHHH` (one byte, the low 8 bits of the
+code point; full-width forms `\uFF01`–`\uFF5E` map to their ASCII counterparts),
+`\xHH`, octal `\ooo`, and `\b \f \n \r \t \v`; a backslash before any other byte is
+removed.
 
 **Divergence notes.** None known.
 
@@ -205,7 +210,9 @@ a backslash before any other byte is removed.
 
 **Semantics.** Converts ASCII letters `A`–`Z` to lower case; other bytes unchanged.
 
-**Divergence notes.** None known.
+**Divergence notes.** Coraza 3.8.1 uses `strings.ToLower`, which also folds non-ASCII
+letters in valid UTF-8 and replaces lone high bytes with U+FFFD; the Core cases are
+ASCII-only.
 
 **Tests.** `tests/unit/transformations/lowercase.json`
 
@@ -215,13 +222,16 @@ a backslash before any other byte is removed.
 
 **Syntax.** `t:none`
 
-**Semantics.** Not a transformation of the value: it discards every transformation
-inherited from `SecDefaultAction` so that the rule's own `t:` list starts empty
-(`03-processing-model.md#default-actions`). CRS puts it first on every rule.
+**Semantics.** Not a transformation of the value: it resets the rule's transformation
+list to empty at the point where it appears, so only the `t:` actions after it apply.
+Engines MUST accept it anywhere in the list. Since `SecDefaultAction` may not carry
+transformations (ADR-0014), `t:none` at the start of a rule is a no-op; CRS puts it first
+on every rule for clarity and for compatibility with engines that once allowed inherited
+transformations.
 
 **Divergence notes.** None known.
 
-**Tests.** `tests/engine/actions/t-none.yaml` (Task 5)
+**Tests.** `tests/engine/actions/t-none.yaml`
 
 ### normalisePath
 
@@ -283,7 +293,9 @@ occur, leaving the text between them.
 **Semantics.** Removes every whitespace byte (space, tab, LF, VT, FF, CR) and the
 non-breaking space byte 0xA0.
 
-**Divergence notes.** None known.
+**Divergence notes.** Coraza 3.8.1 (`remove_whitespace.go`, `unicode.IsSpace` over
+runes) removes the non-breaking space only in its UTF-8 form `C2 A0` and replaces lone
+high bytes with U+FFFD; see `compat/known-gaps.md` for the affected corpus cases.
 
 **Tests.** `tests/unit/transformations/removeWhitespace.json`
 
@@ -321,7 +333,8 @@ with `t:hexEncode` to compare against a hex string, as CRS does.
 
 **Semantics.** Converts ASCII letters `a`–`z` to upper case; other bytes unchanged.
 
-**Divergence notes.** Implemented by libmodsecurity v3 (`src/actions/transformations/
+**Divergence notes.** Coraza 3.8.1 uses `strings.ToUpper` (non-ASCII folding, lone
+high bytes become U+FFFD); the Core cases are ASCII-only. Implemented by libmodsecurity v3 (`src/actions/transformations/
 upper_case.cc`) and Coraza (its ADR-0007); absent from ModSecurity v2, which is
 therefore listed in `compat/known-gaps.md`. Promoted to Core by ADR-0012 as the design
 seeded; it is the only Core feature one engine lacks by construction.
@@ -334,10 +347,11 @@ seeded; it is the only Core feature one engine lacks by construction.
 
 **Syntax.** `t:urlDecodeUni`
 
-**Semantics.** Decodes `%XX`, `+` as space, and `%uXXXX` (IIS-style). A `%uXXXX` code
-point below U+0100 becomes that byte; with a `SecUnicodeMapFile` loaded the mapping
-table applies; otherwise code points above U+00FF are encoded as UTF-8. Invalid `%`
-sequences are left as is and set `URLENCODED_ERROR` where the engine tracks it.
+**Semantics.** Decodes `%XX`, `+` as space, and `%uXXXX` (IIS-style). A `%uXXXX`
+sequence yields one byte: with a `SecUnicodeMapFile` loaded the mapping table applies;
+otherwise full-width forms `%uFF01`–`%uFF5E` map to their ASCII counterparts and any
+other code point yields its low 8 bits. Invalid `%` sequences are left as is and set
+`URLENCODED_ERROR` where the engine tracks it.
 
 **Divergence notes.** One corpus input differs between ModSecurity and Coraza on
 full-width `%uFFxx` handling (`compat/known-gaps.md`); the imported case keeps the

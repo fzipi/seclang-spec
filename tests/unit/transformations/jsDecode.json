@@ -24,8 +24,8 @@
   "spec": "07-transformations.md#jsdecode"
  },
  {
-  "input": "\\\\a\\\b\\\\f\\\n\\\r\\\t\\\\v\\?\\'\\\"\u0000\\12\\123\u0000ÿ",
-  "output": "\\a\b\\f\n\r\t\\v?'\"\u0000\nS\u0000ÿ",
+  "input": "\\\\a\\\\b\\\\f\\\\n\\\\r\\\\t\\\\v\\?\\'\\\"\\0\\12\\123\u0000ÿ",
+  "output": "\\a\\b\\f\\n\\r\\t\\v?'\"\u0000\nS\u0000ÿ",
   "ret": 1,
   "type": "tfn",
   "name": "jsDecode",
@@ -112,9 +112,9 @@
   "spec": "07-transformations.md#jsdecode"
  },
  {
-  "output": "\u0000",
+  "output": "\\0",
   "ret": 1,
-  "input": "\\\u0000",
+  "input": "\\\\0",
   "type": "tfn",
   "name": "jsDecode",
   "spec": "07-transformations.md#jsdecode"

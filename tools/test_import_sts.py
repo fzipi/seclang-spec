@@ -6,40 +6,53 @@ from pathlib import Path
 from tools import import_sts
 
 
+class WireModelTests(unittest.TestCase):
+    """to_wire_bytes models libmodsecurity's test/unit/unit_test.cc json2bin()."""
+
+    def test_hex_and_u_escapes_become_single_bytes(self):
+        self.assertEqual(import_sts.to_wire_bytes("a\\x41\\u0042"), "aAB")
+        self.assertEqual(import_sts.to_wire_bytes("\\u00e9"), "é")
+        self.assertEqual(import_sts.to_wire_bytes("\\u1100"), "\u0000")  # low 8 bits only
+
+    def test_other_escapes_are_literal(self):
+        # \0 \b \t \n \r have been commented out in the runner since 2016: a Windows path stays a path.
+        self.assertEqual(import_sts.to_wire_bytes("\\foo\\bar\\baz"), "\\foo\\bar\\baz")
+        self.assertEqual(import_sts.to_wire_bytes("a\\nb"), "a\\nb")
+
+    def test_non_ascii_characters_become_utf8_bytes(self):
+        # The corpus is mojibake: a UTF-8 JSON parser hands the engine the UTF-8 bytes of each code point.
+        self.assertEqual(import_sts.to_wire_bytes("Ã§"), "Ã\u0083Â§")
+        self.assertEqual(import_sts.to_wire_bytes("진"), "ì§\u0084")
+
+
 class ConvertTests(unittest.TestCase):
-    def test_unescapes_literal_backslash_sequences(self):
-        case = {"type": "tfn", "name": "base64Decode", "input": "VGVzdABDYXNl", "output": "Test\\u0000Case", "ret": 1}
-        out = import_sts.convert_case(case, "07-transformations.md#base64decode")
-        self.assertEqual(out["output"], "Test\u0000Case")
-        self.assertEqual(out["spec"], "07-transformations.md#base64decode")
-
-    def test_only_the_runner_escapes_are_decoded(self):
-        # The v3 unit runner (test/unit/unit_test.cc) decodes \xHH, \uHHHH, \0, \b, \t, \n, \r and nothing else.
-        self.assertEqual(import_sts.unescape("a\\x41\\u0042"), "aAB")
-
-    def test_strings_become_byte_strings(self):
-        # Code points <= U+00FF are bytes already; wider characters become their UTF-8 bytes.
-        out = import_sts.convert_case({"type": "tfn", "name": "lowercase", "input": "\u00e9\u20ac", "output": "x", "ret": 1}, "a#b")
-        self.assertEqual(out["input"], "\u00e9\u00e2\u0082\u00ac")
-        self.assertEqual(import_sts.unescape("x\\0y\\ty\\n\\r\\b"), "x\0y\ty\n\r\b")
-        self.assertEqual(import_sts.unescape("\\d\\(\\\\"), "\\d\\(\\\\")  # regex escapes and double backslash untouched
-        case = {"type": "op", "name": "rx", "param": "a\\d", "input": "a1", "ret": 1}
+    def test_model_applies_to_input_and_output_only(self):
+        case = {"type": "op", "name": "rx", "param": "a\\x41", "input": "\\x41", "output": "\\x42", "ret": 1}
         out = import_sts.convert_case(case, "06-operators.md#rx")
-        self.assertEqual(out["param"], "a\\d")
-        self.assertEqual(out["input"], "a1")
+        self.assertEqual(out["param"], "a\\x41")  # params are never decoded by the runner
+        self.assertEqual(out["input"], "A")
+        self.assertEqual(out["output"], "B")
+        self.assertEqual(out["spec"], "06-operators.md#rx")
+
+    def test_param_wide_characters_become_bytes(self):
+        out = import_sts.convert_case({"type": "op", "name": "rx", "param": "€", "input": "x", "ret": 0}, "a#b")
+        self.assertEqual(out["param"], "â\u0082¬")
+
+    def test_resource_cases_dropped_and_re_groups_kept(self):
+        self.assertIsNone(import_sts.convert_case({"type": "op", "name": "pmFromFile", "param": "x", "input": "y", "ret": 1, "resource": "f"}, "a#b"))
+        out = import_sts.convert_case({"type": "op", "name": "rx", "param": "(a)", "input": "a", "ret": 1, "re_groups": ["a", "a"]}, "a#b")
+        self.assertEqual(out["re_groups"], ["a", "a"])
+
+    def test_excluded_cases_are_dropped(self):
+        self.assertIsNone(import_sts.convert_case({"type": "op", "name": "validateByteRange", "param": "", "input": "x", "ret": 1}, "a#b"))
+        self.assertIsNone(import_sts.convert_case({"type": "op", "name": "validateByteRange", "param": "xxx", "input": "x", "ret": 1}, "a#b"))
 
     def test_anchors_from_spec_skips_deprecated_and_engine_specific(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp); (root / "spec").mkdir()
             (root / "spec" / "06-operators.md").write_text(
                 "# Ops\n\n### rx\n\n**Status:** Core\n\n### noMatch\n\n**Status:** Extended\n\n### gsbLookup\n\n**Status:** Deprecated\n\n### rxGlobal\n\n**Status:** Engine-specific\n")
-            anchors = import_sts.anchors_from_spec(root)
-            self.assertEqual(set(anchors), {"rx", "nomatch"})
-
-    def test_resource_cases_dropped_and_re_groups_kept(self):
-        self.assertIsNone(import_sts.convert_case({"type": "op", "name": "pmFromFile", "param": "x", "input": "y", "ret": 1, "resource": "f"}, "a#b"))
-        out = import_sts.convert_case({"type": "op", "name": "rx", "param": "(a)", "input": "a", "ret": 1, "re_groups": ["a", "a"]}, "a#b")
-        self.assertEqual(out["re_groups"], ["a", "a"])
+            self.assertEqual(set(import_sts.anchors_from_spec(root)), {"rx", "nomatch"})
 
     def test_hand_maintained_files_are_not_overwritten(self):
         with tempfile.TemporaryDirectory() as tmp:

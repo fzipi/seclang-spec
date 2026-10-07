@@ -8,30 +8,6 @@
   "spec": "06-operators.md#validatebyterange"
  },
  {
-  "param": "",
-  "input": "TestCase",
-  "name": "validateByteRange",
-  "ret": 1,
-  "type": "op",
-  "spec": "06-operators.md#validatebyterange"
- },
- {
-  "param": "xxx",
-  "input": "TestCase",
-  "type": "op",
-  "ret": 1,
-  "name": "validateByteRange",
-  "spec": "06-operators.md#validatebyterange"
- },
- {
-  "param": "xxx",
-  "input": "\u0000",
-  "type": "op",
-  "ret": 0,
-  "name": "validateByteRange",
-  "spec": "06-operators.md#validatebyterange"
- },
- {
   "param": "0-255",
   "input": "abcdefghi",
   "name": "validateByteRange",
@@ -56,7 +32,7 @@
   "spec": "06-operators.md#validatebyterange"
  },
  {
-  "input": "Ð",
+  "input": "ÃÂ",
   "param": "0-255",
   "name": "validateByteRange",
   "ret": 0,

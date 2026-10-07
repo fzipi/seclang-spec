@@ -30,14 +30,5 @@
   "output": "TEST\u0000CASE 1",
   "ret": 1,
   "spec": "07-transformations.md#uppercase"
- },
- {
-  "type": "tfn",
-  "name": "uppercase",
-  "input": "éa",
-  "output": "éA",
-  "ret": 1,
-  "spec": "07-transformations.md#uppercase",
-  "note": "only ASCII letters change"
  }
 ]

@@ -263,7 +263,7 @@ the configuration file containing the rule. A missing file MUST be a configurati
 Core syntax is the subset shared by PCRE, PCRE2 and RE2: literals, `.`, character
 classes and `\d \w \s` with negations, `\b`, anchors, alternation, grouping with `(...)`
 and `(?:...)`, greedy and lazy quantifiers `* + ? {m,n}`, inline flags `(?i)`, `(?s)`,
-`(?m)`, `(?x)`. Named groups MUST use `(?P<name>...)`, which all three accept. Anything
+`(?m)` (not `(?x)`, which RE2 rejects). Named groups MUST use `(?P<name>...)`, which all three accept. Anything
 in `#rx-pcre-extensions` is not Core (ADR-0018). With `capture`, `TX:0` receives the
 whole match and `TX:1`…`TX:9` the groups; unit cases carry them as `re_groups`.
 
@@ -307,9 +307,13 @@ matches once (so `SecRule REQUEST_URI "@unconditionalMatch"` is equivalent to
 ranges in decimal, e.g. `9,10,13,32-126`.
 
 **Semantics.** Matches when any byte of the value is outside every listed range. An
-empty or unparsable parameter permits no bytes, so any non-empty value matches.
+empty parameter, or one containing anything but decimal numbers, `-` and `,`, MUST be a
+configuration error.
 
-**Divergence notes.** None known.
+**Divergence notes.** ModSecurity v2 rejects an empty parameter but parses `xxx` as the
+single value 0 (`re_operators.c`, `atoi`); libmodsecurity v3 and Coraza reject both. The
+corpus cases with those parameters are excluded on import (`tools/import_sts.py`,
+`EXCLUDED_CASES`).
 
 **Tests.** `tests/unit/operators/validateByteRange.json`
 

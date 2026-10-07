@@ -1,4 +1,4 @@
-"""Import SecRules Test Set JSON into tests/unit with plain JSON escapes and spec anchors.
+"""Import SecRules Test Set JSON into tests/unit as byte strings with spec anchors.
 
 Usage: uv run python tools/import_sts.py <sts-dir> [--dest tests/unit]
 Anchors come from the feature headings of spec/06-operators.md and spec/07-transformations.md.
@@ -11,45 +11,53 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from tools import validate  # noqa: E402
 
-FIELDS = ("input", "output", "param")
+FIELDS = ("input", "output")  # the runner never decodes "param"
 # Files whose content is decided by the spec rather than imported (see the section's
 # divergence notes); the importer never overwrites them.
 HAND_MAINTAINED = {("transformations", "base64Decode"), ("operators", "pmFromFile")}  # pmFromFile cases need corpus-internal files
+# Individual corpus cases the spec rejects (06-operators.md#validatebyterange: an empty or
+# unparsable parameter is a configuration error, not "permit byte 0").
+EXCLUDED_CASES = {("validateByteRange", ""), ("validateByteRange", "xxx")}
+
+_ESC = re.compile(r"\\x([0-9a-fA-F]{2})|\\u([0-9a-fA-F]{4})")
 
 
-_HEX = re.compile(r"\\x([0-9a-fA-F]{2})")
-_UNI = re.compile(r"\\u([0-9a-fA-F]{4})")
-_SIMPLE = {"\\0": "\0", "\\b": "\b", "\\t": "\t", "\\n": "\n", "\\r": "\r"}
+def to_wire_bytes(s: str) -> str:
+    """Model what libmodsecurity's unit runner feeds the engine, as a Latin-1 byte string.
 
-
-def unescape(s: str) -> str:
-    """Decode exactly the escapes the libmodsecurity unit runner decodes after JSON parsing.
-
-    test/unit/unit_test.cc replaces \\xHH, \\uHHHH, \\0, \\b, \\t, \\n, \\r and nothing else:
-    regex escapes such as \\d and \\\\ are left as written.
+    test/unit/unit_test.cc json2bin() replaces \\xHH and \\uHHHH with ONE byte each (the
+    \\u value truncated to its low 8 bits) and nothing else; the \\0 \\b \\t \\n \\r
+    replacements are commented out. Every other character arrives as the UTF-8 bytes of
+    its code point, because the corpus is read by a UTF-8 JSON parser. The result uses one
+    code point <= U+00FF per byte (tests/README.md).
     """
-    if "\\" not in s:
-        return s
-    s = _HEX.sub(lambda m: chr(int(m.group(1), 16)), s)
-    s = _UNI.sub(lambda m: chr(int(m.group(1), 16)), s)
-    for k, v in _SIMPLE.items():
-        s = s.replace(k, v)
-    return s
+    out = []
+    pos = 0
+    for m in _ESC.finditer(s):
+        out.append(s[pos:m.start()].encode("utf-8").decode("latin-1"))
+        value = int(m.group(1) or m.group(2), 16) & 0xFF
+        out.append(chr(value))
+        pos = m.end()
+    out.append(s[pos:].encode("utf-8").decode("latin-1"))
+    return "".join(out)
 
 
 def to_byte_string(s: str) -> str:
-    """Unit strings are byte strings: one code point <= U+00FF per byte (tests/README.md).
-
-    A character above U+00FF cannot be one byte, so it is replaced by the Latin-1 view of
-    its UTF-8 encoding, which is what the engines receive on the wire.
-    """
-    return "".join(ch if ord(ch) <= 0xFF else ch.encode("utf-8").decode("latin-1") for ch in s)
+    """Characters above U+00FF become their UTF-8 bytes; used for fields the runner does not decode."""
+    return s.encode("utf-8").decode("latin-1") if any(ord(ch) > 0xFF for ch in s) else s
 
 
 def convert_case(case: dict, anchor: str) -> dict | None:
-    if "resource" in case:
+    if "resource" in case or (case.get("name"), case.get("param")) in EXCLUDED_CASES:
         return None
-    out = {k: (to_byte_string(unescape(v)) if k in FIELDS and isinstance(v, str) else v) for k, v in case.items()}
+    out = {}
+    for k, v in case.items():
+        if isinstance(v, str) and k in FIELDS:
+            out[k] = to_wire_bytes(v)
+        elif isinstance(v, str) and k == "param":
+            out[k] = to_byte_string(v)
+        else:
+            out[k] = v
     out["spec"] = anchor
     return out
 

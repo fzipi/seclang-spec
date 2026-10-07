@@ -73,10 +73,10 @@
  },
  {
   "type": "tfn",
-  "input": "/* Test\nCase */",
+  "input": "/* Test\\nCase */",
   "name": "removeCommentsChar",
   "ret": 1,
-  "output": " Test\nCase ",
+  "output": " Test\\nCase ",
   "spec": "07-transformations.md#removecommentschar"
  },
  {

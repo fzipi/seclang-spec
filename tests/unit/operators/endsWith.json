@@ -48,7 +48,7 @@
   "spec": "06-operators.md#endswith"
  },
  {
-  "input": "abcdef\u0000ghi",
+  "input": "abcdef\\0ghi",
   "param": "ghi",
   "type": "op",
   "ret": 1,

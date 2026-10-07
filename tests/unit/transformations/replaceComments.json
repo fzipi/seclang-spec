@@ -73,7 +73,7 @@
  },
  {
   "type": "tfn",
-  "input": "/* Test\nCase */",
+  "input": "/* Test\\nCase */",
   "name": "replaceComments",
   "ret": 1,
   "output": " ",

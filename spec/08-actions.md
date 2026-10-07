@@ -96,9 +96,12 @@ ADR-0006). The `sanitize*` spellings are aliases of `sanitise*` (ADR-0004).
 **Semantics.** Disruptive. `allow` stops rule processing for the current phase and
 every later phase except logging (phase 5), which MUST still run. `allow:phase` stops
 only the current phase. `allow:request` stops phases 1 and 2 (the response phases still
-run). Adapters report the interruption as `action: allow`.
+run). `allow` produces no interruption object in any engine (it sets a flag); tests
+observe it through which rules do and do not run.
 
-**Divergence notes.** None known.
+**Divergence notes.** Coraza 3.8.1 (`internal/corazawaf/rulegroup.go`, `AllowTypeAll`)
+also skips the logging phase, so its phase 5 rules do not run after `allow`
+(`compat/known-gaps.md`).
 
 **Tests.** `tests/engine/actions/allow.yaml`
 
@@ -477,10 +480,12 @@ phase 1.
 
 **Status:** Core
 
-**Syntax.** `ctl:requestBodyProcessor=URLENCODED|MULTIPART|XML|JSON`
+**Syntax.** `ctl:requestBodyProcessor=URLENCODED|XML|JSON`
 
 **Semantics.** Selects the request body processor regardless of `Content-Type`;
-effective only in phase 1. Names match case-insensitively.
+effective only in phase 1. Names match case-insensitively. `MULTIPART` is accepted by
+ModSecurity v2 and Coraza but not by libmodsecurity v3 (`seclang-scanner.ll` defines only
+the three values above), so it is Extended.
 
 **Tests.** `tests/engine/actions/ctl-options.yaml`
 
