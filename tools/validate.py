@@ -300,7 +300,24 @@ def check_matrix_status(root: Path) -> list[str]:
     return errors
 
 
-CHECKS: list[Callable[[Path], list[str]]] = [check_tests, check_coverage, check_adrs, check_matrix, check_matrix_status]
+GAP_PATH_RE = re.compile(r"`(tests/[^`]+)`")
+
+
+def check_gaps(root: Path) -> list[str]:
+    """Every test path named in compat/known-gaps.md must exist."""
+    path = root / "compat" / "known-gaps.md"
+    if not path.is_file():
+        return []
+    errors = []
+    for line in path.read_text().splitlines():
+        if line.startswith("| `tests/"):
+            for p in GAP_PATH_RE.findall(line.split(" | ")[0]):
+                if not (root / p).is_file():
+                    errors.append(f"compat/known-gaps.md: {p} does not exist")
+    return errors
+
+
+CHECKS: list[Callable[[Path], list[str]]] = [check_tests, check_coverage, check_adrs, check_matrix, check_matrix_status, check_gaps]
 
 
 def main(root: Path = ROOT, checks: list[Callable[[Path], list[str]]] | None = None) -> int:

@@ -511,5 +511,25 @@ class DeferredMinorTests(unittest.TestCase):
         self.assertTrue(any("ctlfoo" in e for e in errors))
 
 
+
+class GapsCheckTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = make_repo(Path(self._tmp.name))
+        (self.root / "tests/engine/e.yaml").write_text(GOOD_ENGINE)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_listed_paths_must_exist(self):
+        (self.root / "compat/known-gaps.md").write_text("| Test | Engine | B | D |\n|---|---|---|---|\n| `tests/engine/e.yaml`, `tests/engine/nope.yaml` | Coraza | x | y |\n")
+        errors = validate.check_gaps(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("nope.yaml", errors[0])
+
+    def test_missing_file_is_fine(self):
+        self.assertEqual(validate.check_gaps(self.root), [])
+
+
 if __name__ == "__main__":
     unittest.main()
