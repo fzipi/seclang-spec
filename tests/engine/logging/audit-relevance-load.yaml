@@ -1,0 +1,30 @@
+meta:
+  name: audit-relevance-load
+  description: Audit logging configuration in RelevantOnly mode with the Native format loads; the auditlog rule fires
+spec: 10-logging.md#audit-log-relevance
+rules: |
+  SecRuleEngine On
+  SecAuditEngine RelevantOnly
+  SecAuditLog /dev/null
+  SecAuditLogFormat Native
+  SecAuditLogParts ABFHZ
+  SecAuditLogRelevantStatus "^5"
+  SecRule ARGS_GET:a "@streq 1" "id:8110,phase:1,pass,log,auditlog,msg:'audit relevant'"
+tests:
+  - test_title: relevant rule fires
+    stages:
+      - stage:
+          input: {uri: '/?a=1'}
+          output: {triggered_rules: [8110], no_interruption: true}
+  - test_title: parts configuration accepted
+    spec: 10-logging.md#audit-log-parts
+    stages:
+      - stage:
+          input: {uri: '/?a=1'}
+          output: {triggered_rules: [8110]}
+  - test_title: native format accepted
+    spec: 10-logging.md#native-format
+    stages:
+      - stage:
+          input: {uri: '/?a=1'}
+          output: {triggered_rules: [8110]}

@@ -33,6 +33,13 @@ beyond `log_contains`/`no_log_contains` substrings.
 `allow` is not an interruption in any engine; profiles observe it through
 `triggered_rules`/`non_triggered_rules` and assert `no_interruption: true`.
 
+## Log assertions
+
+`log_contains` and `no_log_contains` are substring checks against the engine's error log
+for the transaction (or its matched-rule messages, which is what the log is built from).
+Profiles use them only with a rule's `msg` text (`spec/10-logging.md#error-log`,
+ADR-0021); never with the engine prefix, file, line or any other field.
+
 ## What "triggered" means
 
 A rule is *triggered* when its operator matched, or for a chain when every member

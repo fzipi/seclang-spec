@@ -1,0 +1,18 @@
+meta:
+  name: error-log-fields
+  description: A matched rule writes its msg to the error log unless nolog is set
+spec: 10-logging.md#error-log
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:8100,phase:1,pass,log,msg:'seclang spec logging probe'"
+  SecRule ARGS_GET:a "@streq 1" "id:8101,phase:1,pass,nolog,msg:'seclang spec must not appear'"
+tests:
+  - test_title: logged rule's msg appears, nolog rule's does not
+    stages:
+      - stage:
+          input: {uri: '/?a=1'}
+          output:
+            triggered_rules: [8100, 8101]
+            log_contains: seclang spec logging probe
+            no_log_contains: seclang spec must not appear
+            no_interruption: true
