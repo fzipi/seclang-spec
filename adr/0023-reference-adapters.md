@@ -35,9 +35,10 @@ adapter is `adapters/coraza` (Go, Coraza v3.8.1 pinned).
 - Go and a Coraza dependency enter the repository; CI gains a Go job.
 - Known-gaps rows for Coraza are now verified; rows for the ModSecurity branches remain
   predictions until an adapter exists for them.
-- The first Coraza run corrected the specification in four places (ctl:ruleEngine
-  timing, skipAfter scope, quoted-argument escapes, JSON argument count), which is the
-  loop this ADR institutionalises.
+- The first Coraza run corrected the specification in three places (ctl:ruleEngine
+  timing, skipAfter scope, quoted-argument escapes) and the review of that run corrected
+  the escape rule again for the ModSecurity branches; that loop is what this ADR
+  institutionalises.
 
 ## Tests
 

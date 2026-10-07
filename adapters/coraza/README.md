@@ -44,8 +44,11 @@ the operators and transformations listed in `conformance_test.go`, and the
   over `REQUEST_BODY`, the input is sent as raw bytes (unit strings are Latin-1 byte
   strings, `tests/README.md`), and the result is read from the matched rule: whether it
   matched for operators, the transformed value for transformations, `TX:0..9` for
-  `re_groups`. Inside a quoted directive argument only `\"` is an escape, so parameters
-  are inserted with quotes escaped and nothing else.
+  `re_groups`. Coraza treats `\"` as the only escape inside a quoted argument, so
+  parameters are inserted with quotes escaped and nothing else (an Apache-based adapter
+  would also have to double backslashes; see `spec/01-lexical.md#quoting-and-escapes`).
+  Engine-tier `data` is UTF-8 text and is sent as such; unit-tier strings are Latin-1 byte
+  strings and are sent byte for byte.
 
 ## Adding another engine
 

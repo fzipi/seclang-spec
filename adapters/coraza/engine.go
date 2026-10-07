@@ -87,7 +87,7 @@ func runStage(waf coraza.WAF, log *[]string, s Stage) Observed {
 	it := tx.ProcessRequestHeaders()
 	if it == nil {
 		if s.Input.Data != "" {
-			if wit, _, _ := tx.WriteRequestBody(latin1(s.Input.Data)); wit != nil {
+			if wit, _, _ := tx.WriteRequestBody([]byte(s.Input.Data)); wit != nil { // engine data is UTF-8 text
 				it = wit
 			}
 		}
@@ -106,7 +106,7 @@ func runStage(waf coraza.WAF, log *[]string, s Stage) Observed {
 		it = tx.ProcessResponseHeaders(status, "HTTP/1.1")
 		if it == nil {
 			if s.Response.Data != "" {
-				if wit, _, _ := tx.WriteResponseBody(latin1(s.Response.Data)); wit != nil {
+				if wit, _, _ := tx.WriteResponseBody([]byte(s.Response.Data)); wit != nil {
 					it = wit
 				}
 			}

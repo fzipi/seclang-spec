@@ -66,21 +66,27 @@ the most exercised lexical feature in practice.
 **Status:** Core
 
 **Syntax.** A directive argument is either a bare token, which extends to the next
-whitespace, or a string delimited by double quotes `"`. Inside double quotes the only
-escape is `\"`, which yields a literal double quote without ending the argument. Every
-other backslash, including `\\`, is passed through unchanged to the directive, which may
-interpret it (regular expressions do: CRS writes `\\` to mean one literal backslash and
-`\(` for a parenthesis, and both reach the regex engine as written).
+whitespace, or a string delimited by double quotes `"`. Inside double quotes, `\"` yields
+a literal double quote without ending the argument. A backslash before any other
+character is passed through to the directive unchanged, with one exception that is
+**not specified**: the pair `\\`, which Apache collapses to a single backslash before
+ModSecurity v2 sees it while libmodsecurity v3 and Coraza keep both characters. Portable
+rules therefore never write `\\`; OWASP CRS writes a literal backslash in regular
+expressions as `\x5c` for exactly this reason (its `CONTRIBUTING.md`).
 
 **Semantics.** The quotes are delimiters, not part of the argument. An argument that
 contains whitespace, `"` or begins with `@` or `!` SHOULD be quoted. Single quotes are
 not argument delimiters at this level; they delimit values *inside* an action list and
 are defined in `02-grammar.md#action-list`.
 
-**Divergence notes.** Verified for Coraza by `adapters/coraza` (`\"` becomes `"`, `\\`
-stays two characters); Apache's configuration reader gives ModSecurity v2 the same
-behaviour. Engines differ in how they parse `\"` inside the action list after macro
-expansion; a libmodsecurity v3 fix for an escaped quote
+**Divergence notes.** Coraza turns `\"` into `"` and keeps `\\` (verified by
+`adapters/coraza`). ModSecurity v2 receives its arguments from Apache's configuration
+reader (`server/util.c`, `substring_conf`), which collapses both `\"` and `\\`.
+libmodsecurity v3 lexes operator arguments verbatim (`src/parser/seclang-scanner.ll`,
+`FREE_TEXT_DOUBLE_QUOTE_MACRO_EXPANSION`, appended with `appendText`) and never removes
+the backslash of `\"`, so `@streq say \"hi\" now` compares against the backslashes too;
+`quoted-arguments.yaml` is predicted to fail there (`compat/known-gaps.md`). Engines also
+differ in how they parse `\"` inside the action list after macro expansion; a libmodsecurity v3 fix for an escaped quote
 following a macro landed in 2026 and that case is tested in `02-grammar.md`.
 
 **Tests.** `tests/engine/lexical/quoted-arguments.yaml`

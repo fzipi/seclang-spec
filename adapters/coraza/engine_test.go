@@ -31,6 +31,19 @@ func TestCheckStageReportsMismatch(t *testing.T) {
 	}
 }
 
+func TestRunStageDeliversUTF8Data(t *testing.T) {
+	// Engine-tier data is ordinary text (UTF-8), not a byte string.
+	p := Profile{Rules: "SecRuleEngine On\nSecRequestBodyAccess On\nSecRule ARGS_POST:p \"@streq \u20ac\" \"id:1,phase:2,pass\"\n"}
+	waf, log, err := BuildWAF(p, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	o := RunStage(waf, log, Stage{Input: Input{Method: "POST", URI: "/", Headers: map[string]string{"Content-Type": "application/x-www-form-urlencoded"}, Data: "p=\u20ac"}})
+	if o.Panic != "" || !o.Triggered[1] {
+		t.Fatalf("observed %+v", o)
+	}
+}
+
 func TestBuildWAFWritesFiles(t *testing.T) {
 	p := Profile{Files: map[string]string{"inc/x.conf": "SecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:1,pass\"\n"},
 		Rules: "SecRuleEngine On\nInclude inc/x.conf\n"}

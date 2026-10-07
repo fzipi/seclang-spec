@@ -26,7 +26,7 @@ func unitRules(c UnitCase) string {
 	case "op":
 		op := "@" + c.Name
 		if c.HasParam {
-			op += " " + escapeParam(c.Param)
+			op += " " + escapeParam(string(latin1(c.Param))) // param is a byte string
 		}
 		capture := ""
 		if len(c.ReGroups) > 0 {

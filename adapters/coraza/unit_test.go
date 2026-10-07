@@ -24,6 +24,15 @@ func TestUnitOperatorAndTransformation(t *testing.T) {
 	}
 }
 
+func TestUnitHighByteParamAndInput(t *testing.T) {
+	// Param and input are byte strings: byte 0xE9 on both sides must compare equal.
+	c := UnitCase{Type: "op", Name: "streq", Param: "\u00e9", HasParam: true, Input: "\u00e9", Ret: 1}
+	r, err := RunUnit(c, t.TempDir())
+	if err != nil || !r.Matched {
+		t.Fatalf("high-byte param: matched=%v err=%v", r.Matched, err)
+	}
+}
+
 func TestUnitRulesEscapesParam(t *testing.T) {
 	rules := unitRules(UnitCase{Type: "op", Name: "rx", Param: `a"b\d`, HasParam: true})
 	if !contains(rules, `"@rx a\"b\d"`) {

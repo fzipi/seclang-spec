@@ -21,7 +21,8 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 | `tests/engine/processing/skipafter-missing-marker.yaml` | libmodsecurity v3, Coraza | `skipAfter` naming a marker that does not exist disables every later phase | ADR-0016 |
 | `tests/engine/processing/rule-exceptions-bad-range.yaml` | ModSecurity v2 | `200-100` accepted silently | `03-processing-model.md#rule-exceptions` |
 | `tests/engine/processing/rule-exceptions-unknown-id.yaml` | Coraza | `SecRuleUpdateTargetById` with an unknown id is an error | `03-processing-model.md#rule-exceptions` |
-| `tests/engine/actions/setvar.yaml` | Coraza | `setvar:!tx.x` dereferences a nil macro and panics (`internal/actions/setvar.go` `Evaluate`) | `08-actions.md#setvar` |
+| `tests/engine/actions/setvar.yaml` | Coraza | any `setvar` without `=value` (`setvar:tx.x`, `setvar:!tx.x`) dereferences a nil macro and panics (`internal/actions/setvar.go` `Evaluate`) | `08-actions.md#setvar` |
+| `tests/engine/lexical/quoted-arguments.yaml` | libmodsecurity v3 | `\"` inside an operator argument keeps its backslash (prediction from `seclang-scanner.ll`) | `01-lexical.md#quoting-and-escapes` |
 | `tests/engine/directives/secargumentseparator.yaml` | Coraza | directive parsed and ignored | `04-directives.md#secargumentseparator`, ADR-0005 |
 | `tests/engine/directives/deprecated-directive-accepted.yaml` | none | `SecHashEngine Off` is accepted everywhere; see ADR-0005 for the Deprecated names v3 and Coraza reject | ADR-0005 |
 | `tests/unit/operators/ipMatch.json` | Coraza | `::ffff:ffff:ffff` does not match `0:0::/80` (one case) | `06-operators.md#ipmatch` |
