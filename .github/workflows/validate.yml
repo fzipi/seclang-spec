@@ -25,3 +25,31 @@ jobs:
         with:
           go-version-file: adapters/coraza/go.mod
       - run: go test ./...
+  libmodsecurity-adapter:
+    runs-on: ubuntu-latest
+    env:
+      MSC_VERSION: v3.0.16
+      MSC_PREFIX: /home/runner/modsecurity
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libpcre2-dev libxml2-dev libyajl-dev
+      - uses: actions/cache@v4
+        id: msc
+        with:
+          path: /home/runner/modsecurity
+          key: libmodsecurity-${{ env.MSC_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+      - if: steps.msc.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install -y automake libtool pkg-config g++ make
+          git clone --depth 1 -b "$MSC_VERSION" --recurse-submodules --shallow-submodules https://github.com/owasp-modsecurity/ModSecurity.git /tmp/msc
+          cd /tmp/msc && ./build.sh
+          ./configure --prefix="$MSC_PREFIX" --disable-doxygen-doc --disable-examples \
+            --without-lua --without-lmdb --without-ssdeep --without-curl --without-geoip --without-maxmind
+          make -j"$(nproc)" && make install
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync
+      - run: uv run python -m unittest discover -s adapters/libmodsecurity -v
+        env:
+          MODSECURITY_LIB: /home/runner/modsecurity/lib/libmodsecurity.so

@@ -125,9 +125,10 @@ hexadecimal digits (and an optional following whitespace) becomes the character,
 backslash followed by a newline is removed, a backslash followed by any other byte
 becomes that byte.
 
-**Divergence notes.** Two corpus inputs with six-digit escapes above U+FFFF differ:
-ModSecurity emits the low byte of the code point, Coraza emits U+FFFD
-(`compat/known-gaps.md`). The imported cases keep the ModSecurity expectation. One corpus
+**Divergence notes.** Two corpus inputs differ: ModSecurity emits the low byte of an
+escape's code point (`\123` is `#`), Coraza 3.8.1 emits the UTF-8 encoding of the code
+point and U+FFFD above U+FFFF (`compat/known-gaps.md`). The imported cases keep the
+ModSecurity expectation. One corpus
 case expected a space after `\` followed by a NUL byte to be dropped; no engine drops it
 (only a hex escape consumes a following whitespace), so the file is hand-maintained and
 the case corrected.

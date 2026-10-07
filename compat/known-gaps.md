@@ -28,7 +28,7 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 | `tests/engine/directives/deprecated-directive-accepted.yaml` | none | `SecHashEngine Off` is accepted everywhere; see ADR-0005 for the Deprecated names v3 and Coraza reject | ADR-0005 |
 | `tests/unit/operators/ipMatch.json` | Coraza | `::ffff:ffff:ffff` does not match `0:0::/80` (one case) | `06-operators.md#ipmatch` |
 | `tests/unit/transformations/uppercase-extra.json` | ModSecurity v2 | `t:uppercase` not implemented | ADR-0012 |
-| `tests/unit/transformations/cssDecode.json` | Coraza | six-digit escapes above U+FFFF decode to U+FFFD (one case) | `07-transformations.md#cssdecode` |
+| `tests/unit/transformations/cssDecode.json` | Coraza | escapes of three or more hex digits decode to the UTF-8 encoding of the code point instead of its low byte, and code points above U+FFFF become U+FFFD (two cases) | `07-transformations.md#cssdecode` |
 | `tests/unit/transformations/urlDecodeUni.json` | Coraza | one full-width `%u` case decodes differently | `07-transformations.md#urldecodeuni` |
 | `tests/engine/actions/allow.yaml` | Coraza | `allow` also skips the logging phase | `08-actions.md#allow` |
 | `tests/unit/transformations/htmlEntityDecode.json` | Coraza | `&nbsp;` decodes to UTF-8 `C2 A0` (two cases) | `07-transformations.md#htmlentitydecode` |
