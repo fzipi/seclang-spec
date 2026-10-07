@@ -43,3 +43,4 @@ promoted into the spec (Extension).
 | [0020](0020-json-argument-names.md) | JSON argument names are unspecified | Clarification | proposed |
 | [0021](0021-logging-contract.md) | The portable logging contract is rule ids and messages | Clarification | proposed |
 | [0022](0022-request-body-without-processor.md) | `REQUEST_BODY` without a body processor | Divergence | proposed |
+| [0023](0023-reference-adapters.md) | Reference adapters live in this repository | Clarification | proposed |

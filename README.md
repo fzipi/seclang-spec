@@ -23,6 +23,7 @@ v2 (`v2/master`, 2026-09), libmodsecurity v3.0.16 and Coraza v3.8.1.
 | `compat/` | Three-engine feature matrix (`matrix.json`, rendered by `tools/matrix.py`) and `known-gaps.md`, the Core tests each engine is known to fail today. |
 | `docs/superpowers/` | The design document and the per-phase implementation plans this draft was built from. |
 | `tools/` | `validate.py` enforces the repo's invariants; CI runs it. `import_sts.py` regenerates the unit tier from the SecRules Test Set. |
+| `adapters/` | Reference adapters that run `tests/` against a real engine (ADR-0023). `adapters/coraza` runs Coraza v3.8.1 in CI with `compat/known-gaps.md` as the expected-failure list. |
 
 ## Status labels
 
@@ -55,7 +56,7 @@ the validator. The design document is in `docs/superpowers/specs/`.
 
 1. Write an adapter that loads `tests/unit` and `tests/engine` (`tests/README.md`),
    skipping engine profiles whose `requires:` names an Extended feature you do not
-   implement.
+   implement. `adapters/coraza` is a complete example in about 500 lines of Go.
 2. Compare your failures with `compat/known-gaps.md`; a failure not listed there is either
    a bug in your engine or a bug in this specification. Open an issue for the latter.
 3. Review the ADRs; two engines agreeing moves an ADR from `proposed` to `accepted`.

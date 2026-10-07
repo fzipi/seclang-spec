@@ -14,3 +14,14 @@ jobs:
       - run: uv sync
       - run: uv run python -m unittest discover -s tools -t .
       - run: uv run python tools/validate.py
+  coraza-adapter:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: adapters/coraza
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: adapters/coraza/go.mod
+      - run: go test ./...

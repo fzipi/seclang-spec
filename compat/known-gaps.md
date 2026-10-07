@@ -3,8 +3,9 @@
 Core tests in `tests/` that a surveyed engine is known to fail today, with the spec
 section that decides the behaviour. The engines are ModSecurity v2 (`v2/master`,
 2026-09), libmodsecurity v3.0.16 and Coraza v3.8.1, as read from source on 2026-10-06
-and 2026-10-07; none of the tests has been executed against an engine yet, so every row
-is a prediction from source until an adapter exists. An entry here is a bug for the engine, not a
+and 2026-10-07. Rows naming Coraza are **verified**: `adapters/coraza` runs every test
+in CI and fails when a listed file passes or an unlisted one fails. Rows naming only the
+ModSecurity branches remain predictions from source until an adapter exists for them. An entry here is a bug for the engine, not a
 weakness of the test. Entries are removed when the engine is fixed; new ones are added
 whenever a Divergence ADR or a divergence note picks against an engine.
 
