@@ -1,0 +1,18 @@
+meta:
+  name: json-args
+  description: JSON leaves become ARGS_POST members; their names are engine-specific (ADR-0020)
+spec: 09-body-processors.md#json
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule REQUEST_HEADERS:Content-Type "@beginsWith application/json" "id:8050,phase:1,pass,nolog,ctl:requestBodyProcessor=JSON"
+  SecRule &ARGS_POST "@eq 4" "id:8051,phase:2,pass"
+  SecRule ARGS_POST "@streq x" "id:8052,phase:2,pass"
+  SecRule ARGS_NAMES "@rx (?i)(?:^|\.)c$" "id:8053,phase:2,pass"
+  SecRule REQBODY_PROCESSOR "@streq JSON" "id:8054,phase:2,pass"
+tests:
+  - test_title: nested object and array
+    stages:
+      - stage:
+          input: {method: POST, uri: /, headers: {Content-Type: application/json}, data: '{"a":1,"b":{"c":"x"},"d":[1,2]}'}
+          output: {triggered_rules: [8050, 8051, 8052, 8053, 8054], no_interruption: true}

@@ -1,0 +1,26 @@
+meta:
+  name: selection
+  description: The body processor is chosen from the Content-Type prefix; other types get none
+spec: 09-body-processors.md#processor-selection
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule REQBODY_PROCESSOR "@streq URLENCODED" "id:8000,phase:2,pass"
+  SecRule REQBODY_PROCESSOR "@streq MULTIPART" "id:8001,phase:2,pass"
+  SecRule REQBODY_PROCESSOR "!@rx ^(?:URLENCODED|MULTIPART|XML|JSON)$" "id:8002,phase:2,pass"
+tests:
+  - test_title: urlencoded with a charset parameter
+    stages:
+      - stage:
+          input: {method: POST, uri: /, headers: {Content-Type: "application/x-www-form-urlencoded; charset=utf-8"}, data: a=1}
+          output: {triggered_rules: [8000], non_triggered_rules: [8001, 8002]}
+  - test_title: multipart
+    stages:
+      - stage:
+          input: {method: POST, uri: /, headers: {Content-Type: "multipart/form-data; boundary=XX"}, data: "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r\nv\r\n--XX--\r\n"}
+          output: {triggered_rules: [8001], non_triggered_rules: [8000, 8002]}
+  - test_title: text/plain selects no processor
+    stages:
+      - stage:
+          input: {method: POST, uri: /, headers: {Content-Type: text/plain}, data: a=1}
+          output: {triggered_rules: [8002], non_triggered_rules: [8000, 8001]}

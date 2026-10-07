@@ -1,0 +1,19 @@
+meta:
+  name: urlencoded
+  description: URLENCODED parsing of empty values, plus, percent decoding and invalid sequences
+spec: 09-body-processors.md#urlencoded
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRule &ARGS_POST:b "@eq 1" "id:8010,phase:2,pass"
+  SecRule ARGS_POST:b "!@rx ." "id:8011,phase:2,pass"
+  SecRule ARGS_POST:c "@streq x y z" "id:8012,phase:2,pass"
+  SecRule ARGS_POST:d "@streq %zz" "id:8013,phase:2,pass"
+  SecRule &ARGS_POST "@eq 4" "id:8014,phase:2,pass"
+  SecRule REQUEST_BODY_LENGTH "@eq 21" "id:8015,phase:2,pass"
+tests:
+  - test_title: four pairs with edge cases
+    stages:
+      - stage:
+          input: {method: POST, uri: /, headers: {Content-Type: application/x-www-form-urlencoded}, data: "a=1&b&c=x+y%20z&d=%zz"}
+          output: {triggered_rules: [8010, 8011, 8012, 8013, 8014, 8015], no_interruption: true}
