@@ -13,4 +13,6 @@ check test-ref     grep -qE 'href="?https://github.com/fzipi/seclang-spec/blob/m
 check template     test ! -e "$P/adr/0000-template"
 check gaps-table   grep -q '<th>Behaviour today</th>' "$P/compat/known-gaps/index.html"
 check no-md-links  sh -c "! grep -rqoE 'href=\"?/[^\" >]*\.md' '$P/spec' '$P/adr' '$P/compat'"
+check home         grep -q "Known gaps" "$P/index.html"
+check home-cards   grep -qE 'href="?[^" >]*/compat/known-gaps/' "$P/index.html"
 echo "smoke: all checks passed"
