@@ -6,6 +6,9 @@ from pathlib import Path
 
 import data
 import gaps
+import mscapi
+
+needs_engine = unittest.skipUnless(os.environ.get(mscapi.ENV), f"{mscapi.ENV} not set")
 
 
 class DataTests(unittest.TestCase):
@@ -53,6 +56,41 @@ class GapsTests(unittest.TestCase):
                              {"tests/engine/b.yaml": "two", "tests/engine/c.yaml": "two"})
             self.assertEqual(set(gaps.load_gaps(p, "coraza")),
                              {"tests/engine/a.yaml", "tests/engine/b.yaml", "tests/engine/c.yaml"})
+
+
+@needs_engine
+class BindingTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.ms = mscapi.ModSecurity()
+
+    def test_version(self):
+        self.assertIn("ModSecurity v3", self.ms.version())
+
+    def test_load_error(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "r.conf"
+            p.write_text("SecRule ARGS\n")
+            with self.assertRaises(mscapi.LoadError):
+                self.ms.rules_from_file(str(p))
+
+    def test_deny_intervention_and_log(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "r.conf"
+            p.write_text('SecRuleEngine On\nSecRule ARGS:a "@streq 1" "id:7,phase:1,deny,status:418,log,msg:\'hit\'"\n')
+            rules = self.ms.rules_from_file(str(p))
+            tx = self.ms.transaction(rules)
+            tx.connection("127.0.0.1", 12345, "127.0.0.1", 80)
+            tx.uri("/?a=1", "GET", "1.1")
+            tx.request_header("Host", "localhost")
+            tx.process_request_headers()
+            it = tx.intervention()
+            tx.process_logging()
+            tx.close()
+            rules.close()
+            self.assertEqual(it["status"], 418)
+            self.assertIn(b'[id "7"]', it["log"])
+            self.assertIsNone(it["url"])
 
 
 if __name__ == "__main__":
