@@ -13,7 +13,8 @@ with `@rsub`, `WEBSERVER_ERROR_LOG`, `USERAGENT_IP`, `SDBM_DELETE_ERROR`,
 `MULTIPART_CRLF_LINE`; the actions `append`, `prepend`, `proxy`, `pause`, `deprecatevar`,
 `marker`, `sanitise*`; the directives already marked Deprecated in `04-directives.md`
 (`SecChrootDir`, `SecGuardianLog`, `SecHash*`, `SecConn*`, `SecGsbLookupDb`,
-`SecStatusEngine`, …); and the operator `@gsbLookup`. libmodsecurity v3 parses many of
+`SecStatusEngine`, …); and the operators `@gsbLookup` and `@rsub` (the latter only
+operates on the Deprecated `STREAM_*` variables). libmodsecurity v3 parses many of
 them and rejects some; Coraza does not know most of them. No current ruleset uses them.
 
 ## Decision

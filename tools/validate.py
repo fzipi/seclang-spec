@@ -40,11 +40,13 @@ def load_test_files(root: Path) -> Iterator[tuple[Path, object]]:
 
 
 def check_tests(root: Path) -> list[str]:
-    schemas = {
-        tier: jsonschema.Draft202012Validator(json.loads((root / "tests" / "schema" / f"{tier}.schema.json").read_text()))
-        for tier in ("unit", "engine")
-    }
     errors = []
+    schemas = {}
+    for tier in ("unit", "engine"):
+        path = root / "tests" / "schema" / f"{tier}.schema.json"
+        if not path.is_file():
+            return [f"tests/schema/{tier}.schema.json: missing"]
+        schemas[tier] = jsonschema.Draft202012Validator(json.loads(path.read_text()))
     for path, data in load_test_files(root):
         rel = _rel(root, path)
         if isinstance(data, Exception):
@@ -62,8 +64,8 @@ def check_tests(root: Path) -> list[str]:
                         errors.append(f"{rel}: {i}/{field}: unit strings are byte strings, every code point must be <= U+00FF")
         if isinstance(data, dict):
             for key in data.get("files") or {}:
-                if ".." in str(key).split("/"):
-                    errors.append(f"{rel}: files: {key}: path segments must not be '..'")
+                if ".." in str(key).split("/") or str(key).startswith("/"):
+                    errors.append(f"{rel}: files: {key}: must be a relative path without '..' segments")
     for tier, suffix in (("unit", ".json"), ("engine", ".yaml")):
         for path in sorted((root / "tests" / tier).rglob("*")):
             if path.is_file() and path.suffix != suffix:
@@ -71,7 +73,7 @@ def check_tests(root: Path) -> list[str]:
     return errors
 
 
-HEADING_RE = re.compile(r"^#{2,4}\s+(.+?)\s*$")
+HEADING_RE = re.compile(r"^###\s+(.+?)\s*$")  # features are level-3 headings (00-conventions)
 STATUS_RE = re.compile(r"^\*\*Status:\*\*\s+(Core|Extended|Deprecated|Engine-specific)\s*$")
 
 
@@ -155,7 +157,7 @@ def check_coverage(root: Path) -> list[str]:
 ADR_FILE_RE = re.compile(r"^(\d{4})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 ADR_TITLE_RE = re.compile(r"^# ADR-(\d{4}): \S")
 ADR_FIELD_RE = re.compile(r"^- \*\*(Status|Date|Deciders|Category):\*\* (.+?)\s*$")
-ADR_INDEX_RE = re.compile(r"^\| \[(\d{4})\]\(([^)]+)\) \|")
+ADR_INDEX_RE = re.compile(r"^\| \[(\d{4})\]\(([^)]+)\) \| (?P<title>[^|]*) \| (?P<category>[^|]*) \| (?P<status>[^|]*) \|")
 ADR_TEST_PATH_RE = re.compile(r"`(tests/[^`\s]+)`")
 ADR_FIELDS = ("Status", "Date", "Deciders", "Category")
 ADR_STATUSES = {"proposed", "accepted", "superseded", "rejected"}
@@ -165,6 +167,7 @@ ADR_CATEGORIES = {"Divergence", "Clarification", "Deprecation", "Extension"}
 def check_adrs(root: Path) -> list[str]:
     adr_dir = root / "adr"
     errors = []
+    headers: dict[str, tuple[str, dict]] = {}
     files = sorted(p for p in adr_dir.glob("*.md") if p.name not in ("README.md", "0000-template.md"))
     for path in files:
         rel = _rel(root, path)
@@ -195,20 +198,27 @@ def check_adrs(root: Path) -> list[str]:
             errors.append(f"{rel}: Category '{fields['Category']}' not in {sorted(ADR_CATEGORIES)}")
         if "Date" in fields and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", fields["Date"]):
             errors.append(f"{rel}: Date '{fields['Date']}' must be YYYY-MM-DD")
-        if fields.get("Category") == "Divergence":
-            section = text.split("\n## Tests", 1)
-            paths = ADR_TEST_PATH_RE.findall(section[1].split("\n## ", 1)[0]) if len(section) == 2 else []
-            if not paths:
-                errors.append(f"{rel}: Divergence ADR needs a '## Tests' section listing at least one `tests/...` path")
-            for p in paths:
-                if not (root / p).is_file():
-                    errors.append(f"{rel}: listed test {p} does not exist")
+        section = text.split("\n## Tests", 1)
+        paths = ADR_TEST_PATH_RE.findall(section[1].split("\n## ", 1)[0]) if len(section) == 2 else []
+        if fields.get("Category") == "Divergence" and not paths:
+            errors.append(f"{rel}: Divergence ADR needs a '## Tests' section listing at least one `tests/...` path")
+        for p in paths:
+            if not (root / p).is_file():
+                errors.append(f"{rel}: listed test {p} does not exist")
+        headers[path.name] = (number, fields)
     index_path = adr_dir / "README.md"
     indexed = {}
     if index_path.is_file():
         for line in index_path.read_text().splitlines():
             if im := ADR_INDEX_RE.match(line):
                 indexed[im.group(2)] = im.group(1)
+                if im.group(2) in headers:
+                    number, fields = headers[im.group(2)]
+                    if im.group(1) != number:
+                        errors.append(f"adr/README.md: row for {im.group(2)} says {im.group(1)} but the file is ADR-{number}")
+                    for field in ("category", "status"):
+                        if fields.get(field.capitalize()) and im.group(field).strip() != fields[field.capitalize()]:
+                            errors.append(f"adr/README.md: row for {im.group(2)} says {field} {im.group(field).strip()!r}, file says {fields[field.capitalize()]!r}")
     else:
         errors.append("adr/README.md: missing")
     on_disk = {p.name for p in files}
@@ -222,6 +232,8 @@ def check_adrs(root: Path) -> list[str]:
 def check_matrix(root: Path) -> list[str]:
     try:
         expected = _matrix.render(_matrix.load(root))
+    except FileNotFoundError:
+        return ["compat/matrix.json: missing"]
     except (ValueError, KeyError) as exc:
         return [f"compat/matrix.json: {exc}"]
     md = root / "compat" / "matrix.md"

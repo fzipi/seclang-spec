@@ -13,7 +13,7 @@ tests and Architecture Decision Records for the places where engines diverge.
 | `adr/` | Decisions. `Divergence` ADRs pick a behaviour where engines disagree and name the test that encodes it. |
 | `tests/` | Conformance test data (no runner). `unit/` for operators and transformations, `engine/` for everything else. |
 | `compat/` | Three-engine feature matrix (`matrix.json`, rendered by `tools/matrix.py`) and `known-gaps.md`, the Core tests each engine is known to fail today. |
-| `tools/` | `validate.py` enforces the repo's invariants; CI runs it. |
+| `tools/` | `validate.py` enforces the repo's invariants; CI runs it. `import_sts.py` regenerates the unit tier from the SecRules Test Set. |
 
 ## Status labels
 
@@ -22,6 +22,8 @@ tests and Architecture Decision Records for the places where engines diverge.
 Definitions: `spec/00-conventions.md`. Rationale: `adr/0001-status-labels-and-core.md`.
 
 ## Running the checks
+
+Requires Python 3.10 or newer (CI runs 3.12) and [uv](https://docs.astral.sh/uv/).
 
 ```sh
 uv sync

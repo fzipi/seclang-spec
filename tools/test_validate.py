@@ -4,7 +4,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from tools import matrix as matrix_mod
 from tools import validate
+from tools.test_matrix import SAMPLE as MATRIX_SAMPLE
 
 REAL_ROOT = Path(__file__).resolve().parent.parent
 
@@ -91,9 +93,6 @@ class SchemaCheckTests(unittest.TestCase):
         (self.root / "tests/unit/bad.json").write_text("[]")
         self.assertEqual(validate.main(self.root, checks=[validate.check_tests]), 1)
 
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 SPEC_FEATURE = """\
@@ -258,9 +257,6 @@ class AdrTests(unittest.TestCase):
         errors = validate.check_adrs(self.root)
         self.assertTrue(any("0009-ghost.md" in e for e in errors))
 
-
-from tools import matrix as matrix_mod
-from tools.test_matrix import SAMPLE as MATRIX_SAMPLE
 
 
 class MatrixCheckTests(unittest.TestCase):
@@ -449,3 +445,71 @@ class Phase3ToolingTests(unittest.TestCase):
                  "spec": "06-operators.md#rx"}]
         (self.root / "tests/unit/rx.json").write_text(json.dumps(case))
         self.assertEqual(validate.check_tests(self.root), [])
+
+
+class DeferredMinorTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = make_repo(Path(self._tmp.name))
+        (self.root / "adr/0000-template.md").write_text("# ADR-NNNN: template\n")
+        (self.root / "adr/0001-example-decision.md").write_text(ADR_OK)
+        (self.root / "adr/README.md").write_text(INDEX_OK)
+        (self.root / "tests/engine/e.yaml").write_text(GOOD_ENGINE)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_index_row_fields_must_match_the_file(self):
+        (self.root / "adr/README.md").write_text(INDEX_OK.replace("| Clarification | proposed |", "| Divergence | accepted |"))
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("0001" in e and "Divergence" in e for e in errors))
+        self.assertTrue(any("0001" in e and "accepted" in e for e in errors))
+        (self.root / "adr/README.md").write_text(INDEX_OK.replace("[0001](0001-example", "[0004](0001-example"))
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("0004" in e for e in errors))
+
+    def test_listed_test_paths_checked_for_every_adr(self):
+        (self.root / "adr/0001-example-decision.md").write_text(ADR_OK + "\n## Tests\n\n- `tests/engine/nope.yaml`\n")
+        errors = validate.check_adrs(self.root)
+        self.assertTrue(any("nope.yaml" in e for e in errors))
+
+    def test_missing_matrix_json_is_an_error_line(self):
+        errors = validate.check_matrix(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("compat/matrix.json", errors[0])
+
+    def test_matrix_row_without_name_is_reported_by_index(self):
+        sample = json.loads(json.dumps(MATRIX_SAMPLE))
+        del sample["categories"]["operators"][1]["name"]
+        with self.assertRaises(ValueError) as cm:
+            matrix_mod.render(sample)
+        self.assertIn("operators[1]", str(cm.exception))
+
+    def test_missing_schema_file_is_an_error_line(self):
+        (self.root / "tests/schema/unit.schema.json").unlink()
+        errors = validate.check_tests(self.root)
+        self.assertTrue(any("unit.schema.json" in e for e in errors))
+
+    def test_absolute_files_key_is_rejected(self):
+        prof = GOOD_ENGINE.replace("rules: |", "files:\n  /etc/x.conf: SecRuleEngine On\nrules: |")
+        (self.root / "tests/engine/e.yaml").write_text(prof)
+        errors = validate.check_tests(self.root)
+        self.assertTrue(any("/etc/x.conf" in e for e in errors))
+
+    def test_only_level_three_headings_are_features(self):
+        (self.root / "spec/04-directives.md").write_text("# D\n\n## Lines\n\n**Status:** Core\n\n### SecRuleEngine\n\n**Status:** Core\n\n#### Deep\n\n**Status:** Core\n")
+        feats = validate.spec_features(self.root)
+        self.assertEqual(set(feats), {"04-directives.md#secruleengine"})
+
+    def test_prefix_exemption_requires_a_real_prefixed_row(self):
+        m = {"generated": "x", "engines": {"v2": "", "v3": "", "coraza": ""},
+             "categories": {"actions": [{"name": "ctl", "v2": True, "v3": True, "coraza": True, "status": "Core"}],
+                            "ctl": [{"name": "ruleEngine", "v2": True, "v3": True, "coraza": True, "status": "Core"}]}}
+        (self.root / "compat/matrix.json").write_text(json.dumps(m))
+        (self.root / "spec/08-actions.md").write_text("# A\n\n### ctl\n\n**Status:** Core\n\n### ctl:ruleEngine\n\n**Status:** Core\n\n### ctlfoo\n\n**Status:** Core\n")
+        errors = validate.check_matrix_status(self.root)
+        self.assertTrue(any("ctlfoo" in e for e in errors))
+
+
+if __name__ == "__main__":
+    unittest.main()

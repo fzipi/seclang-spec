@@ -1,5 +1,10 @@
 # 00. Conventions
 
+**Document status.** Draft 0.1 (2026-10-07). Files 00–10 cover the whole language as
+implemented by the three surveyed engines. Every ADR is `proposed`; acceptance requires
+agreement from the maintainers of at least two implementing engines (`adr/README.md`).
+`compat/known-gaps.md` lists the Core tests each engine fails today.
+
 This specification describes SecLang, the rule language shared by ModSecurity v2,
 libmodsecurity v3, Coraza and any future engine. It standardizes what the engines
 already agree on and, where they diverge, records a decision as an ADR in `adr/`.
@@ -12,8 +17,9 @@ and RFC 8174, and carry that meaning only when written in capitals.
 ## Feature status
 
 Every directive, variable, operator, transformation, action and `ctl:` option in this
-specification is a *feature* and carries exactly one status, written on the line
-directly after its heading as `**Status:** <value>`:
+specification, and any other level-3 section that carries a status line (lexical rules,
+processor and logging contracts), is a *feature* and carries exactly one status, written
+as the first non-blank line after its `###` heading, `**Status:** <value>`:
 
 | Status            | Meaning for an implementing engine |
 |-------------------|------------------------------------|

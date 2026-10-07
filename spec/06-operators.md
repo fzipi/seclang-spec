@@ -37,7 +37,7 @@ Test Set by `tools/import_sts.py` (`tests/README.md`).
 | [pmFromFile](#pmfromfile) | Core | yes | yes | yes | pm with phrases from a file |
 | [rbl](#rbl) | Extended | yes | yes | yes | DNS blocklist lookup |
 | [restpath](#restpath) | Engine-specific | - | - | yes | Coraza: match a REST path template and extract ARGS_PATH |
-| [rsub](#rsub) | Extended | yes | yes | - | Regex substitution in STREAM_* variables |
+| [rsub](#rsub) | Deprecated | yes | yes | - | Regex substitution in STREAM_* variables |
 | [rx](#rx) | Core | yes | yes | yes | Regular expression match |
 | [rxGlobal](#rxglobal) | Engine-specific | - | yes | - | v3: rx matching every occurrence |
 | [streq](#streq) | Core | yes | yes | yes | String equality |
@@ -232,10 +232,10 @@ anomaly scores against thresholds.
 **Semantics.** Matches when any phrase occurs in the value. Matching is
 case-insensitive. A phrase may contain bytes written as `|hex|`, e.g. `|0a|`. Engines
 implement it with an Aho-Corasick automaton, so the number of phrases does not affect
-rule cost. With `capture`, `TX:0` receives the matched phrase (Extended; verify per
-engine before relying on it).
+rule cost.
 
-**Divergence notes.** None known.
+**Divergence notes.** With `capture`, ModSecurity v2 and libmodsecurity v3 store the
+matched phrase in `TX:0`; Coraza does not. Capturing with `@pm` is therefore not portable.
 
 **Tests.** `tests/unit/operators/pm.json`, `tests/unit/operators/pm-extra.json`
 
@@ -291,9 +291,10 @@ toolchain. Match limits (`SecPcreMatchLimit`) apply to PCRE engines only.
 
 **Syntax.** `@unconditionalMatch`
 
-**Semantics.** Always matches, once per selected value; with no values the rule still
-matches once (so `SecRule REQUEST_URI "@unconditionalMatch"` is equivalent to
-`SecAction`).
+**Semantics.** Always matches, once per selected value. A rule whose variable list
+selects no values does not match, whatever the operator (all three engines skip
+evaluation: v2 `apache2/re.c` `if (tarr->nelts)`, v3 `rule_with_operator.cc`, Coraza
+`rule.go` `len(matchedValues) == 0`); use `SecAction` for an unconditional rule.
 
 **Divergence notes.** None known.
 
@@ -418,14 +419,6 @@ Specified in outline; SHOULD be implemented.
 
 **Implemented by.** v2, v3, Coraza.
 
-### rsub
-
-**Status:** Extended
-
-**Semantics.** Regular-expression substitution inside `STREAM_INPUT_BODY`/`STREAM_OUTPUT_BODY`; requires stream inspection (Deprecated directives).
-
-**Implemented by.** v2, v3.
-
 ### strmatch
 
 **Status:** Extended
@@ -486,6 +479,14 @@ Specified in outline; SHOULD be implemented.
 ## Deprecated operators
 
 MUST be accepted by the parser and MAY never match (ADR-0011).
+
+### rsub
+
+**Status:** Deprecated
+
+**Semantics.** Regular-expression substitution inside `STREAM_INPUT_BODY`/`STREAM_OUTPUT_BODY`; requires stream inspection (Deprecated directives).
+
+**Implemented by.** v2, v3.
 
 ### gsbLookup
 

@@ -331,7 +331,8 @@ next rule.
 **Semantics.** Disruptive: interrupts with a redirect to `URL`; the status is the
 `status:` value when it is 301, 302, 303 or 307, otherwise 302.
 
-**Divergence notes.** None known.
+**Divergence notes.** libmodsecurity v3 (`src/actions/disruptive/redirect.cc`) also
+honours 304, 305 and 306; portable rules use the four codes above.
 
 **Tests.** `tests/engine/actions/status-redirect.yaml`,
 `tests/engine/processing/disruptive-actions.yaml`

@@ -22,6 +22,8 @@ source on 2026-10-06):
 | when the check runs | at the directive | at the directive | **at the next rule parsed** |
 
 Coraza also installs a built-in `phase:2,log,auditlog,pass` when none is configured.
+ModSecurity v2 keeps a single *current* default action set rather than one per phase,
+which is what let a phase-less rule inherit its phase (ADR-0017).
 ModSecurity v2 keeps a single current default action set whose phase a phase-less rule
 inherits; the other two apply default actions by the rule's own phase (see ADR-0017).
 

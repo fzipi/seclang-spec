@@ -211,7 +211,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `pmFromFile` | yes | yes | yes | Core |
 | `rbl` | yes | yes | yes | Extended |
 | `restpath` | - | - | yes | Engine-specific |
-| `rsub` | yes | yes | - | Extended |
+| `rsub` | yes | yes | - | Deprecated |
 | `rx` | yes | yes | yes | Core |
 | `rxGlobal` | - | yes | - | Engine-specific |
 | `streq` | yes | yes | yes | Core |

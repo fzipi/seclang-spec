@@ -1318,7 +1318,7 @@
     "v2": true,
     "v3": true,
     "coraza": false,
-    "status": "Extended"
+    "status": "Deprecated"
    },
    {
     "name": "rx",

@@ -416,7 +416,9 @@ PROTOCOL`, without the line terminator.
 **Semantics.** Scalar: the request path followed by `?` and the query string when
 present, without scheme and host, as sent (no decoding).
 
-**Divergence notes.** None known for origin-form requests.
+**Divergence notes.** Coraza re-serialises the parsed URL (`transaction.go`,
+`url.URL.String()`), which can normalise unusual encodings; identical for the
+origin-form requests the tests use.
 
 **Tests.** `tests/engine/variables/request-line.yaml`
 

@@ -25,10 +25,12 @@ def render(matrix: dict) -> str:
     for key, label in matrix["engines"].items():
         out.append(f"- **{key}**: {label}")
     for category, rows in matrix["categories"].items():
-        for row in rows:
+        for i, row in enumerate(rows):
+            if "name" not in row:
+                raise ValueError(f"{category}[{i}]: row has no 'name'")
             missing = [e for e in ENGINES if e not in row]
             if missing:
-                raise ValueError(f"{category}/{row.get('name', '?')}: missing engine key(s) {missing}")
+                raise ValueError(f"{category}/{row['name']}: missing engine key(s) {missing}")
         has_status = any("status" in row for row in rows)
         in_all = sum(all(row[e] for e in ENGINES) for row in rows)
         header = ["Name", *ENGINES] + (["status"] if has_status else [])

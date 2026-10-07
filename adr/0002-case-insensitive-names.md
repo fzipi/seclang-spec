@@ -42,8 +42,8 @@ Variable and collection names, and collection keys, are out of scope here (ADR-0
 ## Consequences
 
 - For ModSecurity: no change.
-- For Coraza: lowercase the operator name in `operators.Get` (or at registration and
-  lookup). Plugin operators registered with mixed case keep working.
+- For Coraza: lowercase the operator name in both `operators.Register` and
+  `operators.Get`, so plugin operators registered with mixed case keep working.
 - For rule authors: spelling variants of the same name are safe; distinct names that
   differ only in case cannot exist, so no engine may introduce one.
 
