@@ -1,0 +1,37 @@
+{{/* One page per mounted markdown file: title from the first heading, weight from the numeric prefix.
+     Backticked repository references and plain ADR numbers become links before rendering:
+       `06-operators.md#rx` / `spec/06-operators.md#rx` -> the spec page (anchor kept)
+       `compat/known-gaps.md` / `matrix.md`             -> the compat page
+       ADR-0024                                          -> the ADR page
+       `tests/...`, `adapters/...`, `tools/...`          -> the file on GitHub
+     The ".md" link targets are resolved by Hugo's embedded link render hook. */}}
+{{ $repo := "https://github.com/fzipi/seclang-spec/blob/main/" }}
+{{ range resources.Match "src/adr/*.md" }}
+  {{ $name := path.BaseName .Name }}
+  {{ if ne $name "0000-template" }}
+    {{ $raw := .Content }}
+    {{ $title := $name }}
+    {{ with findRESubmatch `(?m)^# (.+)$` $raw 1 }}{{ $title = index (index . 0) 1 }}{{ end }}
+    {{ $body := replaceRE `(?m)^# .+\n` "" $raw 1 }}
+    {{ $body = replaceRE "`(?:spec/)?(\\d\\d-[a-z0-9-]+)\\.md(#[A-Za-z0-9_-]+)?`" "[`$0`](/spec/$1.md$2)" $body }}
+    {{ $body = replaceRE "`(?:compat/)?(known-gaps|matrix)\\.md(#[A-Za-z0-9_-]+)?`" "[`$0`](/compat/$1.md$2)" $body }}
+    {{ $body = replaceRE "`((?:tests|adapters|tools)/[A-Za-z0-9_./-]+)`" (printf "[`$1`](%s$1)" $repo) $body }}
+    {{ range resources.Match "src/adr/*.md" }}
+      {{ $stem := path.BaseName .Name }}
+      {{ with findRE `^\d{4}` $stem 1 }}
+        {{ $num := index . 0 }}
+        {{ if ne $num "0000" }}{{ $body = replaceRE (printf `\bADR-%s\b` $num) (printf "[ADR-%s](/adr/%s.md)" $num $stem) $body }}{{ end }}
+      {{ end }}
+    {{ end }}
+    {{ $weight := 999 }}
+    {{ with findRE `^\d+` $name 1 }}{{ $weight = int (strings.TrimLeft "0" (index . 0) | default "0") }}{{ end }}
+    {{ $path := $name }}
+    {{ if eq $name "README" }}{{ $path = "_index" }}{{ end }}
+    {{ $.AddPage (dict
+        "path" $path
+        "title" $title
+        "weight" $weight
+        "content" (dict "mediaType" "text/markdown" "value" $body)
+    ) }}
+  {{ end }}
+{{ end }}

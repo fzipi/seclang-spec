@@ -1,0 +1,57 @@
+baseURL: https://fzipi.github.io/seclang-spec/
+title: SecLang Specification
+enableRobotsTXT: true
+module:
+  imports:
+    - path: github.com/imfing/hextra
+  mounts:
+    - source: content
+      target: content
+    - source: ../spec
+      target: assets/src/spec
+    - source: ../compat
+      target: assets/src/compat
+    - source: ../adr
+      target: assets/src/adr
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+    renderHooks:
+      link:
+        useEmbedded: fallback
+  tableOfContents:
+    startLevel: 2
+    endLevel: 3
+  highlight:
+    noClasses: false
+menu:
+  main:
+    - name: Specification
+      pageRef: /spec
+      weight: 1
+    - name: Compatibility
+      pageRef: /compat
+      weight: 2
+    - name: Decisions
+      pageRef: /adr
+      weight: 3
+    - name: GitHub
+      url: https://github.com/fzipi/seclang-spec
+      weight: 4
+      params:
+        icon: github
+params:
+  navbar:
+    displayTitle: true
+    displayLogo: false
+  theme:
+    default: system
+    displayToggle: true
+  editURL:
+    enable: false
+  page:
+    width: wide
+  footer:
+    displayCopyright: false
+    displayPoweredBy: false
