@@ -10,7 +10,7 @@ links.
 ```sh
 cd site
 hugo server          # preview at http://localhost:1313/seclang-spec/
-hugo --gc --minify   # build into site/public
+hugo --gc --minify --cleanDestinationDir   # build into site/public
 ./smoke.sh           # assert the expected pages, titles and links exist
 ```
 

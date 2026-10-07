@@ -1,0 +1,21 @@
+{{- /* Turn the repository's reference conventions into markdown links. Takes the markdown
+       body, returns it rewritten:
+         `06-operators.md#rx` / `spec/06-operators.md#rx` -> /spec/06-operators.md#rx
+         `compat/known-gaps.md` / `matrix.md#...`         -> /compat/known-gaps.md
+         ADR-0024 (plain text, only numbers that have a file) -> /adr/0024-....md
+         `tests/...`, `adapters/...`, `tools/...`          -> the file on GitHub
+       The ".md" targets are resolved to page URLs by Hextra's link render hook
+       (layouts/_markup/render-link.html in the theme). */ -}}
+{{- $body := . -}}
+{{- $repo := "https://github.com/fzipi/seclang-spec/blob/main/" -}}
+{{- $body = replaceRE "`(?:spec/)?(\\d\\d-[a-z0-9-]+)\\.md(#[A-Za-z0-9_-]+)?`" "[`$0`](/spec/$1.md$2)" $body -}}
+{{- $body = replaceRE "`(?:compat/)?(known-gaps|matrix)\\.md(#[A-Za-z0-9_-]+)?`" "[`$0`](/compat/$1.md$2)" $body -}}
+{{- $body = replaceRE "`((?:tests|adapters|tools)/[A-Za-z0-9_./-]+)`" (printf "[`$1`](%s$1)" $repo) $body -}}
+{{- range resources.Match "src/adr/*.md" -}}
+  {{- $stem := path.BaseName .Name -}}
+  {{- with findRE `^\d{4}` $stem 1 -}}
+    {{- $num := index . 0 -}}
+    {{- if ne $num "0000" -}}{{- $body = replaceRE (printf `\bADR-%s\b` $num) (printf "[ADR-%s](/adr/%s.md)" $num $stem) $body -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $body -}}

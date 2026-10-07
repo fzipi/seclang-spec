@@ -1,0 +1,14 @@
+{{/* The Decisions section page is adr/README.md (the ADR index). A section page cannot be
+     created from inside its own section adapter, so it is added here at the root. */}}
+{{ with resources.Get "src/adr/README.md" }}
+  {{ $raw := .Content }}
+  {{ $title := "Decisions" }}
+  {{ with findRESubmatch `(?m)^# (.+)$` $raw 1 }}{{ $title = index (index . 0) 1 }}{{ end }}
+  {{ $.AddPage (dict
+      "kind" "section"
+      "path" "adr"
+      "title" $title
+      "weight" 3
+      "content" (dict "mediaType" "text/markdown" "value" (partial "rewrite-refs.html" (replaceRE `(?m)^# .+\n` "" $raw 1)))
+  ) }}
+{{ end }}
