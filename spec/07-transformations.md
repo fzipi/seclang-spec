@@ -138,9 +138,11 @@ ModSecurity emits the low byte of the code point, Coraza emits U+FFFD
 **Syntax.** `t:escapeSeqDecode`
 
 **Semantics.** Decodes ANSI C escape sequences: `\a \b \f \n \r \t \v \\ \? \' \"`,
-octal `\ooo` (up to three digits) and hexadecimal `\xHH`. A backslash before any other
-byte is dropped and the byte kept (`\8` becomes `8`); only an incomplete `\x` at the end
-of the value is kept verbatim (ModSecurity v2 `apache2/msc_util.c`).
+octal `\ooo` (up to three digits) and hexadecimal `\xHH`. A backslash before any byte
+that does not begin a recognised sequence is dropped and the byte kept (`\8` becomes
+`8`, `\xag` becomes `xag`, a trailing `\x` becomes `x`); only a lone trailing `\` is kept
+(ModSecurity v2 `apache2/msc_util.c`, libmodsecurity v3 `escape_seq_decode.cc`, Coraza
+`escape_seq_decode.go`).
 
 **Divergence notes.** None known.
 

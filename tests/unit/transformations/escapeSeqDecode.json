@@ -40,11 +40,11 @@
   "spec": "07-transformations.md#escapeseqdecode"
  },
  {
-  "input": "\\8\\9\\666\\xag\\xga\\0123",
+  "input": "\\8\\9\\666\n\u0000\\0123",
   "type": "tfn",
   "name": "escapeSeqDecode",
   "ret": 1,
-  "output": "89¶\\xag\\xga\n3",
+  "output": "89¶\n\u0000\n3",
   "spec": "07-transformations.md#escapeseqdecode"
  },
  {

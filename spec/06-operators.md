@@ -293,8 +293,9 @@ toolchain. Match limits (`SecPcreMatchLimit`) apply to PCRE engines only.
 
 **Semantics.** Always matches, once per selected value. A rule whose variable list
 selects no values does not match, whatever the operator (all three engines skip
-evaluation: v2 `apache2/re.c` `if (tarr->nelts)`, v3 `rule_with_operator.cc`, Coraza
-`rule.go` `len(matchedValues) == 0`); use `SecAction` for an unconditional rule.
+evaluation: v2 `apache2/re.c` iterates zero targets and returns `RULE_NO_MATCH` when
+nothing matched, v3 `rule_with_operator.cc`, Coraza `rule.go` `len(matchedValues) == 0`);
+use `SecAction` for an unconditional rule.
 
 **Divergence notes.** None known.
 

@@ -1,15 +1,14 @@
 meta:
   name: xml-no-xxe
-  description: An XML body declaring an external entity loads without resolving it; attributes stay readable
+  description: An XML body declaring an external entity still parses and its attribute stays readable; resolution itself is not portably observable
 spec: 09-body-processors.md#xml
 rules: |
   SecRuleEngine On
   SecRequestBodyAccess On
   SecRule REQUEST_HEADERS:Content-Type "@rx (?i)xml" "id:8040,phase:1,pass,nolog,ctl:requestBodyProcessor=XML"
   SecRule XML://@* "@streq v" "id:8041,phase:2,pass"
-  SecRule XML:/* "@contains hostname" "id:8042,phase:2,pass"
 tests:
-  - test_title: external entity is not expanded into the document text
+  - test_title: document with an entity declaration parses
     stages:
       - stage:
           input:
@@ -17,4 +16,4 @@ tests:
             uri: /
             headers: {Content-Type: text/xml}
             data: '<?xml version="1.0"?><!DOCTYPE a [<!ENTITY xxe SYSTEM "file:///etc/hostname">]><a k="v">x&xxe;y</a>'
-          output: {triggered_rules: [8040, 8041], non_triggered_rules: [8042], no_interruption: true}
+          output: {triggered_rules: [8040, 8041], no_interruption: true}

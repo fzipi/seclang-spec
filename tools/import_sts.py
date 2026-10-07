@@ -19,14 +19,15 @@ HAND_MAINTAINED = {("transformations", "base64Decode"), ("operators", "pmFromFil
 # unparsable parameter is a configuration error, not "permit byte 0").
 EXCLUDED_CASES = {("validateByteRange", ""), ("validateByteRange", "xxx")}
 
-_ESC = re.compile(r"\\x([0-9a-fA-F]{2})|\\u([0-9a-fA-F]{4})")
+_ESC = re.compile(r"\\x([a-zA-Z0-9]{2})|\\u([a-zA-Z0-9]{4})")  # as json2bin: any alphanumerics
 
 
 def to_wire_bytes(s: str) -> str:
     """Model what libmodsecurity's unit runner feeds the engine, as a Latin-1 byte string.
 
-    test/unit/unit_test.cc json2bin() replaces \\xHH and \\uHHHH with ONE byte each (the
-    \\u value truncated to its low 8 bits) and nothing else; the \\0 \\b \\t \\n \\r
+    test/unit/unit_test.cc json2bin() replaces \\x?? and \\u???? (any two or four
+    alphanumerics, parsed with sscanf("%x"): leading hex digits, 0 if none) with ONE byte
+    each (the \\u value truncated to its low 8 bits) and nothing else; the \\0 \\b \\t \\n \\r
     replacements are commented out. Every other character arrives as the UTF-8 bytes of
     its code point, because the corpus is read by a UTF-8 JSON parser. The result uses one
     code point <= U+00FF per byte (tests/README.md).
@@ -35,7 +36,8 @@ def to_wire_bytes(s: str) -> str:
     pos = 0
     for m in _ESC.finditer(s):
         out.append(s[pos:m.start()].encode("utf-8").decode("latin-1"))
-        value = int(m.group(1) or m.group(2), 16) & 0xFF
+        digits = re.match(r"[0-9a-fA-F]*", m.group(1) or m.group(2)).group(0)  # sscanf("%x") semantics
+        value = (int(digits, 16) if digits else 0) & 0xFF
         out.append(chr(value))
         pos = m.end()
     out.append(s[pos:].encode("utf-8").decode("latin-1"))

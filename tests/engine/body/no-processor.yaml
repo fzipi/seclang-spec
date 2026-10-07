@@ -1,22 +1,21 @@
 meta:
   name: no-processor
-  description: Without a processor the body yields no arguments and REQUEST_BODY is empty unless forced
+  description: Without a processor the body yields no arguments; forceRequestBodyVariable exposes it as REQUEST_BODY (ADR-0022)
 spec: 09-body-processors.md#processor-selection
 rules: |
   SecRuleEngine On
   SecRequestBodyAccess On
   SecRule REQUEST_HEADERS:X-Force "@streq 1" "id:8060,phase:1,pass,nolog,ctl:forceRequestBodyVariable=On"
   SecRule &ARGS_POST "@eq 0" "id:8061,phase:2,pass"
-  SecRule REQUEST_BODY "!@rx ." "id:8062,phase:2,pass"
   SecRule REQUEST_BODY "@streq a=1" "id:8063,phase:2,pass"
 tests:
-  - test_title: text/plain without ctl
+  - test_title: text/plain without ctl yields no arguments
     stages:
       - stage:
           input: {method: POST, uri: /, headers: {Content-Type: text/plain}, data: a=1}
-          output: {triggered_rules: [8061, 8062], non_triggered_rules: [8063], no_interruption: true}
-  - test_title: text/plain with forceRequestBodyVariable
+          output: {triggered_rules: [8061], no_interruption: true}
+  - test_title: text/plain with forceRequestBodyVariable exposes the body
     stages:
       - stage:
           input: {method: POST, uri: /, headers: {Content-Type: text/plain, X-Force: "1"}, data: a=1}
-          output: {triggered_rules: [8060, 8061, 8063], non_triggered_rules: [8062], no_interruption: true}
+          output: {triggered_rules: [8060, 8063], no_interruption: true}

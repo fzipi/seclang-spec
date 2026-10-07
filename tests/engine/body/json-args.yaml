@@ -6,7 +6,7 @@ rules: |
   SecRuleEngine On
   SecRequestBodyAccess On
   SecRule REQUEST_HEADERS:Content-Type "@beginsWith application/json" "id:8050,phase:1,pass,nolog,ctl:requestBodyProcessor=JSON"
-  SecRule &ARGS_POST "@eq 4" "id:8051,phase:2,pass"
+  SecRule &ARGS_POST "@ge 4" "id:8051,phase:2,pass"
   SecRule ARGS_POST "@streq x" "id:8052,phase:2,pass"
   SecRule ARGS_NAMES "@rx (?i)(?:^|\.)c$" "id:8053,phase:2,pass"
   SecRule REQBODY_PROCESSOR "@streq JSON" "id:8054,phase:2,pass"

@@ -42,3 +42,4 @@ promoted into the spec (Extension).
 | [0019](0019-duration-units.md) | `DURATION` is Extended with unspecified units | Clarification | proposed |
 | [0020](0020-json-argument-names.md) | JSON argument names are unspecified | Clarification | proposed |
 | [0021](0021-logging-contract.md) | The portable logging contract is rule ids and messages | Clarification | proposed |
+| [0022](0022-request-body-without-processor.md) | `REQUEST_BODY` without a body processor | Divergence | proposed |

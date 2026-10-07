@@ -7,9 +7,8 @@ rules: |
   SecRequestBodyAccess On
   SecRule ARGS_POST:t "@streq hello" "id:8020,phase:2,pass"
   SecRule &FILES "@eq 1" "id:8021,phase:2,pass"
-  SecRule FILES:f "@streq a.txt" "id:8022,phase:2,pass"
+  SecRule FILES "@streq a.txt" "id:8022,phase:2,pass"
   SecRule &ARGS_POST "@eq 1" "id:8023,phase:2,pass"
-  SecRule REQUEST_BODY "!@rx ." "id:8024,phase:2,pass"
 tests:
   - test_title: one field and one file
     stages:
@@ -19,4 +18,4 @@ tests:
             uri: /
             headers: {Content-Type: "multipart/form-data; boundary=XX"}
             data: "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r\nhello\r\n--XX\r\nContent-Disposition: form-data; name=\"f\"; filename=\"a.txt\"\r\nContent-Type: text/plain\r\n\r\nabc\r\n--XX--\r\n"
-          output: {triggered_rules: [8020, 8021, 8022, 8023, 8024], no_interruption: true}
+          output: {triggered_rules: [8020, 8021, 8022, 8023], no_interruption: true}

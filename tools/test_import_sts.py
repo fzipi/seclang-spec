@@ -14,6 +14,12 @@ class WireModelTests(unittest.TestCase):
         self.assertEqual(import_sts.to_wire_bytes("\\u00e9"), "é")
         self.assertEqual(import_sts.to_wire_bytes("\\u1100"), "\u0000")  # low 8 bits only
 
+    def test_runner_regex_matches_any_two_alphanumerics(self):
+        # json2bin's regex is \\x([a-z0-9A-Z]{2}) and sscanf("%3x") parses the leading hex digits:
+        # \xag -> byte 0x0a, \xga -> no hex digits -> byte 0x00 in this model.
+        self.assertEqual(import_sts.to_wire_bytes("\\xag"), "\n")
+        self.assertEqual(import_sts.to_wire_bytes("\\xga"), "\u0000")
+
     def test_other_escapes_are_literal(self):
         # \0 \b \t \n \r have been commented out in the runner since 2016: a Windows path stays a path.
         self.assertEqual(import_sts.to_wire_bytes("\\foo\\bar\\baz"), "\\foo\\bar\\baz")

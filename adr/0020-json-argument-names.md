@@ -8,14 +8,17 @@
 ## Context
 
 All three engines flatten a JSON request body into `ARGS_POST` members, one per scalar
-leaf, but name them differently:
+leaf, but name them differently (shapes approximate; see the source for the exact rules):
 
 - ModSecurity v2 (`apache2/msc_json.c`): the key path joined with `.`, no prefix for
-  top-level keys (`b.c`); a top-level array is named `array`.
+  top-level keys (`b.c`); array elements repeat the array's key (`d.d`); a top-level
+  array is named `array`.
 - libmodsecurity v3 (`src/request_body_processor/json.cc`): the path of enclosing
-  containers joined with `.`, array elements as `array_N`.
+  containers joined with `.`, starting with `.` for the unnamed root (`.b.c`,
+  `.d.array_0`).
 - Coraza 3.8.1 (`internal/bodyprocessors/json.go`, `readItems`): every name prefixed with
-  `json.`, array elements numbered from 0 (`json.d.0`).
+  `json.`, array elements numbered from 0 (`json.d.0`), plus one extra member per array
+  holding its length (`json.d` = `2`).
 
 OWASP CRS targets `ARGS` and `ARGS_NAMES` as a whole and never names a JSON path, so no
 published ruleset depends on the scheme. A rule author writing `ARGS:json.user.role`

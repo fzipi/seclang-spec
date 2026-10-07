@@ -457,7 +457,9 @@ v3 a SHA-1 hex digest or a timestamp-and-counter string (`src/unique_id.cc`,
 per file part, named by the form field name and valued by the original file name from
 `Content-Disposition`.
 
-**Divergence notes.** None known.
+**Divergence notes.** Coraza 3.8.1 stores every member under the empty name
+(`internal/bodyprocessors/multipart.go`, `filesCol.Add("", filename)`), so `FILES:field`
+selects nothing there (`compat/known-gaps.md`); `FILES` as a whole works everywhere.
 
 **Tests.** `tests/engine/variables/multipart.yaml`
 
@@ -467,7 +469,8 @@ per file part, named by the form field name and valued by the original file name
 
 **Semantics.** Scalar: the total size in bytes of all uploaded file contents.
 
-**Divergence notes.** None known.
+**Divergence notes.** Coraza 3.8.1 also counts the bytes of non-file fields
+(`multipart.go`, `totalSize += len(data)`); the Core test has no non-file field.
 
 **Tests.** `tests/engine/variables/multipart.yaml`
 
@@ -557,11 +560,14 @@ empty when there was none. Wording is engine-specific.
 
 **Status:** Core
 
-**Semantics.** Scalar: the raw request body, when `SecRequestBodyAccess` is `On` and the
+**Semantics.** Scalar: the raw request body when `SecRequestBodyAccess` is `On` and the
 processor is `URLENCODED`, or when `ctl:forceRequestBodyVariable=On` was set in phase 1.
-Empty for `MULTIPART` bodies (use `FILES*` and `ARGS_POST`).
+In every other case, including `MULTIPART` bodies, its value is **not specified**
+(ADR-0022); use `FILES*` and `ARGS_POST` for multipart content.
 
-**Divergence notes.** None known.
+**Divergence notes.** Without a processor the variable is absent in ModSecurity v2,
+holds the raw body in libmodsecurity v3 (also for multipart) and is empty in Coraza.
+See ADR-0022.
 
 **Tests.** `tests/engine/variables/request-body.yaml`
 

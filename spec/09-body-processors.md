@@ -24,12 +24,16 @@ processor from the request `Content-Type` by **prefix** match, so parameters suc
 `XML` and `JSON` are never selected from the content type: a phase 1 rule selects them
 with `ctl:requestBodyProcessor=XML|JSON`, as the recommended configurations do for
 `text/xml`, `application/xml` and `application/json` (rules 200000 and 200001). With no
-processor the body is still buffered against `SecRequestBodyLimit`, `ARGS_POST` stays
-empty, and `REQUEST_BODY` is empty unless `ctl:forceRequestBodyVariable=On` was set in
-phase 1. Processor selection MUST NOT itself set `REQBODY_ERROR`.
+processor the body is still buffered against `SecRequestBodyLimit` and `ARGS_POST` stays
+empty. `REQUEST_BODY` MUST hold the body when `ctl:forceRequestBodyVariable=On` was set in
+phase 1; without forcing its value is **not specified** (ADR-0022). Processor selection
+MUST NOT itself set `REQBODY_ERROR`.
 
-**Divergence notes.** None known (v2 `apache2/mod_security2.c`, v3 `src/transaction.cc`
-`m_requestBodyType`, Coraza `internal/corazawaf/transaction.go` `ProcessRequestBody`).
+**Divergence notes.** Selection itself agrees (v2 `apache2/mod_security2.c`, v3
+`src/transaction.cc` `m_requestBodyType`, Coraza `internal/corazawaf/transaction.go`).
+`REQUEST_BODY` without a processor is absent in v2, populated in v3 and empty in Coraza;
+`ctl:forceRequestBodyVariable` is unimplemented in libmodsecurity v3 and, in Coraza, also
+parses the body as `URLENCODED` into `ARGS_POST`. See ADR-0022 and `compat/known-gaps.md`.
 
 **Tests.** `tests/engine/body/selection.yaml`, `tests/engine/body/no-processor.yaml`
 
@@ -61,7 +65,8 @@ the `Content-Type`. Each part's `Content-Disposition` names a field. A part **wi
 (the field name), `FILES_SIZES` and `FILES_COMBINED_SIZE`; its content is not exposed as
 a variable (engines may store it under `SecUploadDir`). A part **without** `filename` is an
 argument: an `ARGS_POST` member named by the field. `MULTIPART_PART_HEADERS` holds each
-part's raw headers. `REQUEST_BODY` is empty for multipart bodies. Parsing anomalies set
+part's raw headers. `REQUEST_BODY` is not specified for multipart bodies (ADR-0022).
+Parsing anomalies set
 `MULTIPART_STRICT_ERROR` (`05-variables.md#multipart_strict_error`); the number of file
 parts is capped by `SecUploadFileLimit` (Extended); non-file bytes count against
 `SecRequestBodyNoFilesLimit`.
@@ -87,7 +92,8 @@ and libmodsecurity v3 (`src/request_body_processor/xml.cc`, `m_secXMLExternalEnt
 libxml2 and reject malformed documents; Coraza (`internal/bodyprocessors/xml.go`) uses Go's
 `encoding/xml` in non-strict mode with HTML entities and never loads external entities, so
 it accepts some documents libxml2 rejects. The tests therefore use well-formed documents
-only, and the unexpanded-entity test asserts only that the entity's target does not appear.
+only; `xml-no-xxe.yaml` is a load check (the document declares an entity and still
+parses), because whether an entity was resolved is not observable portably.
 
 **Tests.** `tests/engine/body/xml-no-xxe.yaml`, `tests/engine/variables/xml.yaml`
 
@@ -96,8 +102,8 @@ only, and the unexpanded-entity test asserts only that the entity's target does 
 **Status:** Core
 
 **Semantics.** Parses the body as JSON. Every scalar leaf (string, number, boolean, null)
-becomes an `ARGS_POST` member whose value is the leaf's text; the number of members equals
-the number of leaves (subject to `SecArgumentsLimit`). Nesting deeper than
+becomes an `ARGS_POST` member whose value is the leaf's text, so there are at least as
+many members as leaves (subject to `SecArgumentsLimit`). Nesting deeper than
 `SecRequestBodyJsonDepthLimit` or a malformed document sets `REQBODY_ERROR` and
 `REQBODY_ERROR_MSG`. **The member names are not specified** (ADR-0020): rules MUST
 target `ARGS`/`ARGS_POST` as a whole or match `ARGS_NAMES` with an expression anchored at
@@ -107,7 +113,9 @@ the end of the name.
 uses the bare key path (`b.c`; top-level arrays under `array`; `apache2/msc_json.c`),
 libmodsecurity v3 builds a path from container names with `array_N` for array elements
 (`src/request_body_processor/json.cc`), Coraza prefixes every name with `json.` and
-numbers array elements (`internal/bodyprocessors/json.go`, `readItems`).
+numbers array elements (`internal/bodyprocessors/json.go`, `readItems`). Coraza also adds
+one member per array holding the array's length (`json.d` = `2`), so its member count
+exceeds the leaf count; the Core test asserts a lower bound.
 
 **Tests.** `tests/engine/body/json-args.yaml`,
 `tests/engine/directives/secrequestbodyjsondepthlimit.yaml`

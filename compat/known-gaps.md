@@ -30,6 +30,9 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 | `tests/engine/actions/allow.yaml` | Coraza | `allow` also skips the logging phase | `08-actions.md#allow` |
 | `tests/unit/transformations/htmlEntityDecode.json` | Coraza | `&nbsp;` decodes to UTF-8 `C2 A0` (two cases) | `07-transformations.md#htmlentitydecode` |
 | `tests/unit/transformations/removeWhitespace.json`, `lowercase.json` | Coraza | rune-based folding of non-ASCII bytes | `07-transformations.md#removewhitespace`, `#lowercase` |
+| `tests/engine/body/no-processor.yaml`, `tests/engine/actions/ctl-options.yaml` | libmodsecurity v3 | `ctl:forceRequestBodyVariable` parsed but not implemented | ADR-0022 |
+| `tests/engine/variables/multipart.yaml` | Coraza | `FILES` members keyed by the empty string, so `FILES:field` selects nothing | `05-variables.md#files` |
+| `tests/engine/logging/audit-relevance-load.yaml` (entry not observable) | Coraza | `auditlog` needs an explicit action and `SecAuditLogRelevantStatus` is ANDed with it | `10-logging.md#audit-log-relevance` |
 
 Not listed: differences the specification leaves unspecified (defaults, status codes,
 empty `Include` globs), since no test asserts on them.

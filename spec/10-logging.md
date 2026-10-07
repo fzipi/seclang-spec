@@ -40,10 +40,16 @@ message. All three write `[id "…"]` and `[msg "…"]`.
 (explicitly or inherited from `SecDefaultAction`) and not `noauditlog`, or when the
 response status matches `SecAuditLogRelevantStatus`. With `Off` none is produced.
 `ctl:auditEngine` overrides the mode for one transaction. `nolog` implies `noauditlog`
-unless `auditlog` is given explicitly (`08-actions.md#nolog`). The entry is written after
-phase 5.
+unless `auditlog` is given explicitly (`08-actions.md#nolog`). The two relevance triggers
+combine with OR. The entry is written after phase 5.
 
-**Divergence notes.** None known.
+**Divergence notes.** ModSecurity v2 (`apache2/re.c`, `auditlog` defaults to on) and
+libmodsecurity v3 (`src/audit_log/audit_log.cc`, saves unless every message carries
+`noauditlog`) treat a match as relevant unless `noauditlog` is set; Coraza 3.8.1
+(`transaction.go`) requires `auditlog` explicitly or via `SecDefaultAction`, and when
+`SecAuditLogRelevantStatus` is configured it additionally requires the status to match
+(AND, not OR; Coraza issue 1576). The audit entry is not observable through the test
+schema, so this is recorded in `compat/known-gaps.md` only.
 
 **Tests.** `tests/engine/logging/audit-relevance-load.yaml`
 
