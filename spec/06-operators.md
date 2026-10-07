@@ -193,13 +193,20 @@ each optionally with a `/prefix` CIDR suffix.
 
 **Semantics.** Matches when the value, parsed as an IP address, equals one of the
 addresses or falls inside one of the networks. A value that is not an address does not
-match. Mixed IPv4 and IPv6 entries are allowed in one list.
+match. Mixed IPv4 and IPv6 entries are allowed in one list. Every entry of `LIST` MUST
+be a valid address or prefix; an entry that cannot be parsed (for example
+`10.0.0.0/100`) is a configuration error (ADR-0024).
 
 **Divergence notes.** One corpus case differs: the IPv4-mapped address
 `::ffff:ffff:ffff` against `0:0::/80` matches in ModSecurity and not in Coraza
-(`compat/known-gaps.md`). The imported case keeps the ModSecurity expectation.
+(`compat/known-gaps.md`). The imported case keeps the ModSecurity expectation. Coraza
+3.8.1 skips an unparsable entry (`internal/operators/ip_match.go`, `continue` on a
+`ParseCIDR` error) where ModSecurity v2 (`apache2/re_operators.c`
+`msre_op_ipmatch_param_init`) and v3 reject the rule; the corpus case asserting a
+non-match for `10.0.0.0/100` is excluded on import (ADR-0024).
 
-**Tests.** `tests/unit/operators/ipMatch.json`, `tests/engine/operators/ipmatch.yaml`
+**Tests.** `tests/unit/operators/ipMatch.json`, `tests/engine/operators/ipmatch.yaml`,
+`tests/engine/operators/ipmatch-invalid-entry.yaml`
 
 ### le
 
@@ -300,7 +307,10 @@ evaluation: v2 `apache2/re.c` iterates zero targets and returns `RULE_NO_MATCH` 
 nothing matched, v3 `rule_with_operator.cc`, Coraza `rule.go` `len(matchedValues) == 0`);
 use `SecAction` for an unconditional rule.
 
-**Divergence notes.** None known.
+**Divergence notes.** The operator takes no parameter. libmodsecurity v3's scanner
+recognises it only bare: `@unconditionalMatch X` is lexed as an `@rx` pattern
+(`seclang-scanner.ll`). The corpus case carrying a stray parameter is excluded on
+import.
 
 **Tests.** `tests/unit/operators/unconditionalMatch.json`
 

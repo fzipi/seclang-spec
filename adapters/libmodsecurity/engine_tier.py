@@ -14,7 +14,9 @@ from mscapi import ModSecurity, RulesSet
 
 _LINE = re.compile(rb"^\[[^\]]*\] \[.*?\] \[(\d+)\] (.*)$")
 _BLOCK = re.compile(rb"^\(Rule: (\d+)\) ")
-_ACTIONS = {b"deny": "deny", b"drop": "drop", b"redirect": "redirect", b"redirert": "redirect"}  # v3.0.16 misspells redirect
+# Disruptive action names as v3 prints them (lower-cased; v3.0.16 misspells redirect).
+# "block" is resolved against the intervention in run_stage.
+_ACTIONS = {b"deny": "deny", b"drop": "drop", b"redirect": "redirect", b"redirert": "redirect", b"block": "block"}
 
 
 def parse_debug_log(data: bytes) -> tuple[set[int], tuple[int, str] | None]:
@@ -45,7 +47,7 @@ def parse_debug_log(data: bytes) -> tuple[set[int], tuple[int, str] | None]:
         elif text == b"Rule returned 0.":
             matched = False
         elif text.startswith(b"Running (disruptive)") and current is not None:
-            name = text.rsplit(b"action: ", 1)[-1].rstrip(b".")
+            name = text.rsplit(b"action: ", 1)[-1].rstrip(b".").lower()
             if name in _ACTIONS:
                 disruptive = (current, _ACTIONS[name])
     if current is not None and matched:
@@ -115,6 +117,8 @@ def run_stage(ms: ModSecurity, rules: RulesSet, debug_path: Path, stage: Stage) 
     interruption = None
     if it is not None:
         rule_id, action = disruptive if disruptive else (0, "deny")  # no rule block: a body limit
+        if action == "block":  # the default action's disruptive action; v3 prints no second line
+            action = "redirect" if it["url"] else "deny"
         interruption = Interruption(rule_id, action, it["status"])
         if it["log"]:
             log.append(it["log"])  # v3 puts a denying rule's message here, not in the callback

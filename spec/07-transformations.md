@@ -127,7 +127,10 @@ becomes that byte.
 
 **Divergence notes.** Two corpus inputs with six-digit escapes above U+FFFF differ:
 ModSecurity emits the low byte of the code point, Coraza emits U+FFFD
-(`compat/known-gaps.md`). The imported cases keep the ModSecurity expectation.
+(`compat/known-gaps.md`). The imported cases keep the ModSecurity expectation. One corpus
+case expected a space after `\` followed by a NUL byte to be dropped; no engine drops it
+(only a hex escape consumes a following whitespace), so the file is hand-maintained and
+the case corrected.
 
 **Tests.** `tests/unit/transformations/cssDecode.json`
 

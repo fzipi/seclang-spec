@@ -1,0 +1,15 @@
+meta:
+  name: ipmatch-invalid-entry
+  description: An @ipMatch list entry that cannot be parsed is a configuration error (ADR-0024)
+spec: 06-operators.md#ipmatch
+rules: |
+  SecRuleEngine On
+  SecRule REMOTE_ADDR "@ipMatch 192.0.2.1,10.0.0.0/100" "id:6225,phase:1,deny,status:403"
+tests:
+  - test_title: invalid prefix length fails to load
+    stages:
+      - stage:
+          input:
+            uri: /
+          output:
+            expect_error: true

@@ -6,7 +6,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 - **v3**: libmodsecurity v3.0.16 (owasp-modsecurity/ModSecurity branch v3/master)
 - **coraza**: Coraza v3.8.1 (corazawaf/coraza)
 
-## directives (65 of 91 in all engines)
+## directives (64 of 91 in all engines)
 
 | Name | v2 | v3 | coraza | status |
 |---|---|---|---|---|
@@ -60,7 +60,7 @@ Generated from `compat/matrix.json` by `tools/matrix.py` on 2026-10-06. Do not e
 | `SecRemoteRules` | yes | yes | yes | Extended |
 | `SecRemoteRulesFailAction` | yes | yes | yes | Extended |
 | `SecRequestBodyAccess` | yes | yes | yes | Core |
-| `SecRequestBodyInMemoryLimit` | yes | yes | yes | Core |
+| `SecRequestBodyInMemoryLimit` | yes | - | yes | Deprecated |
 | `SecRequestBodyJsonDepthLimit` | yes | yes | yes | Core |
 | `SecRequestBodyLimit` | yes | yes | yes | Core |
 | `SecRequestBodyLimitAction` | yes | yes | yes | Core |

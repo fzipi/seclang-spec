@@ -1,13 +1,12 @@
 meta:
   name: body-limit-directives-load
   description: Body limit directives whose effect is not observable through rules load with valid values
-spec: 04-directives.md#secrequestbodyinmemorylimit
+spec: 04-directives.md#secrequestbodynofileslimit
 rules: |
   SecRuleEngine On
   SecRequestBodyAccess On
   SecRequestBodyLimit 13107200
   SecRequestBodyNoFilesLimit 131072
-  SecRequestBodyInMemoryLimit 131072
   SecRequestBodyLimitAction Reject
   SecResponseBodyLimit 524288
   SecResponseBodyLimitAction ProcessPartial

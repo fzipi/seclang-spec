@@ -44,3 +44,4 @@ promoted into the spec (Extension).
 | [0021](0021-logging-contract.md) | The portable logging contract is rule ids and messages | Clarification | proposed |
 | [0022](0022-request-body-without-processor.md) | `REQUEST_BODY` without a body processor | Divergence | proposed |
 | [0023](0023-reference-adapters.md) | Reference adapters live in this repository | Clarification | proposed |
+| [0024](0024-ipmatch-invalid-entries.md) | Unparsable `@ipMatch` entries are configuration errors | Divergence | proposed |

@@ -3,9 +3,10 @@
 Core tests in `tests/` that a surveyed engine is known to fail today, with the spec
 section that decides the behaviour. The engines are ModSecurity v2 (`v2/master`,
 2026-09), libmodsecurity v3.0.16 and Coraza v3.8.1, as read from source on 2026-10-06
-and 2026-10-07. Rows naming Coraza are **verified**: `adapters/coraza` runs every test
-in CI and fails when a listed file passes or an unlisted one fails. Rows naming only the
-ModSecurity branches remain predictions from source until an adapter exists for them. An entry here is a bug for the engine, not a
+and 2026-10-07. Rows naming Coraza or libmodsecurity v3 are **verified**: `adapters/coraza` and
+`adapters/libmodsecurity` run every test in CI and fail when a listed file passes or an
+unlisted one fails. Rows naming only ModSecurity v2 remain predictions from source until
+an adapter exists for it. An entry here is a bug for the engine, not a
 weakness of the test. Entries are removed when the engine is fixed; new ones are added
 whenever a Divergence ADR or a divergence note picks against an engine.
 
@@ -22,19 +23,26 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 | `tests/engine/processing/rule-exceptions-bad-range.yaml` | ModSecurity v2 | `200-100` accepted silently | `03-processing-model.md#rule-exceptions` |
 | `tests/engine/processing/rule-exceptions-unknown-id.yaml` | Coraza | `SecRuleUpdateTargetById` with an unknown id is an error | `03-processing-model.md#rule-exceptions` |
 | `tests/engine/actions/setvar.yaml` | Coraza | any `setvar` without `=value` (`setvar:tx.x`, `setvar:!tx.x`) dereferences a nil macro and panics (`internal/actions/setvar.go` `Evaluate`) | `08-actions.md#setvar` |
-| `tests/engine/lexical/quoted-arguments.yaml` | libmodsecurity v3 | `\"` inside an operator argument keeps its backslash (prediction from `seclang-scanner.ll`) | `01-lexical.md#quoting-and-escapes` |
+| `tests/engine/lexical/quoted-arguments.yaml` | libmodsecurity v3 | `\"` inside an operator argument keeps its backslash (`seclang-scanner.ll`) | `01-lexical.md#quoting-and-escapes` |
 | `tests/engine/directives/secargumentseparator.yaml` | Coraza | directive parsed and ignored | `04-directives.md#secargumentseparator`, ADR-0005 |
 | `tests/engine/directives/deprecated-directive-accepted.yaml` | none | `SecHashEngine Off` is accepted everywhere; see ADR-0005 for the Deprecated names v3 and Coraza reject | ADR-0005 |
 | `tests/unit/operators/ipMatch.json` | Coraza | `::ffff:ffff:ffff` does not match `0:0::/80` (one case) | `06-operators.md#ipmatch` |
 | `tests/unit/transformations/uppercase-extra.json` | ModSecurity v2 | `t:uppercase` not implemented | ADR-0012 |
-| `tests/unit/transformations/cssDecode.json` | Coraza | six-digit escapes above U+FFFF decode to U+FFFD (two cases) | `07-transformations.md#cssdecode` |
+| `tests/unit/transformations/cssDecode.json` | Coraza | six-digit escapes above U+FFFF decode to U+FFFD (one case) | `07-transformations.md#cssdecode` |
 | `tests/unit/transformations/urlDecodeUni.json` | Coraza | one full-width `%u` case decodes differently | `07-transformations.md#urldecodeuni` |
 | `tests/engine/actions/allow.yaml` | Coraza | `allow` also skips the logging phase | `08-actions.md#allow` |
 | `tests/unit/transformations/htmlEntityDecode.json` | Coraza | `&nbsp;` decodes to UTF-8 `C2 A0` (two cases) | `07-transformations.md#htmlentitydecode` |
-| `tests/engine/body/no-processor.yaml`, `tests/engine/actions/ctl-options.yaml` | libmodsecurity v3 | `ctl:forceRequestBodyVariable` parsed but not implemented | ADR-0022 |
 | `tests/engine/variables/multipart.yaml` | Coraza | `FILES` members keyed by the empty string, so `FILES:field` selects nothing | `05-variables.md#files` |
-| `tests/unit/operators/beginsWith.json`, `tests/unit/operators/contains.json`, `tests/unit/operators/endsWith.json`, `tests/unit/operators/streq.json`, `tests/unit/operators/within.json` | Coraza | an empty operator parameter is a load error ("empty data"); the spec says an empty string matches every value (one case per file) | `06-operators.md#contains` |
+| `tests/unit/operators/beginsWith.json`, `tests/unit/operators/contains.json`, `tests/unit/operators/endsWith.json`, `tests/unit/operators/streq.json`, `tests/unit/operators/within.json` | libmodsecurity v3, Coraza | an empty operator parameter is a load error (Coraza: "empty data"; v3: a parser syntax error, the parameter cannot be written at all); the spec says an empty string matches every value (one case per file) | `06-operators.md#contains` |
 | `tests/unit/transformations/hexDecode.json` | Coraza | input with an odd length or a non-hex character is returned unchanged instead of decoding the valid pairs (three cases) | `07-transformations.md#hexdecode` |
+| `tests/engine/actions/capture-multimatch.yaml`, `tests/engine/operators/rx-capture.yaml`, `tests/engine/processing/chain.yaml`, `tests/engine/variables/matched-vars.yaml` | libmodsecurity v3 | a `SecRule` without an action list is a parse error unless it is the last directive of the file ("Expecting an action", `seclang-parser.yy`) | `02-grammar.md#secrule-structure` |
+| `tests/engine/body/json-args.yaml` | libmodsecurity v3 | JSON leaves are added to `ARGS` only, never to `ARGS_POST` (`request_body_processor/json.cc` calls `addArgument("JSON", …)`, which `transaction.cc` routes to `ARGS_GET`/`ARGS_POST` only for `GET`/`POST`) | `09-body-processors.md#json` |
+| `tests/engine/directives/secresponsebodymimetype.yaml`, `tests/engine/directives/secresponsebodymimetypesclear.yaml` | libmodsecurity v3 | `SecResponseBodyMimeTypesClear` discards every `SecResponseBodyMimeType` of the same configuration, including those written after it (`rules_set_properties.h` clears the whole set at merge time when `m_clear` is set) | `04-directives.md#secresponsebodymimetypesclear` |
+| `tests/engine/processing/default-action.yaml` | libmodsecurity v3 | the disruptive action of `SecDefaultAction` is applied only to rules carrying `block`; a matching rule with no disruptive action of its own passes (`rule_with_actions.cc`, "Ignoring action … (rule does not cotains block)") | `04-directives.md#secdefaultaction` |
+| `tests/engine/variables/persistent-collections.yaml` | libmodsecurity v3 | `setvar` runs before `initcol` within one rule (`rule_with_actions.cc` `executeActionsIndependentOfChainedRuleResult` evaluates the setvars first), so a member written by the initialising rule is lost when the collection did not exist yet | `05-variables.md#persistent-collections` |
+| `tests/unit/operators/rx.json` | libmodsecurity v3 | an empty `@rx` parameter is a parser syntax error (one case) | `06-operators.md#rx` |
+| `tests/unit/operators/containsWord.json` | libmodsecurity v3 | an empty parameter is a parser syntax error (one case) | `06-operators.md#containsword` |
+| `tests/engine/operators/ipmatch-invalid-entry.yaml` | Coraza | an unparsable `@ipMatch` entry is skipped instead of rejecting the configuration (`internal/operators/ip_match.go`) | ADR-0024 |
 
 ## Divergences no test can observe
 
@@ -48,6 +56,9 @@ otherwise report them as obsolete.
   (ADR-0008); the default build conforms.
 - Coraza calls its error-log callback only for rules carrying `log` explicitly; ModSecurity
   logs by default (`08-actions.md#log`).
+- libmodsecurity v3 parses `ctl:forceRequestBodyVariable` without implementing it, but it
+  fills `REQUEST_BODY` for every buffered body, so `tests/engine/body/no-processor.yaml`
+  and `tests/engine/actions/ctl-options.yaml` pass anyway (ADR-0022).
 
 Not listed: differences the specification leaves unspecified (defaults, status codes,
 empty `Include` globs), since no test asserts on them.

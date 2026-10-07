@@ -128,14 +128,6 @@
   "spec": "06-operators.md#ipmatch"
  },
  {
-  "ret": 0,
-  "type": "op",
-  "name": "ipMatch",
-  "input": "10.10.10.11",
-  "param": "10.0.0.0/100",
-  "spec": "06-operators.md#ipmatch"
- },
- {
   "name": "ipMatch",
   "ret": 1,
   "type": "op",

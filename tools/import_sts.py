@@ -14,10 +14,18 @@ from tools import validate  # noqa: E402
 FIELDS = ("input", "output")  # the runner never decodes "param"
 # Files whose content is decided by the spec rather than imported (see the section's
 # divergence notes); the importer never overwrites them.
-HAND_MAINTAINED = {("transformations", "base64Decode"), ("operators", "pmFromFile")}  # pmFromFile cases need corpus-internal files
+HAND_MAINTAINED = {
+    ("transformations", "base64Decode"),
+    ("operators", "pmFromFile"),  # pmFromFile cases need corpus-internal files
+    ("transformations", "cssDecode"),  # one corpus expectation corrected (07-transformations.md#cssdecode)
+}
 # Individual corpus cases the spec rejects (06-operators.md#validatebyterange: an empty or
 # unparsable parameter is a configuration error, not "permit byte 0").
-EXCLUDED_CASES = {("validateByteRange", ""), ("validateByteRange", "xxx")}
+EXCLUDED_CASES = {
+    ("validateByteRange", ""), ("validateByteRange", "xxx"),
+    ("ipMatch", "10.0.0.0/100"),  # an unparsable entry is a configuration error (ADR-0024)
+    ("unconditionalMatch", "TestCase"),  # the operator takes no parameter (06-operators.md#unconditionalmatch)
+}
 
 _ESC = re.compile(r"\\x([a-zA-Z0-9]{2})|\\u([a-zA-Z0-9]{4})")  # as json2bin: any alphanumerics
 

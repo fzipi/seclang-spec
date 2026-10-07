@@ -56,3 +56,5 @@ Copy the shape: load the data (`profile.go` is engine-neutral), drive the engine
 observations to the same `Observed`/`UnitResult` structs, reuse `CheckStage`/`CheckUnit`
 and `LoadGaps` with your engine's name. ADR-0023 records that reference adapters live
 here; an engine may equally keep its adapter in its own repository.
+`adapters/libmodsecurity` is the second reference adapter (Python, ctypes over the C API);
+it shares no code with this module but follows the same gating.

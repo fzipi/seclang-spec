@@ -64,7 +64,7 @@ explicitly, as both engines' recommended configuration files do.
 | [SecRemoteRules](#secremoterules) | Extended | yes | yes | yes | Load rules from a URL |
 | [SecRemoteRulesFailAction](#secremoterulesfailaction) | Extended | yes | yes | yes | Behaviour when remote rules fail to load |
 | [SecRequestBodyAccess](#secrequestbodyaccess) | Core | yes | yes | yes | Buffer and inspect request bodies |
-| [SecRequestBodyInMemoryLimit](#secrequestbodyinmemorylimit) | Core | yes | yes | yes | Memory buffer size before spooling to disk |
+| [SecRequestBodyInMemoryLimit](#secrequestbodyinmemorylimit) | Deprecated | yes | - | yes | Memory buffer size before spooling to disk |
 | [SecRequestBodyJsonDepthLimit](#secrequestbodyjsondepthlimit) | Core | yes | yes | yes | Maximum JSON nesting depth |
 | [SecRequestBodyLimit](#secrequestbodylimit) | Core | yes | yes | yes | Maximum request body size |
 | [SecRequestBodyLimitAction](#secrequestbodylimitaction) | Core | yes | yes | yes | What to do above the limit |
@@ -434,21 +434,20 @@ the directive loads. A Core gap for Coraza (ADR-0005).
 
 ### SecRequestBodyInMemoryLimit
 
-**Status:** Core
+**Status:** Deprecated
 
 **Syntax.** `SecRequestBodyInMemoryLimit BYTES`
 
 **Default.** 131072 in ModSecurity v2 (`REQUEST_BODY_DEFAULT_INMEMORY_LIMIT`); equal to
-`SecRequestBodyLimit` in Coraza (`waf.go`); unset in libmodsecurity v3. Unspecified.
+`SecRequestBodyLimit` in Coraza (`waf.go`). Unspecified.
 
 **Semantics.** The number of request body bytes held in memory before the engine spools
-the remainder to a temporary file. It has no effect on rule evaluation; it exists so
-that deployments can bound memory use (see Coraza's `RATIONALE.md`). Engines without
-filesystem access MAY treat it as equal to `SecRequestBodyLimit`.
+the remainder to a temporary file (ModSecurity v2 only). It has no effect on rule
+evaluation; engines without spooling MUST accept it and MAY ignore it (ADR-0005).
 
-**Divergence notes.** Defaults differ as listed; no observable rule-level divergence.
-
-**Tests.** `tests/engine/directives/body-limit-directives-load.yaml`
+**Divergence notes.** libmodsecurity v3 rejects the directive with "is no longer
+supported" (`seclang-parser.yy`), which ADR-0005 lists among the Deprecated names v3
+should accept and warn about. Verified by `adapters/libmodsecurity`.
 
 ### SecRequestBodyJsonDepthLimit
 

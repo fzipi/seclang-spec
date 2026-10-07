@@ -52,6 +52,8 @@ class ConvertTests(unittest.TestCase):
     def test_excluded_cases_are_dropped(self):
         self.assertIsNone(import_sts.convert_case({"type": "op", "name": "validateByteRange", "param": "", "input": "x", "ret": 1}, "a#b"))
         self.assertIsNone(import_sts.convert_case({"type": "op", "name": "validateByteRange", "param": "xxx", "input": "x", "ret": 1}, "a#b"))
+        self.assertIsNone(import_sts.convert_case({"type": "op", "name": "ipMatch", "param": "10.0.0.0/100", "input": "10.10.10.11", "ret": 0}, "a#b"))
+        self.assertIsNone(import_sts.convert_case({"type": "op", "name": "unconditionalMatch", "param": "TestCase", "input": "", "ret": 1}, "a#b"))
 
     def test_anchors_from_spec_skips_deprecated_and_engine_specific(self):
         with tempfile.TemporaryDirectory() as tmp:

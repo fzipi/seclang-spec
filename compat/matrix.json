@@ -360,9 +360,9 @@
    {
     "name": "SecRequestBodyInMemoryLimit",
     "v2": true,
-    "v3": true,
+    "v3": false,
     "coraza": true,
-    "status": "Core"
+    "status": "Deprecated"
    },
    {
     "name": "SecRequestBodyJsonDepthLimit",

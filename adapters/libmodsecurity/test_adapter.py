@@ -142,6 +142,16 @@ class DebugLogTests(unittest.TestCase):
             b"Running (disruptive)     action: redirert."))
         self.assertEqual(d, (30, "redirect"))
 
+    def test_block_and_uppercase_names(self):
+        _, d = engine_tier.parse_debug_log(dbg(
+            b'(Rule: 7060) Executing operator "StrEq" with param "1" against ARGS_GET:a.', b"Rule returned 1.",
+            b"Running (disruptive)     action: block."))
+        self.assertEqual(d, (7060, "block"))
+        _, d = engine_tier.parse_debug_log(dbg(
+            b'(Rule: 1002) Executing operator "Contains" with param "x" against ARGS_GET:a.', b"Rule returned 1.",
+            b"Running (disruptive)     action: DENY."))
+        self.assertEqual(d, (1002, "deny"))
+
     def test_pass_is_not_disruptive(self):
         _, d = engine_tier.parse_debug_log(dbg(
             b'(Rule: 1) Executing operator "StrEq" with param "1" against ARGS:a.', b"Rule returned 1.",
@@ -182,6 +192,17 @@ class EngineSmokeTests(unittest.TestCase):
         self.assertIn("hit", o.log)
         self.assertEqual(o2.triggered, {3})
         self.assertIsNone(o2.interruption)
+
+    def test_block_resolves_to_default_action(self):
+        ms = mscapi.ModSecurity()
+        rules_text = 'SecRuleEngine On\nSecDefaultAction "phase:1,log,deny,status:403"\nSecRule ARGS_GET:a "@streq 1" "id:7060,phase:1,block"\n'
+        redirect_text = 'SecRuleEngine On\nSecDefaultAction "phase:1,log,redirect:http://x/"\nSecRule ARGS_GET:a "@streq 1" "id:7061,phase:1,block"\n'
+        for text, want in ((rules_text, Interruption(7060, "deny", 403)), (redirect_text, Interruption(7061, "redirect", 302))):
+            with tempfile.TemporaryDirectory() as d:
+                rules, debug = engine_tier.build_rules(ms, data.Profile("x", [], {}, text, []), Path(d))
+                o = engine_tier.run_stage(ms, rules, debug, data.Stage(data.Input(uri="/?a=1"), None, Output()))
+                rules.close()
+            self.assertEqual(o.interruption, want)
 
 
 def case(**kw):
