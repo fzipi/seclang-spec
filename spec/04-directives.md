@@ -293,7 +293,7 @@ ModSecurity v2 and libmodsecurity v3; Coraza 3.8.1 accepts and ignores it (ADR-0
 **Semantics.** As `SecRuleUpdateTargetById`, selecting every rule any of whose tags
 matches `REGEX`.
 
-**Divergence notes.** None known (Coraza added it in its ADR-0012).
+**Divergence notes.** None known (Coraza added it in Coraza ADR-0012).
 
 **Tests.** `tests/engine/directives/secruleupdatetargetbytag.yaml`
 
@@ -574,7 +574,7 @@ default, so that a following `SecResponseBodyMimeType` defines it from scratch.
 
 **Syntax.** `SecResponseBodyJsonDepthLimit N`
 
-**Semantics.** Coraza only (its ADR-0059): the response-side counterpart of
+**Semantics.** Coraza only (Coraza ADR-0059): the response-side counterpart of
 `SecRequestBodyJsonDepthLimit` for the response JSON body processor, default 1024.
 Neither ModSecurity branch parses response bodies as JSON.
 
@@ -644,7 +644,7 @@ this specification never asserts on them.
 
 **Semantics.** The destination of serial audit entries, and of the index file in
 concurrent mode. `PATH` is a filesystem path; engines MAY accept a `|program` pipe
-(ModSecurity v2) or a URL (Coraza `https://`, its ADR-0003) but those forms are
+(ModSecurity v2) or a URL (Coraza `https://`, Coraza ADR-0003) but those forms are
 Engine-specific.
 
 **Divergence notes.** None for a plain path.
@@ -665,7 +665,7 @@ values. The JSON layout itself is defined in `10-logging.md` to the extent the e
 agree.
 
 **Divergence notes.** Coraza additionally accepts `JsonLegacy` and `OCSF`
-(Engine-specific, its ADR-0018).
+(Engine-specific, Coraza ADR-0018).
 
 **Tests.** `tests/engine/directives/logging-directives-load.yaml`
 
@@ -1341,7 +1341,7 @@ Reserved names. Not specified; another engine MUST NOT give them different seman
 
 **Syntax.** `SecDataset NAME` followed by a backtick-delimited block, one entry per line
 
-**Semantics.** Coraza (its ADR-0024 lineage): an inline list consumed by `@pmFromDataset` and `@ipMatchFromDataset` without a separate file, for platforms without filesystem access. The backtick block is a lexical extension not covered by `01-lexical.md`.
+**Semantics.** Coraza (Coraza ADR-0024 lineage): an inline list consumed by `@pmFromDataset` and `@ipMatchFromDataset` without a separate file, for platforms without filesystem access. The backtick block is a lexical extension not covered by `01-lexical.md`.
 
 **Implemented by.** Coraza.
 
@@ -1361,7 +1361,7 @@ Reserved names. Not specified; another engine MUST NOT give them different seman
 
 **Syntax.** `SecRxPreFilter On|Off`
 
-**Semantics.** Coraza (its ADR-0050): enable a literal-substring prefilter before `@rx` evaluation. Pure optimisation; no observable behaviour.
+**Semantics.** Coraza (Coraza ADR-0050): enable a literal-substring prefilter before `@rx` evaluation. Pure optimisation; no observable behaviour.
 
 **Implemented by.** Coraza.
 

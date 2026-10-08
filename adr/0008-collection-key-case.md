@@ -13,8 +13,8 @@
 - libmodsecurity v3 stores members in an unordered multimap with a lower-casing hash and
   equality (`headers/modsecurity/anchored_set_variable.h`, `MyHash`, `MyEqual`).
 - Coraza 3.8.1 lower-cases keys on storage and lookup (`internal/collections/map.go`)
-  unless built with `coraza.rule.case_sensitive_args_keys` (its ADR-0016), in which case
-  `ARGS` keys are compared exactly; its ADR-0015 added a case-sensitive map type for
+  unless built with `coraza.rule.case_sensitive_args_keys` (Coraza ADR-0016), in which case
+  `ARGS` keys are compared exactly; Coraza ADR-0015 added a case-sensitive map type for
   internal use and deferred switching the default to v4.
 
 OWASP CRS writes `%{tx.anomaly_score}` and `TX:ANOMALY_SCORE` interchangeably (hundreds of
@@ -51,4 +51,4 @@ non-conforming.
 ## References
 
 - `spec/05-variables.md#collection-keys`
-- Coraza ADR-0015 and ADR-0016 in `corazawaf/coraza/docs/adr`
+- Coraza ADR-0015 and Coraza ADR-0016 in `corazawaf/coraza/docs/adr`

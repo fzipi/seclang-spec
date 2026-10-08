@@ -317,7 +317,24 @@ def check_gaps(root: Path) -> list[str]:
     return errors
 
 
-CHECKS: list[Callable[[Path], list[str]]] = [check_tests, check_coverage, check_adrs, check_matrix, check_matrix_status, check_gaps]
+ADR_REF_RE = re.compile(r"(Coraza(?:'s)?\s+)?ADR-(\d{4})\b")
+
+
+def check_adr_references(root: Path) -> list[str]:
+    """Every bare ADR-NNNN in spec/, adr/ and compat/ names a local ADR; Coraza's ADRs are
+    written "Coraza ADR-NNNN" so the site links them to corazawaf/coraza instead."""
+    local = {m.group(1) for p in (root / "adr").glob("*.md") for m in [ADR_FILE_RE.match(p.name)] if m}
+    errors = []
+    for path in sorted([*(root / "spec").glob("*.md"), *(root / "adr").glob("*.md"), *(root / "compat").glob("*.md")]):
+        text = path.read_text()
+        for m in ADR_REF_RE.finditer(text):
+            if m.group(1) is None and m.group(2) not in local:
+                line = text.count("\n", 0, m.start()) + 1
+                errors.append(f"{_rel(root, path)}:{line}: ADR-{m.group(2)} has no file in adr/ (a Coraza ADR is written 'Coraza ADR-{m.group(2)}')")
+    return errors
+
+
+CHECKS: list[Callable[[Path], list[str]]] = [check_tests, check_coverage, check_adrs, check_adr_references, check_matrix, check_matrix_status, check_gaps]
 
 
 def main(root: Path = ROOT, checks: list[Callable[[Path], list[str]]] | None = None) -> int:

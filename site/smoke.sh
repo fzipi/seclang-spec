@@ -15,6 +15,7 @@ check adr-ref      grep -qE 'href="?[^" >]*/adr/0002-case-insensitive-names/' "$
 check test-ref     grep -qE 'href="?https://github.com/fzipi/seclang-spec/blob/main/tests/engine/actions/setvar.yaml' "$P/compat/known-gaps/index.html"
 check dir-ref      sh -c "grep -rhoE 'href=\"?https://github.com/fzipi/seclang-spec/(blob|tree)/main/[^\" >]*' '$P/spec' '$P/adr' '$P/compat' | grep -q 'tree/main/adapters/coraza' && ! grep -rhoE 'href=\"?https://github.com/fzipi/seclang-spec/blob/main/[^\" >]*' '$P/spec' '$P/adr' '$P/compat' | grep -vE '\\.[A-Za-z0-9_.-]+$' | grep -q ."
 check template     test ! -e "$P/adr/0000-template"
+check coraza-adr   sh -c "grep -q 'corazawaf/coraza/tree/main/docs/adr' '$P/adr/0008-collection-key-case/index.html' && ! grep -oE '<p>.*</p>' '$P/adr/0008-collection-key-case/index.html' | grep -q '/adr/0015-mandatory-rule-id/'"
 check gaps-table   grep -q '<th>Behaviour today</th>' "$P/compat/known-gaps/index.html"
 check no-md-links  sh -c "! (grep -rhoE 'href=\"?[^\" >]*\.md([#\" >]|$)' '$P/spec' '$P/adr' '$P/compat' | grep -v 'https://github.com/' | grep -q .)"
 check adr-table    sh -c "grep -oE '<td[^>]*><a href=\"?[^\" >]*' '$P/adr/index.html' | grep -q '/adr/0023-reference-adapters/'"

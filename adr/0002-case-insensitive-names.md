@@ -54,5 +54,5 @@ Variable and collection names, and collection keys, are out of scope here (ADR-0
 ## References
 
 - `spec/01-lexical.md#name-matching`
-- Coraza ADR-0026 (`pmf` alias) and ADR-0027 (`ipMatchF` alias) in
+- Coraza ADR-0026 (`pmf` alias) and Coraza ADR-0027 (`ipMatchF` alias) in
   `corazawaf/coraza/docs/adr`, which added spelling aliases one at a time.

@@ -3,6 +3,7 @@
          `06-operators.md#rx` / `spec/06-operators.md#rx` -> /spec/06-operators.md#rx
          `compat/known-gaps.md` / `matrix.md#...`         -> /compat/known-gaps.md
          ADR-0024 (plain text, only numbers that have a file) -> /adr/0024-....md
+         Coraza ADR-0015 (the word Coraza directly before)    -> corazawaf/coraza/docs/adr on GitHub
          `tests/...`, `adapters/...`, `tools/...`          -> the file (blob) or directory (tree) on GitHub
        The ".md" targets are resolved to page URLs by Hextra's link render hook
        (layouts/_markup/render-link.html in the theme). */ -}}
@@ -20,4 +21,8 @@
     {{- if ne $num "0000" -}}{{- $body = replaceRE (printf `\bADR-%s\b` $num) (printf "[ADR-%s](/adr/%s.md)" $num $stem) $body -}}{{- end -}}
   {{- end -}}
 {{- end -}}
+{{- $coraza := "https://github.com/corazawaf/coraza/tree/main/docs/adr" -}}
+{{- /* a Coraza ADR the local pass already linked: retarget it; one it left alone: link it */ -}}
+{{- $body = replaceRE `(Coraza(?:'s)?\s)\[ADR-(\d{4})\]\([^)]*\)` (printf "$1[ADR-$2](%s)" $coraza) $body -}}
+{{- $body = replaceRE `(Coraza(?:'s)?\s)ADR-(\d{4})\b` (printf "$1[ADR-$2](%s)" $coraza) $body -}}
 {{- return $body -}}

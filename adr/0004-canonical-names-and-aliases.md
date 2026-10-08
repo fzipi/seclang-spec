@@ -18,7 +18,7 @@ Several operators, transformations and directive values have more than one spell
   (`src/parser/seclang-scanner.ll`).
 - Coraza registers `normalisePath`/`normalizePath` (+Win) in
   `internal/transformations/transformations.go`, and added `pmf` and `ipMatchF` one at a
-  time in its ADR-0026 and ADR-0027 after rulesets in the wild failed to load.
+  time in Coraza ADR-0026 and Coraza ADR-0027 after rulesets in the wild failed to load.
 - Coraza accepts `HTTPS` and `Syslog` for `SecAuditLogType`; libmodsecurity v3 accepts
   `https`; ModSecurity v2 accepts neither.
 
@@ -62,4 +62,4 @@ introduced without amending this ADR; engines SHOULD log the canonical spelling.
 ## References
 
 - `spec/02-grammar.md#operator`, `spec/07-transformations.md`
-- Coraza ADR-0026 and ADR-0027 in `corazawaf/coraza/docs/adr`
+- Coraza ADR-0026 and Coraza ADR-0027 in `corazawaf/coraza/docs/adr`

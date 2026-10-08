@@ -19,7 +19,7 @@ the CRS documentation for user exclusions relies on `ruleRemoveTargetById` and
 `ctl:auditLogParts` has two value forms: relative (`+E`, `-E`) and absolute (`ABCZ`).
 ModSecurity v2 accepts both (`apache2/re_actions.c`), libmodsecurity v3 accepts only the
 relative form (`seclang-scanner.ll`, `=[+|-]{AUDIT_PARTS}`), Coraza accepts both
-(`types.ApplyAuditLogParts` falls back to `ParseAuditLogParts`; relative form since its
+(`types.ApplyAuditLogParts` falls back to `ParseAuditLogParts`; relative form since Coraza
 ADR-0032). Coraza also has a 21st option, `forceResponseBodyVariable`, missed by the
 Phase 1 survey and added to the matrix in Phase 3.
 

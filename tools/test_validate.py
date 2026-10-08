@@ -533,3 +533,24 @@ class GapsCheckTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AdrReferenceTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = make_repo(Path(self._tmp.name))
+        (self.root / "adr/0001-first.md").write_text("# ADR-0001: first\n")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_bare_reference_without_file_is_reported(self):
+        (self.root / "spec/01-x.md").write_text("See ADR-0001, Coraza ADR-0099 and ADR-0098 for details.\n")
+        errors = validate.check_adr_references(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("spec/01-x.md:1", errors[0])
+        self.assertIn("ADR-0098", errors[0])
+
+    def test_coraza_prefix_may_span_a_line_break_and_template_is_ignored(self):
+        (self.root / "adr/0002-second.md").write_text("# ADR-0002: second\n\nrelative form since Coraza\nADR-0032); see also Coraza's ADR-0007 and ADR-NNNN.\n")
+        self.assertEqual(validate.check_adr_references(self.root), [])

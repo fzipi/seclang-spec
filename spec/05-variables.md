@@ -175,7 +175,7 @@ order in which the engine parsed them; a repeated name yields repeated members, 
 libmodsecurity v3 (`headers/modsecurity/anchored_set_variable.h`, `MyEqual`/`MyHash` lower
 case) match keys case-insensitively. Coraza 3.8.1 does too by default
 (`internal/collections/map.go`, `strings.ToLower`) but a build with
-`coraza.rule.case_sensitive_args_keys` (its ADR-0016) is case-sensitive and therefore
+`coraza.rule.case_sensitive_args_keys` (Coraza ADR-0016) is case-sensitive and therefore
 non-conforming. See ADR-0008.
 
 **Tests.** `tests/engine/variables/key-case.yaml`
@@ -517,7 +517,7 @@ LF line endings, missing semicolons, invalid parts, file limit exceeded), otherw
 Which anomalies an engine detects differs, so this specification only requires `0` for a
 well-formed body; the individual `MULTIPART_*` flags are Extended.
 
-**Divergence notes.** Coraza's own ADR-0017 lists the anomalies it detects.
+**Divergence notes.** Coraza ADR-0017 lists the anomalies it detects.
 
 **Tests.** `tests/engine/variables/multipart.yaml`
 

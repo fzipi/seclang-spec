@@ -8,7 +8,7 @@
 ## Context
 
 `t:uppercase` exists in libmodsecurity v3 (`src/actions/transformations/upper_case.cc`)
-and Coraza (added in its ADR-0007 to match the documented behaviour) but not in
+and Coraza (added in Coraza ADR-0007 to match the documented behaviour) but not in
 ModSecurity v2 (`apache2/re_tfns.c` registers `lowercase` only). It is the mirror image
 of `lowercase`, which is Core, and trivial to implement.
 

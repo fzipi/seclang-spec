@@ -342,7 +342,7 @@ with `t:hexEncode` to compare against a hex string, as CRS does.
 
 **Divergence notes.** Coraza 3.8.1 uses `strings.ToUpper` (non-ASCII folding, lone
 high bytes become U+FFFD); the Core cases are ASCII-only. Implemented by libmodsecurity v3 (`src/actions/transformations/
-upper_case.cc`) and Coraza (its ADR-0007); absent from ModSecurity v2, which is
+upper_case.cc`) and Coraza (Coraza ADR-0007); absent from ModSecurity v2, which is
 therefore listed in `compat/known-gaps.md`. Promoted to Core by ADR-0012 as the design
 seeded; it is the only Core feature one engine lacks by construction.
 
@@ -387,7 +387,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Base64 decoding that skips characters outside the alphabet instead of stopping at them (Coraza's ADR-0014 lineage).
+**Semantics.** Base64 decoding that skips characters outside the alphabet instead of stopping at them (Coraza ADR-0014 lineage).
 
 **Implemented by.** v2, v3, Coraza.
 

@@ -124,7 +124,7 @@ exceeds the leaf count; the Core test asserts a lower bound.
 
 **Status:** Engine-specific
 
-**Semantics.** Coraza only (`internal/bodyprocessors/raw.go`, its ADR-0010): exposes any
+**Semantics.** Coraza only (`internal/bodyprocessors/raw.go`, Coraza ADR-0010): exposes any
 body as `REQUEST_BODY` without parsing, selected with `ctl:requestBodyProcessor=RAW`.
 The portable equivalent is `ctl:forceRequestBodyVariable=On`.
 
