@@ -489,6 +489,71 @@ def step (o : Oracle) (items : List Item) (prepare : Nat → Tx → Store) (p : 
 def runTransaction (o : Oracle) (items : List Item) (prepare : Nat → Tx → Store) (tx : Tx) : Tx :=
   [1, 2, 3, 4, 5].foldl (fun tx p => step o items prepare p tx) tx
 
+/-! ## Theorems for the Divergence ADRs -/
+
+/-- ADR-0017: a rule without `phase` runs in phase 2. -/
+theorem phase_default (r : Rule) (h : actionValue r.actions "phase" = none) : chainPhase r = 2 := by
+  simp [chainPhase, h]
+
+/-- ADR-0017: the phase never comes from the default actions in force. -/
+theorem phase_not_inherited (d₁ d₂ : List (Nat × List Action)) (r : Rule) :
+    (mkChain d₁ r).phase = (mkChain d₂ r).phase := rfl
+
+/-- ADR-0016: every phase starts with no pending `skipAfter` and no `skip` count; the state of
+the previous phase is not consulted. -/
+theorem skipAfter_ends_with_phase (o : Oracle) (items : List Item) (prepare : Nat → Tx → Store) (p : Nat) (tx : Tx) :
+    step o items prepare p tx =
+      (let tx' := startPhase { tx with store := prepare p tx }
+       if phaseRuns tx' p then runItems o p items ⟨0, none⟩ tx' else tx') := rfl
+
+/-- ADR-0016: a pending label that no later marker or rule id carries evaluates nothing for the
+rest of its phase. -/
+theorem skipAfter_missing (o : Oracle) (p k : Nat) (l : String) (items : List Item) (tx : Tx)
+    (h : ∀ i ∈ items, (match i with | .marker m => m ≠ l | .chain c => labelMatches c l = false)) :
+    (runItems o p items ⟨k, some l⟩ tx).evaluated = tx.evaluated := by
+  induction items generalizing tx with
+  | nil => rfl
+  | cons i rest ih =>
+    have hi := h i (List.mem_cons_self ..)
+    have hr : ∀ j ∈ rest, (match j with | .marker m => m ≠ l | .chain c => labelMatches c l = false) :=
+      fun j hj => h j (List.mem_cons_of_mem _ hj)
+    cases i with
+    | marker m =>
+      have hne : (some l == some m) = false := by
+        rw [beq_eq_false_iff_ne]
+        intro e
+        exact hi (Option.some.inj e).symm
+      simp only [runItems]
+      split
+      · rfl
+      · simp [hne]
+        exact ih tx hr
+    | chain c =>
+      simp only [runItems]
+      split
+      · rfl
+      · simp [hi]
+        exact ih tx hr
+
+/-- An interruption in an earlier phase: phases 2–4 evaluate nothing. -/
+theorem interrupted_phase_quiet (o : Oracle) (items : List Item) (prepare : Nat → Tx → Store) (p : Nat) (tx : Tx)
+    (hp : p ≠ 5) (hi : tx.interruption.isSome) :
+    (step o items prepare p tx).evaluated = tx.evaluated := by
+  have hp' : (p == 5) = false := by simpa using hp
+  have hn : tx.interruption ≠ none := by
+    intro e
+    rw [e] at hi
+    simp at hi
+  simp [step, startPhase, phaseRuns, hp', hn]
+
+/-- Phase 5 runs whenever the engine is not off at its boundary, interrupted or not. -/
+theorem logging_phase_runs (tx : Tx) (h : tx.nextMode ≠ .off) : phaseRuns (startPhase tx) 5 = true := by
+  simp only [phaseRuns, startPhase]
+  cases hm : tx.nextMode with
+  | off => exact absurd hm h
+  | on => rfl
+  | detectionOnly => rfl
+
 def testOracle : Oracle := ⟨Regex.search⟩
 def run (cfg : String) (store : Store) : Tx :=
   match parseConfig [] cfg with
