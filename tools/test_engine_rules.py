@@ -36,4 +36,5 @@ class ExtractTests(unittest.TestCase):
         self.assertEqual(out[0]["rules"], "SecRuleEngine On\nInclude a.conf\n")
         self.assertEqual(out[0]["files"], {"a.conf": 'SecRule ARGS "@streq 1" "id:1,phase:1,pass"\n'})
         self.assertTrue(out[0]["expect_error"])
+        self.assertIs(out[0]["tests"][0]["stages"][0]["stage"]["output"]["expect_error"], True)
         json.dumps(out)

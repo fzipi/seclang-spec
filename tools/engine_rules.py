@@ -1,8 +1,8 @@
 """Extract every engine profile's configuration for the Lean parser (formal/ParseMain.lean).
 
 Usage: uv run python tools/engine_rules.py > formal/.lake/engine-rules.json
-Output: a JSON list of {path, rules, files, expect_error}; expect_error is true when any
-stage of the profile asserts expect_error.
+Output: a JSON list of {path, rules, files, expect_error, tests}; expect_error is true when
+any stage of the profile asserts expect_error; tests is the profile's test list verbatim.
 """
 import json
 import sys
@@ -24,6 +24,7 @@ def extract(root: Path) -> list[dict]:
             "rules": d["rules"],
             "files": d.get("files") or {},
             "expect_error": bool(expect),
+            "tests": d["tests"],
         })
     return out
 
