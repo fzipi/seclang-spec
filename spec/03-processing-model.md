@@ -218,9 +218,12 @@ v3 (`rules_exceptions.cc`, exceptions are stored and applied lazily) ignore it, 
 effect lasts for the remainder of the transaction. Options that edit rules
 (`ruleRemoveById`, `ruleRemoveByTag`, `ruleRemoveTargetById`, `ruleRemoveTargetByTag`)
 take effect immediately: the next rule evaluated in the same phase already sees them.
-`ctl:ruleEngine` takes effect at the start of the **next** phase; whether it also stops
-the remaining rules of the current phase is **not specified**, so a rule that disables
-the engine SHOULD be the last rule of its phase that matters. The other state options
+`ctl:ruleEngine` changes the mode for every later phase. Within the current phase,
+`DetectionOnly` applies at once: a later rule of the same phase that matches is logged
+but does not interrupt (all three engines decide the mode at the moment of
+interrupting). Whether `Off` also stops the remaining rules of the current phase is
+**not specified**, so a rule that disables the engine SHOULD be the last rule of its
+phase that matters. The other state options
 (`auditEngine`, `auditLogParts`, `requestBodyAccess`, `requestBodyProcessor`,
 `forceRequestBodyVariable`) apply to whatever the engine does after the rule matched. Options that
 control request body handling (`requestBodyAccess`, `requestBodyProcessor`,
@@ -235,4 +238,5 @@ read.
 Rule-removal options are immediate in all three (v2 same loop, v3 `rules_set.cc`
 `m_exceptions`, Coraza `rulegroup.go` `ruleRemoveByID`).
 
-**Tests.** `tests/engine/processing/ctl-timing.yaml`
+**Tests.** `tests/engine/processing/ctl-timing.yaml`,
+`tests/engine/processing/ctl-core-options-load.yaml`

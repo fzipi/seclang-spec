@@ -345,14 +345,19 @@ def applySetvar (tx : Tx) (v : String) : Tx :=
       else e
   { tx with tx := others ++ [⟨key, newVal⟩] }
 
-/-- `ctl` (`03#ctl-timing`): rule edits immediate, `ruleEngine` at the next phase. -/
+/-- `ctl` (`03#ctl-timing`): rule edits are immediate; `ruleEngine` applies to the later
+phases and, for `DetectionOnly` (and `On`), to the rest of the current phase as well, so a
+later rule of the same phase no longer interrupts; `Off` leaves the current phase running
+(the model's choice where the spec is silent). -/
 def applyCtl (tx : Tx) (v : String) : Tx :=
   let (opt, val) := match v.splitOn "=" with | [o] => (o, "") | o :: rest => (o, "=".intercalate rest) | [] => ("", "")
   let ranges (r : String) : List (Nat × Nat) := (parseRanges 0 [r]).toOption.getD []
   let ids (r : String) : List Nat := (ranges r).flatMap fun (a, z) => (List.range (z + 1 - a)).map (· + a)
   let target (t : String) : Option Variable := ((parseVariables 0 t).toOption.bind List.head?)
   match opt with
-  | "ruleEngine" => { tx with nextMode := modeOf val }
+  | "ruleEngine" =>
+    let m := modeOf val
+    { tx with nextMode := m, mode := if m == .off then tx.mode else m }
   | "ruleRemoveById" => { tx with removedIds := tx.removedIds ++ ids val }
   | "ruleRemoveByTag" => { tx with removedTags := tx.removedTags ++ [val] }
   | "ruleRemoveTargetById" => match val.splitOn ";" with
@@ -589,5 +594,8 @@ def demoStore (args : List (String × String)) : Store :=
 #guard tri (run "SecRule ARGS_GET:a \"@streq hello\" \"id:1,phase:1,pass,t:lowercase,chain\"\n  SecRule MATCHED_VAR \"@streq hello\" \"t:none\"\nSecRule ARGS_GET:a \"@streq hello\" \"id:2,phase:1,pass,t:lowercase,chain\"\n  SecRule MATCHED_VAR_NAME \"@streq ARGS_GET:a\" \"t:none\"\nSecRule ARGS_GET:b|ARGS_GET:c \"@rx ^v\" \"id:3,phase:1,pass,chain\"\n  SecRule &MATCHED_VARS \"@eq 2\" \"t:none\"" (demoStore [("a", "HeLLo"), ("b", "v1"), ("c", "v2")])) == [1, 2, 3]
 #guard tri (run "SecRule REQUEST_HEADERS:X-P \"@streq 1\" \"id:1,phase:1,pass,nolog,ctl:ruleRemoveTargetById=2;ARGS_GET:a\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:1,pass\"" (demoStore [("a", "1")])) == [1, 3]
 #guard tri (run "SecRule ARGS_GET:q \"@pm forbidden other\" \"id:1,phase:1,pass\"\nSecRule &ARGS_GET \"@lt 3\" \"id:2,phase:1,pass\"\nSecRule ARGS_GET:a \"@eq 0\" \"id:3,phase:1,pass\"\nSecRule ARGS_GET:q \"@contains FORB\" \"id:4,phase:1,pass\"" (demoStore [("q", "this is FORBIDDEN"), ("a", "abc")])) == [1, 2, 3, 4]
+
+#guard (let tx := run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,nolog,ctl:ruleEngine=DetectionOnly\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,deny\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:2,deny\"" (demoStore [("a", "1")])
+        (tx.triggered, tx.interruption)) == ([1, 2, 3], none)
 
 end SecLang

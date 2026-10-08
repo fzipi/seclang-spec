@@ -134,7 +134,8 @@ Whether `/` inside the expression may be escaped as `\/` is engine-dependent and
 **Semantics.** An argument beginning with `@` names an operator; the rest of the
 argument, after one run of whitespace, is its parameter. An argument that does not begin
 with `@` or `!@` is the parameter of the implicit `@rx` operator. A leading `!` negates
-the result: the rule matches when the operator is false for *every* selected value. The
+the result: the rule matches when the operator is false for *every* selected value and at
+least one value was selected (`06-operators.md#unconditionalmatch`). The
 set of operators and their parameters is defined in `06-operators.md`. An unknown
 operator name MUST be a configuration error.
 

@@ -499,9 +499,10 @@ the three values above), so it is Extended.
 
 **Syntax.** `ctl:ruleEngine=On|Off|DetectionOnly`
 
-**Semantics.** Overrides `SecRuleEngine` from the next phase onward
-(`03-processing-model.md#ctl-timing`); its effect on the remaining rules of the current
-phase is not specified.
+**Semantics.** Overrides `SecRuleEngine` for the later phases; `DetectionOnly` also
+suppresses interruptions for the rest of the current phase
+(`03-processing-model.md#ctl-timing`); whether `Off` stops the remaining rules of the
+current phase is not specified.
 
 **Tests.** `tests/engine/actions/ctl-options.yaml`,
 `tests/engine/processing/ctl-timing.yaml`

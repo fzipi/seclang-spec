@@ -1,0 +1,155 @@
+import Lean.Data.Json
+import SecLang
+
+/-! Runs every engine profile the abstract transaction can carry through the processing model
+and checks `triggered_rules`, `non_triggered_rules`, `interruption` and `no_interruption`.
+Profiles needing features outside the model are reported as unsupported with the reason.
+Exit 1 on any mismatch. -/
+open Lean SecLang
+
+structure Stage where
+  title : String
+  input : Request
+  response : Option Response
+  output : Json
+
+structure Profile where
+  path : String
+  rules : String
+  files : List (String × String)
+  expectError : Bool
+  stages : List Stage
+
+def strD (j : Json) (k d : String) : String := ((j.getObjVal? k).bind Json.getStr?).toOption.getD d
+def kvs (j : Json) (k : String) : List (String × String) :=
+  match j.getObjVal? k with
+  | .ok (.obj m) => m.toList.filterMap fun (n, v) => (v.getStr?).toOption.map (n, ·)
+  | _ => []
+
+def stageOf (title : String) (j : Json) : Except String Stage := do
+  let st ← j.getObjVal? "stage"
+  let inp := (st.getObjVal? "input").toOption.getD (Json.mkObj [])
+  let req : Request := { method := strD inp "method" "GET", uri := strD inp "uri" "/", version := strD inp "version" "HTTP/1.1",
+                         headers := kvs inp "headers", body := ((inp.getObjVal? "data").bind Json.getStr?).toOption,
+                         remoteAddr := strD inp "remote_addr" "127.0.0.1" }
+  let resp : Option Response := match st.getObjVal? "response" with
+    | .ok r => some { status := ((r.getObjVal? "status").bind Json.getNat?).toOption.getD 200, headers := kvs r "headers", body := strD r "data" "" }
+    | .error _ => none
+  return ⟨title, req, resp, ← st.getObjVal? "output"⟩
+
+def Profile.ofJson (j : Json) : Except String Profile := do
+  let tests ← (j.getObjVal? "tests") >>= Json.getArr?
+  let stages ← tests.toList.flatMapM fun t => do
+    let title := strD t "test_title" ""
+    let ss ← (t.getObjVal? "stages") >>= Json.getArr?
+    ss.toList.mapM (stageOf title)
+  return { path := ← j.getObjVal? "path" >>= Json.getStr?, rules := ← j.getObjVal? "rules" >>= Json.getStr?,
+           files := kvs j "files", expectError := ← j.getObjVal? "expect_error" >>= Json.getBool?, stages }
+
+/-- `SecRuleEngine` and the store settings from the configuration. -/
+def settingsOf (cfg : Config) : Settings × Mode :=
+  cfg.directives.foldl (fun (s, m) d => match d with
+    | .setting _ "SecRuleEngine" [v] => (s, modeOf v)
+    | .setting _ "SecArgumentSeparator" [v] => ({ s with argSep := v.toList.headD '&' }, m)
+    | .setting _ "SecArgumentsLimit" [v] => ({ s with argsLimit := natOf? v }, m)
+    | .setting _ "SecRequestBodyAccess" [v] => ({ s with requestBodyAccess := v.toLower == "on" }, m)
+    | .setting _ "SecResponseBodyAccess" [v] => ({ s with responseBodyAccess := v.toLower == "on" }, m)
+    | .setting _ "SecResponseBodyMimeType" vs => ({ s with mimeTypes := s.mimeTypes ++ vs }, m)
+    | .setting _ "SecResponseBodyMimeTypesClear" _ => ({ s with mimeTypes := [] }, m)
+    | _ => (s, m)) ({}, .off)
+
+def implementedOperators : List String :=
+  ["rx", "streq", "contains", "beginsWith", "endsWith", "within", "eq", "ge", "gt", "le", "lt", "pm",
+   "unconditionalMatch", "validateByteRange", "validateUrlEncoding", "validateUtf8Encoding", "ipMatch"]
+def unsupportedVariables : List String :=
+  ["FILES", "FILES_NAMES", "FILES_COMBINED_SIZE", "MULTIPART_PART_HEADERS", "MULTIPART_STRICT_ERROR", "XML",
+   "REQBODY_ERROR", "REQBODY_ERROR_MSG", "INBOUND_DATA_ERROR", "OUTBOUND_DATA_ERROR", "IP", "GLOBAL", "SESSION", "USER", "RESOURCE"]
+def limitDirectives : List String := ["SecRequestBodyLimit", "SecResponseBodyLimit", "SecRequestBodyNoFilesLimit"]
+
+/-- The first feature outside the model that a profile needs, if any. -/
+def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
+  let rules := cfg.directives.filterMap fun | .rule r => some r | _ => none
+  let ops := rules.filterMap fun r => r.operator.map (·.name)
+  let vars := rules.flatMap fun r => r.variables.map (·.collection)
+  let acts := rules.flatMap (·.actions)
+  let dirs := cfg.directives.filterMap fun | .setting _ n _ => some n | _ => none
+  if let some op := ops.find? (fun n => !implementedOperators.contains n) then some s!"operator @{op}"
+  else if let some v := vars.find? unsupportedVariables.contains then some s!"variable {v}"
+  else if let some a := acts.find? (fun a => ["initcol", "expirevar", "setsid", "setuid", "setrsc"].contains a.name) then some s!"action {a.name}"
+  else if acts.any (fun a => a.name == "ctl" && (a.value.getD "").startsWith "requestBodyProcessor=" && !(a.value.getD "").toLower.endsWith "urlencoded") then some "body processor selected by ctl"
+  else if let some d := dirs.find? limitDirectives.contains then some s!"directive {d}"
+  else if stages.any (fun s => (s.output.getObjVal? "log_contains").toOption.isSome || (s.output.getObjVal? "no_log_contains").toOption.isSome) then some "log assertions"
+  else if stages.any (fun s => s.input.body.isSome && (headerValue s.input.headers "Content-Type").any fun ct =>
+            let c := ct.toLower; c.startsWith "multipart/" || c.startsWith "application/json" || c.endsWith "xml") then some "body processor"
+  else none
+
+def natList (j : Json) (k : String) : List Nat :=
+  match (j.getObjVal? k).bind Json.getArr? with
+  | .ok a => a.toList.filterMap fun x => (x.getNat?).toOption
+  | .error _ => []
+
+/-- Mismatches of one stage, in the adapters' wording. -/
+def checkStage (o : Oracle) (items : List Item) (settings : Settings) (mode : Mode) (st : Stage) : List String :=
+  let prepare : Nat → Tx → Store := fun p tx => match p with
+    | 1 => phase1Store settings st.input
+    | 2 => phase2Store settings st.input (tx.bodyAccess.getD settings.requestBodyAccess) tx.bodyProcessor tx.forceBody tx.store
+    | 3 => phase3Store st.response tx.store
+    | 4 => phase4Store settings st.response tx.store
+    | _ => tx.store
+  let tx := runTransaction o items prepare { mode, nextMode := mode }
+  let out := st.output
+  let want := natList out "triggered_rules"
+  let wantNot := natList out "non_triggered_rules"
+  let m1 := (want.filter fun id => !tx.triggered.contains id).map fun id => s!"rule {id} expected triggered"
+  let m2 := (wantNot.filter tx.triggered.contains).map fun id => s!"rule {id} expected not triggered"
+  let m3 := match out.getObjVal? "interruption" with
+    | .ok i =>
+      let rid := ((i.getObjVal? "rule_id").bind Json.getNat?).toOption
+      let act := ((i.getObjVal? "action").bind Json.getStr?).toOption
+      let status := ((i.getObjVal? "status").bind Json.getNat?).toOption
+      match tx.interruption with
+      | none => [s!"expected interruption by rule {rid.getD 0}, got none"]
+      | some got =>
+        (if rid.any (· != got.ruleId) then [s!"interruption rule_id {got.ruleId}, expected {rid.getD 0}"] else []) ++
+        (if act.any (· != got.action) then [s!"interruption action {got.action}, expected {act.getD ""}"] else []) ++
+        (if status.any (· != got.status) then [s!"interruption status {got.status}, expected {status.getD 0}"] else [])
+    | .error _ => []
+  let m4 := match out.getObjVal? "no_interruption" with
+    | .ok (.bool true) => match tx.interruption with | some i => [s!"unexpected interruption by rule {i.ruleId}"] | none => []
+    | _ => []
+  m1 ++ m2 ++ m3 ++ m4
+
+def main (args : List String) : IO UInt32 := do
+  let some file := args.head? | IO.eprintln "usage: seclang-eval engine-rules.json"; return 2
+  let txt ← IO.FS.readFile file
+  let profiles ← IO.ofExcept (Json.parse txt >>= Json.getArr? >>= (·.mapM Profile.ofJson))
+  let o : Oracle := ⟨Regex.search⟩
+  let mut stages := 0
+  let mut mismatches := 0
+  let mut unsupported := 0
+  for p in profiles do
+    if p.expectError then
+      IO.println s!"{p.path}: skipped (expect_error)"
+      continue
+    match parseConfig p.files p.rules with
+    | .error e =>
+      IO.println s!"{p.path}: cannot load: line {e.line}: {e.msg}  <-- MISMATCH"
+      mismatches := mismatches + 1
+    | .ok cfg =>
+      match unsupportedReason cfg p.stages with
+      | some why =>
+        IO.println s!"{p.path}: unsupported ({why})"
+        unsupported := unsupported + 1
+      | none =>
+        let (settings, mode) := settingsOf cfg
+        let items := effectiveItems o cfg
+        for st in p.stages do
+          stages := stages + 1
+          let ms := checkStage o items settings mode st
+          if ms.isEmpty then IO.println s!"{p.path} [{st.title}]: ok"
+          else
+            mismatches := mismatches + 1
+            IO.println s!"{p.path} [{st.title}]: MISMATCH"
+            for m in ms do IO.println s!"  {m}"
+  IO.println s!"{stages} stages, {mismatches} mismatches, {unsupported} unsupported profiles"
+  return if mismatches == 0 then 0 else 1
