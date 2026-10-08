@@ -4,11 +4,14 @@
   {{ $raw := .Content }}
   {{ $title := "Decisions" }}
   {{ with findRESubmatch `(?m)^# (.+)$` $raw 1 }}{{ $title = index (index . 0) 1 }}{{ end }}
+  {{/* The index links its ADRs relatively (`[0023](0023-reference-adapters.md)`); a section
+       page has no file directory for the link hook to resolve against, so make them absolute. */}}
+  {{ $body := replaceRE `\]\((\d{4}-[a-z0-9-]+\.md)\)` "](/adr/$1)" (replaceRE `(?m)^# .+\n` "" $raw 1) }}
   {{ $.AddPage (dict
       "kind" "section"
       "path" "adr"
       "title" $title
       "weight" 3
-      "content" (dict "mediaType" "text/markdown" "value" (partial "rewrite-refs.html" (replaceRE `(?m)^# .+\n` "" $raw 1)))
+      "content" (dict "mediaType" "text/markdown" "value" (partial "rewrite-refs.html" $body))
   ) }}
 {{ end }}
