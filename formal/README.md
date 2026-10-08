@@ -1,8 +1,9 @@
 # Formal model
 
 Lean 4 definitions of the specification, executable against the conformance corpus.
-Status: spike, five transformations (`SecLang/Transformations.lean`); design in
-`docs/superpowers/specs/2026-10-08-lean-spike-design.md`, roadmap in
+Status: every transformation of `spec/07-transformations.md` (`SecLang/Transformations.lean`,
+digests in `SecLang/Digest.lean`, helpers in `SecLang/Bytes.lean`); design documents under
+`docs/superpowers/specs/2026-10-08-lean-*.md`, roadmap in
 `docs/superpowers/specs/2026-10-08-lean-formalization-brief.md`.
 
 ## Build and run

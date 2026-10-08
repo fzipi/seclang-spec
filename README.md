@@ -27,7 +27,7 @@ v2 (`v2/master`, 2026-09), libmodsecurity v3.0.16 and Coraza v3.8.1.
 | `docs/superpowers/` | The design document and the per-phase implementation plans this draft was built from. |
 | `tools/` | `validate.py` enforces the repo's invariants; CI runs it. `import_sts.py` regenerates the unit tier from the SecRules Test Set. |
 | `adapters/` | Reference adapters that run `tests/` against a real engine (ADR-0023). `adapters/coraza` runs Coraza v3.8.1 and `adapters/libmodsecurity` runs libmodsecurity v3.0.16 in CI, with `compat/known-gaps.md` as the expected-failure list. |
-| `formal/` | Lean 4 model of the specification, run against the unit-tier corpus in CI (`lake exe seclang-check`). Spike stage: five transformations. |
+| `formal/` | Lean 4 model of the specification, run against the unit-tier corpus in CI (`lake exe seclang-check`). Covers every transformation of spec 07. |
 
 ## Status labels
 

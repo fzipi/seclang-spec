@@ -10,7 +10,7 @@ Unit-tier cases live in `tests/unit/transformations/`, imported from the SecRule
 Set by `tools/import_sts.py` (`tests/README.md`), except `base64Decode.json`, which
 encodes the Phase 1 decision on malformed input. The Lean definitions in
 `formal/SecLang/Transformations.lean` are the executable reference for the behaviour this
-chapter defines in the transformations they cover (`formal/README.md`); where the text
+chapter defines (`formal/README.md`); where the text
 leaves input unspecified, as for malformed `base64Decode` input, the model's choice is
 not normative.
 
