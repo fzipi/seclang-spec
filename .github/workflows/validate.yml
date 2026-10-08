@@ -70,6 +70,8 @@ jobs:
           build: "true"
       - run: lake exe seclang-check
         working-directory: formal
+      - run: lake exe seclang-check ../tests/unit/operators
+        working-directory: formal
       - run: uv run python tools/engine_rules.py > formal/.lake/engine-rules.json
       - run: lake exe seclang-parse .lake/engine-rules.json
         working-directory: formal

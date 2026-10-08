@@ -2,7 +2,8 @@
 
 Lean 4 definitions of the specification, executable against the conformance corpus.
 Status: every transformation of `spec/07-transformations.md` (`SecLang/Transformations.lean`,
-digests in `SecLang/Digest.lean`, helpers in `SecLang/Bytes.lean`); design documents under
+digests in `SecLang/Digest.lean`, helpers in `SecLang/Bytes.lean`) and every library-free
+operator of `spec/06-operators.md` (`SecLang/Operators.lean`); design documents under
 `docs/superpowers/specs/2026-10-08-lean-*.md`, roadmap in
 `docs/superpowers/specs/2026-10-08-lean-formalization-brief.md`.
 
@@ -12,10 +13,17 @@ Install elan (`brew install elan-init`, or <https://github.com/leanprover/elan>)
 toolchain named in `lean-toolchain` is fetched on first build. No other dependency.
 
     cd formal
-    lake build                 # also evaluates every #guard in the sources
-    lake exe seclang-check     # ../tests/unit/transformations by default; exit 1 on any mismatch
+    lake build                                   # also evaluates every #guard in the sources
+    lake exe seclang-check                       # ../tests/unit/transformations by default; exit 1 on any mismatch
+    lake exe seclang-check ../tests/unit/operators   # the operator corpus
 
-`lake exe seclang-check <dir>` runs another directory of unit-tier files.
+`lake exe seclang-check <dir>` runs any directory of unit-tier files. Operator files are
+run for `beginsWith`, `contains`, `containsWord`, `endsWith`, `eq`, `ge`, `gt`, `ipMatch`,
+`le`, `lt`, `noMatch`, `pm`, `rx`, `streq`, `strmatch`, `unconditionalMatch`,
+`validateByteRange`, `validateUrlEncoding`, `validateUtf8Encoding`, `verifyCC`,
+`verifyCPF`, `verifySSN` and `within`; `detectSQLi` and `detectXSS` (libinjection) are
+skipped by name, and a case whose regular expression lies outside the Core `@rx` subset
+(ADR-0018 extensions such as lookahead) is reported as skipped with its reason.
 
 ## Grammar
 
@@ -47,7 +55,7 @@ restating the construction; `interrupted_phase_quiet` and `logging_phase_runs`.
 Every stage of every profile the abstract transaction can carry is run and its
 `triggered_rules`, `non_triggered_rules`, `interruption` and `no_interruption` checked. A
 profile is reported `unsupported (<reason>)` when it needs a body processor other than
-URL-encoded, body limits, persistent collections, `@detectSQLi`/`@detectXSS`,
+URL-encoded or multipart, body limits, persistent collections, `@detectSQLi`/`@detectXSS`,
 `@pmFromFile` or log assertions; that list is the model's boundary, not a known gap.
 
 ## What a mismatch means
