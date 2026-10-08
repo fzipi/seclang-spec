@@ -70,6 +70,11 @@ def main (args : List String) : IO UInt32 := do
   let files := (← dir.readDir).filter (·.path.extension == some "json")
     |>.qsort (·.fileName < ·.fileName)
   let mut ok := true
+  let mut checked := 0
   for e in files do
     ok := (← runFile e.path) && ok
+    checked := checked + 1
+  if checked == 0 then
+    IO.println s!"no corpus files found in {dir}"
+    return 1
   return if ok then 0 else 1

@@ -144,8 +144,9 @@ def b64Val (b : UInt8) : Option UInt8 :=
   else none
 
 /-- Sextets of the longest alphabet-only prefix. Decoding stops at the first other byte:
-padding, NUL (`spec/07#base64decode`), or anything else (the ModSecurity v2 / Coraza
-reading of input the spec leaves unspecified; libmodsecurity rejects such input). -/
+padding, NUL (`spec/07#base64decode`), or anything else. For input outside the alphabet
+the spec is silent and this is the ModSecurity v2 reading (`apr_base64_decode`); Coraza
+agrees except that it skips CR and LF, and libmodsecurity rejects the whole input. -/
 def b64Sextets (b : ByteArray) : Array UInt8 := Id.run do
   let mut out := #[]
   for x in b do
