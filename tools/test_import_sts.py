@@ -44,6 +44,16 @@ class ConvertTests(unittest.TestCase):
         out = import_sts.convert_case({"type": "op", "name": "rx", "param": "€", "input": "x", "ret": 0}, "a#b")
         self.assertEqual(out["param"], "â\u0082¬")
 
+    def test_transformation_ret_means_output_differs_from_input(self):
+        # tests/README.md: ret is 1 when the transformation changed its input. The corpus
+        # carries the engine's return code instead, which v2 hardcodes to 1 for some.
+        unchanged = import_sts.convert_case({"type": "tfn", "name": "hexEncode", "input": "", "output": "", "ret": 1}, "a#b")
+        self.assertEqual(unchanged["ret"], 0)
+        changed = import_sts.convert_case({"type": "tfn", "name": "lowercase", "input": "A", "output": "a", "ret": 0}, "a#b")
+        self.assertEqual(changed["ret"], 1)
+        op = import_sts.convert_case({"type": "op", "name": "rx", "param": "a", "input": "a", "ret": 1}, "a#b")
+        self.assertEqual(op["ret"], 1)
+
     def test_resource_cases_dropped_and_re_groups_kept(self):
         self.assertIsNone(import_sts.convert_case({"type": "op", "name": "pmFromFile", "param": "x", "input": "y", "ret": 1, "resource": "f"}, "a#b"))
         out = import_sts.convert_case({"type": "op", "name": "rx", "param": "(a)", "input": "a", "ret": 1, "re_groups": ["a", "a"]}, "a#b")

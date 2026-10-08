@@ -4,19 +4,19 @@
   "input": "",
   "type": "tfn",
   "name": "removeCommentsChar",
-  "ret": 1,
+  "ret": 0,
   "spec": "07-transformations.md#removecommentschar"
  },
  {
   "input": "TestCase",
   "type": "tfn",
   "name": "removeCommentsChar",
-  "ret": 1,
+  "ret": 0,
   "output": "TestCase",
   "spec": "07-transformations.md#removecommentschar"
  },
  {
-  "ret": 1,
+  "ret": 0,
   "input": "Test\u0000Case",
   "name": "removeCommentsChar",
   "type": "tfn",

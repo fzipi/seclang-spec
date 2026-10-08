@@ -68,6 +68,10 @@ def convert_case(case: dict, anchor: str) -> dict | None:
             out[k] = to_byte_string(v)
         else:
             out[k] = v
+    if out.get("type") == "tfn":
+        # tests/README.md: ret is 1 when the output differs from the input. The corpus
+        # carries the engine's return code, which v2 hardcodes to 1 for some transformations.
+        out["ret"] = int(out["output"] != out["input"])
     out["spec"] = anchor
     return out
 

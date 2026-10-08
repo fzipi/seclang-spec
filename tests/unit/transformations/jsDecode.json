@@ -36,7 +36,7 @@
   "input": "8966\n\u0000\u0000\u0000\n\n\n3u00a",
   "type": "tfn",
   "name": "jsDecode",
-  "ret": 1,
+  "ret": 0,
   "spec": "07-transformations.md#jsdecode"
  },
  {

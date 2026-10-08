@@ -4,19 +4,19 @@
   "input": "",
   "type": "tfn",
   "name": "removeComments",
-  "ret": 1,
+  "ret": 0,
   "spec": "07-transformations.md#removecomments"
  },
  {
   "input": "TestCase",
   "type": "tfn",
   "name": "removeComments",
-  "ret": 1,
+  "ret": 0,
   "output": "TestCase",
   "spec": "07-transformations.md#removecomments"
  },
  {
-  "ret": 1,
+  "ret": 0,
   "input": "Test\u0000Case",
   "name": "removeComments",
   "type": "tfn",
@@ -68,7 +68,7 @@
   "name": "removeComments",
   "input": "Before TestCase */ After",
   "type": "tfn",
-  "ret": 1,
+  "ret": 0,
   "spec": "07-transformations.md#removecomments"
  },
  {
@@ -153,7 +153,7 @@
  },
  {
   "output": "Test\r\nCase */After",
-  "ret": 1,
+  "ret": 0,
   "name": "removeComments",
   "input": "Test\r\nCase */After",
   "type": "tfn",

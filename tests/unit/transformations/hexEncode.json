@@ -1,6 +1,6 @@
 [
  {
-  "ret": 1,
+  "ret": 0,
   "input": "",
   "type": "tfn",
   "name": "hexEncode",
