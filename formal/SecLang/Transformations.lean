@@ -450,4 +450,110 @@ where
 #guard (replaceComments ⟨"Before /* TestCase */ After".toUTF8.data⟩).data == "Before   After".toUTF8.data
 #guard (replaceComments ⟨"Before/* Test".toUTF8.data⟩).data == "Before ".toUTF8.data
 
+/-- The byte for a C/JavaScript single-letter escape; any other byte stands for itself. -/
+def cEscape (n : UInt8) : UInt8 :=
+  if n == 'a'.toUInt8 then 7 else if n == 'b'.toUInt8 then 8 else if n == 'f'.toUInt8 then 12
+  else if n == 'n'.toUInt8 then 10 else if n == 'r'.toUInt8 then 13 else if n == 't'.toUInt8 then 9
+  else if n == 'v'.toUInt8 then 11 else n
+
+/-- Value of the `j` octal digits at `p`, modulo 256. -/
+def octValue (b : ByteArray) (p j : Nat) : UInt8 := Id.run do
+  let mut v : Nat := 0
+  for k in [:j] do v := v * 8 + ((byteAt b (p + k)).getD 48 - 48).toNat
+  return (v % 256).toUInt8
+
+/-- `escapeSeqDecode`: ANSI C escapes. msc_util.c `ansi_c_sequences_decode_inplace`. -/
+def escapeSeqDecode (b : ByteArray) : ByteArray := go 0 .empty
+where
+  go (i : Nat) (out : ByteArray) : ByteArray :=
+    if h : i < b.size then
+      let c := b[i]
+      if c != '\\'.toUInt8 then go (i + 1) (out.push c)
+      else match byteAt b (i + 1) with
+        | none => out.push c                                   -- lone trailing backslash kept
+        | some n =>
+          if n == 'x'.toUInt8 || n == 'X'.toUInt8 then
+            match hexAt b (i + 2), hexAt b (i + 3) with
+            | some h1, some h2 => go (i + 4) (out.push (h1 * 16 + h2))
+            | _, _ => go (i + 2) (out.push n)                  -- "x" kept, backslash dropped
+          else if isOctal n then
+            let j := takeWhile b isOctal (i + 1) 3
+            go (i + 1 + j) (out.push (octValue b (i + 1) j))
+          else go (i + 2) (out.push (cEscape n))
+    else out
+  termination_by b.size - i
+
+/-- `jsDecode`: `\uHHHH` (low byte, full-width fold as `urlDecodeUni`), `\xHH`, octal up to
+three digits (two when three would exceed one byte), `\a \b \f \n \r \t \v`; any other
+escaped byte stands for itself. msc_util.c `js_decode_nonstrict_inplace`. -/
+def jsDecode (b : ByteArray) : ByteArray := go 0 .empty
+where
+  go (i : Nat) (out : ByteArray) : ByteArray :=
+    if h : i < b.size then
+      let c := b[i]
+      if c != '\\'.toUInt8 then go (i + 1) (out.push c)
+      else match byteAt b (i + 1) with
+        | none => out.push c
+        | some n =>
+          match n == 'u'.toUInt8, hexAt b (i + 2), hexAt b (i + 3), hexAt b (i + 4), hexAt b (i + 5) with
+          | true, some h2, some h3, some h4, some h5 => go (i + 6) (out.push (uniByte (fun _ => none) h2 h3 h4 h5))
+          | _, _, _, _, _ =>
+            match n == 'x'.toUInt8, hexAt b (i + 2), hexAt b (i + 3) with
+            | true, some h1, some h2 => go (i + 4) (out.push (h1 * 16 + h2))
+            | _, _, _ =>
+              if isOctal n then
+                let j0 := takeWhile b isOctal (i + 1) 3
+                let j := if j0 == 3 && n > '3'.toUInt8 then 2 else j0
+                go (i + 1 + j) (out.push (octValue b (i + 1) j))
+              else go (i + 2) (out.push (cEscape n))
+    else out
+  termination_by b.size - i
+
+/-- The byte of a named entity, compared case-insensitively. -/
+def namedEntity (name : ByteArray) : Option UInt8 :=
+  let s := (lowercase name).data
+  if s == "quot".toUTF8.data then some 0x22 else if s == "amp".toUTF8.data then some 0x26
+  else if s == "lt".toUTF8.data then some 0x3C else if s == "gt".toUTF8.data then some 0x3E
+  else if s == "nbsp".toUTF8.data then some 0xA0 else none
+
+/-- Value of the `n` digits at `p` in the given base, modulo 256. -/
+def digitsValue (b : ByteArray) (p n base : Nat) : UInt8 := Id.run do
+  let mut v : Nat := 0
+  for k in [:n] do v := v * base + ((byteAt b (p + k)).bind hexVal |>.getD 0).toNat
+  return (v % 256).toUInt8
+
+/-- `htmlEntityDecode`. msc_util.c `html_entities_decode_inplace`: `&#NNN;`, `&#xHH;` (the
+`;` optional, the value modulo 256; v2's `strtol` saturates instead for values beyond
+`long`) and the five named entities; anything else is copied. -/
+def htmlEntityDecode (b : ByteArray) : ByteArray := go 0 .empty
+where
+  go (i : Nat) (out : ByteArray) : ByteArray :=
+    if h : i < b.size then
+      let c := b[i]
+      if c != '&'.toUInt8 then go (i + 1) (out.push c)
+      else if byteAt b (i + 1) == some '#'.toUInt8 then
+        -- `hx` is 1 for the `&#x` form: the digits start at `i + 2 + hx`
+        let hx := if (byteAt b (i + 2)).any (fun u => u == 'x'.toUInt8 || u == 'X'.toUInt8) then 1 else 0
+        let n := takeWhile b (if hx == 1 then isHex else isDigit) (i + 2 + hx) b.size
+        if n == 0 then go (i + 1) (out.push c)
+        else
+          let semi := if byteAt b (i + 2 + hx + n) == some ';'.toUInt8 then 1 else 0
+          go (i + 2 + hx + n + semi) (out.push (digitsValue b (i + 2 + hx) n (if hx == 1 then 16 else 10)))
+      else
+        let n := takeWhile b isAlnum (i + 1) b.size
+        match if n == 0 then none else namedEntity (b.extract (i + 1) (i + 1 + n)) with
+        | some v =>
+          let semi := if byteAt b (i + 1 + n) == some ';'.toUInt8 then 1 else 0
+          go (i + 1 + n + semi) (out.push v)
+        | none => go (i + 1) (out.push c)
+    else out
+  termination_by b.size - i
+
+#guard (escapeSeqDecode ⟨"\\a\\b\\f\\n\\r\\t\\v\\?\\'\\\"\\0\\12\\123".toUTF8.data⟩).data == #[7, 8, 12, 10, 13, 9, 11, 0x3F, 0x27, 0x22, 0, 10, 0x53]
+#guard (escapeSeqDecode ⟨"\\8\\9\\666\\x41\\xag\\x\\".toUTF8.data⟩).data == "89\u00b6Axagx\\".toUTF8.data.filter (· != 0xC2)
+#guard (jsDecode ⟨"\\u0041\\uff01\\x42\\101\\400\\a\\q\\".toUTF8.data⟩).data == "A!BA 0\u0007q\\".toUTF8.data
+#guard (jsDecode ⟨"\\u\\u0\\u01\\u012".toUTF8.data⟩).data == "uu0u01u012".toUTF8.data
+#guard (htmlEntityDecode ⟨"&#x41;&#X42&#67;&#68&quot;&AMP&lt&gt;&nbsp;&foo;&#xg;&#;&".toUTF8.data⟩).data
+  == ("ABCD\"&<>".toUTF8.push 0xA0 ++ "&foo;&#xg;&#;&".toUTF8).data
+
 end SecLang

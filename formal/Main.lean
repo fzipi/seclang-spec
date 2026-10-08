@@ -20,7 +20,8 @@ def formalized : List (String × (ByteArray → ByteArray)) :=
    ("urlEncode", urlEncode), ("sqlHexDecode", sqlHexDecode),
    ("base64Encode", base64Encode), ("base64DecodeExt", base64DecodeExt), ("md5", md5), ("sha1", sha1),
    ("cmdLine", cmdLine), ("removeCommentsChar", removeCommentsChar), ("removeComments", removeComments),
-   ("replaceComments", replaceComments)]
+   ("replaceComments", replaceComments), ("escapeSeqDecode", escapeSeqDecode), ("jsDecode", jsDecode),
+   ("htmlEntityDecode", htmlEntityDecode)]
 
 /-- A unit-tier byte string (every code point ≤ U+00FF, one byte each; `tests/README.md`). -/
 def toBytes (s : String) : Except String ByteArray := do

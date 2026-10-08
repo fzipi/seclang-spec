@@ -203,8 +203,8 @@ yields `C2 A0` instead of the byte `A0` and two imported cases fail there
 
 **Semantics.** Decodes JavaScript escapes: `\uHHHH` (one byte, the low 8 bits of the
 code point; full-width forms `\uFF01`–`\uFF5E` map to their ASCII counterparts),
-`\xHH`, octal `\ooo`, and `\b \f \n \r \t \v`; a backslash before any other byte is
-removed.
+`\xHH`, octal `\ooo` (up to three digits, two when three would exceed one byte), and
+`\a \b \f \n \r \t \v`; a backslash before any other byte is removed.
 
 **Divergence notes.** None known.
 
