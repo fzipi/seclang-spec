@@ -359,4 +359,95 @@ def base64Encode (b : ByteArray) : ByteArray := Id.run do
 #guard (base64DecodeExt ⟨"VGVz\u0000dENh".toUTF8.data⟩).data == "Tes".toUTF8.data
 #guard (base64DecodeExt ⟨"VG=Vz".toUTF8.data⟩).data == "Tes".toUTF8.data
 
+/-- `cmdLine`. re_tfns.c `msre_fn_cmdline_execute`: deletes `"`, `'`, `\`, `^`; collapses
+runs of space, `,`, `;`, HT, CR, LF to one space and drops that space before `/` or `(`;
+lower-cases ASCII letters. v2 stops at a NUL byte (C string); v3 and Coraza, and this
+definition, process every byte. -/
+def cmdLine (b : ByteArray) : ByteArray := Id.run do
+  let mut out := ByteArray.emptyWithCapacity b.size
+  let mut space := false
+  for x in b do
+    if x == '"'.toUInt8 || x == '\''.toUInt8 || x == '\\'.toUInt8 || x == '^'.toUInt8 then
+      continue
+    if x == 32 || x == ','.toUInt8 || x == ';'.toUInt8 || x == 9 || x == 13 || x == 10 then
+      if !space then
+        out := out.push 32
+        space := true
+    else if x == '/'.toUInt8 || x == '('.toUInt8 then
+      if space then out := out.extract 0 (out.size - 1)
+      space := false
+      out := out.push x
+    else
+      out := out.push (if 65 ≤ x && x ≤ 90 then x + 32 else x)
+      space := false
+  return out
+
+/-- `removeCommentsChar`: drops `/*`, `*/`, `<!--`, `-->`, `--` and `#`. re_tfns.c
+`msre_fn_removeCommentsChar_execute`. -/
+def removeCommentsChar (b : ByteArray) : ByteArray := go 0 .empty
+where
+  go (i : Nat) (out : ByteArray) : ByteArray :=
+    if h : i < b.size then
+      let c := b[i]
+      let n1 := byteAt b (i + 1); let n2 := byteAt b (i + 2); let n3 := byteAt b (i + 3)
+      if c == '/'.toUInt8 && n1 == some '*'.toUInt8 then go (i + 2) out
+      else if c == '*'.toUInt8 && n1 == some '/'.toUInt8 then go (i + 2) out
+      else if c == '<'.toUInt8 && n1 == some '!'.toUInt8 && n2 == some '-'.toUInt8 && n3 == some '-'.toUInt8 then go (i + 4) out
+      else if c == '-'.toUInt8 && n1 == some '-'.toUInt8 && n2 == some '>'.toUInt8 then go (i + 3) out
+      else if c == '-'.toUInt8 && n1 == some '-'.toUInt8 then go (i + 2) out
+      else if c == '#'.toUInt8 then go (i + 1) out
+      else go (i + 1) (out.push c)
+    else out
+  termination_by b.size - i
+
+/-- `removeComments`. re_tfns.c `msre_fn_removeComments_execute`: outside a comment, `/*`
+and `<!--` open one and `--` or `#` ends the value; inside, `*/` and `-->` close it and
+the byte after the terminator is copied as is, which at end of input is the C terminator,
+one NUL byte, in every engine (v3 `remove_comments.cc`; Coraza `remove_comments.go` pads
+the input with NUL to reproduce it). An unterminated comment yields one space. -/
+def removeComments (b : ByteArray) : ByteArray := go 0 false .empty
+where
+  go (i : Nat) (inComment : Bool) (out : ByteArray) : ByteArray :=
+    if h : i < b.size then
+      let c := b[i]
+      let n1 := byteAt b (i + 1); let n2 := byteAt b (i + 2); let n3 := byteAt b (i + 3)
+      if !inComment then
+        if c == '/'.toUInt8 && n1 == some '*'.toUInt8 then go (i + 2) true out
+        else if c == '<'.toUInt8 && n1 == some '!'.toUInt8 && n2 == some '-'.toUInt8 && n3 == some '-'.toUInt8 then go (i + 4) true out
+        else if (c == '-'.toUInt8 && n1 == some '-'.toUInt8) || c == '#'.toUInt8 then out
+        else go (i + 1) false (out.push c)
+      else
+        if c == '*'.toUInt8 && n1 == some '/'.toUInt8 then go (i + 3) false (out.push (n2.getD 0))
+        else if c == '-'.toUInt8 && n1 == some '-'.toUInt8 && n2 == some '>'.toUInt8 then go (i + 4) false (out.push (n3.getD 0))
+        else go (i + 1) true out
+    else if inComment then out.push 32 else out
+  termination_by b.size - i
+
+/-- `replaceComments`: each `/* ... */` becomes one space; an unterminated comment becomes
+one space. re_tfns.c `msre_fn_replaceComments_execute`. -/
+def replaceComments (b : ByteArray) : ByteArray := go 0 false .empty
+where
+  go (i : Nat) (inComment : Bool) (out : ByteArray) : ByteArray :=
+    if h : i < b.size then
+      let c := b[i]
+      let n1 := byteAt b (i + 1)
+      if !inComment then
+        if c == '/'.toUInt8 && n1 == some '*'.toUInt8 then go (i + 2) true out
+        else go (i + 1) false (out.push c)
+      else if c == '*'.toUInt8 && n1 == some '/'.toUInt8 then go (i + 2) false (out.push 32)
+      else go (i + 1) true out
+    else if inComment then out.push 32 else out
+  termination_by b.size - i
+
+#guard (cmdLine ⟨"C^OMMAND /C DIR".toUTF8.data⟩).data == "command/c dir".toUTF8.data
+#guard (cmdLine ⟨"\"cmd\",;\t\r\n/c (x) \u000b".toUTF8.data⟩).data == "cmd/c(x) \u000b".toUTF8.data
+#guard (removeCommentsChar ⟨"a/*b*/c--d#e<!--f-->g".toUTF8.data⟩).data == "abcdefg".toUTF8.data
+#guard (removeComments ⟨"/* TestCase */".toUTF8.data⟩).data == #[0]
+#guard (removeComments ⟨"Before/* T*/ /* e */ /* s */ /* t */\r\nCase ".toUTF8.data⟩).data == "Before   \r\nCase ".toUTF8.data
+#guard (removeComments ⟨"a <!-- b --> c -- d".toUTF8.data⟩).data == "a  c ".toUTF8.data
+#guard (removeComments ⟨"a # b".toUTF8.data⟩).data == "a ".toUTF8.data
+#guard (removeComments ⟨"Before /* Test".toUTF8.data⟩).data == "Before  ".toUTF8.data
+#guard (replaceComments ⟨"Before /* TestCase */ After".toUTF8.data⟩).data == "Before   After".toUTF8.data
+#guard (replaceComments ⟨"Before/* Test".toUTF8.data⟩).data == "Before ".toUTF8.data
+
 end SecLang

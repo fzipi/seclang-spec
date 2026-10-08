@@ -98,10 +98,12 @@ well-formed input until a Divergence ADR settles it:
 **Syntax.** `t:cmdLine`
 
 **Semantics.** Normalises a command line as the ModSecurity reference manual defines:
-deletes `\`, `"`, `'`, `^`; deletes whitespace before `/` and `(`; replaces `,` and `;`
-with a space; collapses runs of whitespace to one space; lower-cases the result.
+deletes `\`, `"`, `'`, `^`; replaces each run of the separators space, `,`, `;`, HT, CR
+and LF with one space and drops that space when `/` or `(` follows; lower-cases ASCII
+letters. VT and FF are ordinary bytes.
 
-**Divergence notes.** None known.
+**Divergence notes.** ModSecurity v2 (`re_tfns.c`) processes the value as a C string and
+stops at the first NUL byte; libmodsecurity v3 and Coraza process every byte.
 
 **Tests.** `tests/unit/transformations/cmdLine.json`
 
@@ -283,8 +285,8 @@ it to path variables, not to `REQUEST_URI` with a query string.
 
 **Syntax.** `t:removeCommentsChar`
 
-**Semantics.** Removes the comment delimiters `/*`, `*/`, `--` and `#` wherever they
-occur, leaving the text between them.
+**Semantics.** Removes the comment delimiters `/*`, `*/`, `<!--`, `-->`, `--` and `#`
+wherever they occur, leaving the text between them.
 
 **Divergence notes.** None known.
 
@@ -457,7 +459,7 @@ the mirror of `parityEven7bit`, with the same high-bit caveat.
 
 **Status:** Extended
 
-**Semantics.** Removes C-style, SQL `--` and shell `#` comments; CRS prefers `removeCommentsChar`.
+**Semantics.** Removes C-style `/* ... */` and HTML `<!-- ... -->` comments; a SQL `--` or shell `#` outside a comment ends the value there. The byte that follows a closing `*/` or `-->` is copied as is, which at the end of the value is the C string terminator: `/* x */` yields one NUL byte in every engine (ModSecurity v2 `re_tfns.c`, libmodsecurity v3 `remove_comments.cc`, Coraza `remove_comments.go`). An unterminated comment yields one space. CRS prefers `removeCommentsChar`.
 
 **Implemented by.** v2, v3, Coraza.
 
