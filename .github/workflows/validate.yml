@@ -59,10 +59,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync
       - uses: leanprover/lean-action@f061402b660e0c34644504b324e830f2991d4865 # v1.6.1
         with:
           lake-package-directory: formal
           auto-config: "false"
           build: "true"
       - run: lake exe seclang-check
+        working-directory: formal
+      - run: uv run python tools/engine_rules.py > formal/.lake/engine-rules.json
+      - run: lake exe seclang-parse .lake/engine-rules.json
         working-directory: formal
