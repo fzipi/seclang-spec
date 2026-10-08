@@ -1,0 +1,11 @@
+[
+ {
+  "type": "tfn",
+  "name": "compressWhitespace",
+  "input": "a\u00a0\u00a0b",
+  "output": "a b",
+  "ret": 1,
+  "spec": "07-transformations.md#compresswhitespace",
+  "note": "byte 0xA0 is whitespace, as in removeWhitespace (ModSecurity v2 NBSP, Coraza rawNBSP)"
+ }
+]

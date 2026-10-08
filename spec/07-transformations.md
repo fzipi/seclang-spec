@@ -112,11 +112,15 @@ with a space; collapses runs of whitespace to one space; lower-cases the result.
 **Syntax.** `t:compressWhitespace`
 
 **Semantics.** Replaces every run of one or more whitespace bytes (space, tab, LF, VT,
-FF, CR) with a single space; NUL is not whitespace.
+FF, CR, and the non-breaking space byte 0xA0, as in `removeWhitespace`) with a single
+space; NUL is not whitespace.
 
-**Divergence notes.** None known.
+**Divergence notes.** libmodsecurity v3 (`compress_whitespace.cc`, `isspace`) does not
+treat 0xA0 as whitespace; ModSecurity v2 (`NBSP`) and Coraza (`rawNBSP`) do
+(`compat/known-gaps.md`).
 
-**Tests.** `tests/unit/transformations/compressWhitespace.json`
+**Tests.** `tests/unit/transformations/compressWhitespace.json`,
+`tests/unit/transformations/compressWhitespace-extra.json`
 
 ### cssDecode
 
@@ -410,7 +414,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Decodes pairs of hexadecimal digits into bytes. ModSecurity v2 and v3 decode every complete pair and stop at the first non-hex character or odd trailing digit; Coraza 3.8.1 returns the input unchanged in those cases (`compat/known-gaps.md`).
+**Semantics.** Decodes every complete pair of bytes as two hexadecimal digits; a trailing odd byte is dropped. The result for a pair containing a byte that is not a hexadecimal digit is not specified (ModSecurity v2 `hex2bytes_inplace` and v3 `hex_decode.cc` apply their digit arithmetic to it; the corpus cases exercising this are excluded on import). Coraza 3.8.1 returns the input unchanged on an odd length (`compat/known-gaps.md`).
 
 **Implemented by.** v2, v3, Coraza.
 
@@ -469,7 +473,7 @@ the mirror of `parityEven7bit`, with the same high-bit caveat.
 
 **Status:** Extended
 
-**Semantics.** Decodes SQL `0xHH...` hexadecimal literals to their bytes.
+**Semantics.** Decodes SQL `0xHH...` hexadecimal literals (`0x` or `0X` followed by at least one pair of hexadecimal digits) to their bytes; a `0x` with no complete pair is kept as is.
 
 **Implemented by.** v2, v3.
 

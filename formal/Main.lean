@@ -15,7 +15,9 @@ def formalized : List (String × (ByteArray → ByteArray)) :=
    ("uppercase", uppercase), ("removeNulls", removeNulls), ("replaceNulls", replaceNulls),
    ("removeWhitespace", removeWhitespace), ("trimLeft", trimLeft), ("trimRight", trimRight),
    ("trim", trim), ("length", length), ("parityEven7bit", parityEven7bit),
-   ("parityOdd7bit", parityOdd7bit), ("parityZero7bit", parityZero7bit)]
+   ("parityOdd7bit", parityOdd7bit), ("parityZero7bit", parityZero7bit),
+   ("compressWhitespace", compressWhitespace), ("hexDecode", hexDecode), ("urlDecode", urlDecode),
+   ("urlEncode", urlEncode), ("sqlHexDecode", sqlHexDecode)]
 
 /-- A unit-tier byte string (every code point ≤ U+00FF, one byte each; `tests/README.md`). -/
 def toBytes (s : String) : Except String ByteArray := do

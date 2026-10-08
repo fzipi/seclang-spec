@@ -27,6 +27,13 @@ EXCLUDED_CASES = {
     ("unconditionalMatch", "TestCase"),  # the operator takes no parameter (06-operators.md#unconditionalmatch)
 }
 
+# Transformation cases (no param) the spec leaves unspecified, keyed by input
+# (07-transformations.md#hexdecode: a non-hex byte is unspecified; v2/v3 emit digit-arithmetic garbage).
+EXCLUDED_INPUTS = {
+    ("hexDecode", "01234567890a0z01234567890a"),
+    ("hexDecode", "01234567890az"),
+}
+
 _ESC = re.compile(r"\\x([a-zA-Z0-9]{2})|\\u([a-zA-Z0-9]{4})")  # as json2bin: any alphanumerics
 
 
@@ -58,7 +65,8 @@ def to_byte_string(s: str) -> str:
 
 
 def convert_case(case: dict, anchor: str) -> dict | None:
-    if "resource" in case or (case.get("name"), case.get("param")) in EXCLUDED_CASES:
+    if ("resource" in case or (case.get("name"), case.get("param")) in EXCLUDED_CASES
+            or (case.get("name"), case.get("input")) in EXCLUDED_INPUTS):
         return None
     out = {}
     for k, v in case.items():

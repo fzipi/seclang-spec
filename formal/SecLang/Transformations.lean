@@ -221,4 +221,89 @@ def parityZero7bit : ByteArray → ByteArray := mapBytes (· &&& 0x7F)
 #guard (parityOdd7bit ⟨"abc0".toUTF8.data⟩).data == #[0x61, 0x62, 0xE3, 0xB0]
 #guard (parityZero7bit ⟨#[0xC2, 0x80, 0x00, 0xFF]⟩).data == #[0x42, 0x00, 0x00, 0x7F]
 
+/-- `compressWhitespace`: each run of whitespace (`isspace` or `0xA0`) becomes one space.
+re_tfns.c `msre_fn_compressWhitespace_execute`. -/
+def compressWhitespace (b : ByteArray) : ByteArray := Id.run do
+  let mut out := ByteArray.emptyWithCapacity b.size
+  let mut inWs := false
+  for x in b do
+    if isWs x then
+      inWs := true
+    else
+      if inWs then out := out.push 32
+      inWs := false
+      out := out.push x
+  if inWs then out := out.push 32
+  return out
+
+/-- `hexDecode`: every complete pair of bytes as two hexadecimal digits; a trailing odd byte
+is dropped. A non-hex byte is unspecified (`spec/07#hexdecode`; v2 `hex2bytes_inplace` and
+v3 `hex_decode.cc` apply digit arithmetic to it) and counts as 0 here. -/
+def hexDecode (b : ByteArray) : ByteArray := go 0 .empty
+where
+  go (i : Nat) (out : ByteArray) : ByteArray :=
+    if i + 1 < b.size then
+      go (i + 2) (out.push ((hexAt b i).getD 0 * 16 + (hexAt b (i + 1)).getD 0))
+    else out
+  termination_by b.size - i
+
+/-- `urlDecode`: `%XX` and `+`; no `%u`. msc_util.c `urldecode_nonstrict_inplace_ex`. -/
+def urlDecode (b : ByteArray) : ByteArray := go 0 .empty
+where
+  go (i : Nat) (out : ByteArray) : ByteArray :=
+    if h : i < b.size then
+      let c := b[i]
+      if c == '+'.toUInt8 then go (i + 1) (out.push 32)
+      else if c == '%'.toUInt8 then
+        match hexAt b (i + 1), hexAt b (i + 2) with
+        | some h1, some h2 => go (i + 3) (out.push (h1 * 16 + h2))
+        | _, _ => go (i + 1) (out.push c)
+      else go (i + 1) (out.push c)
+    else out
+  termination_by b.size - i
+
+/-- `urlEncode`: space to `+`; `*`, digits and ASCII letters kept; every other byte `%xx`
+in lowercase. msc_util.c `url_encode`. -/
+def urlEncode (b : ByteArray) : ByteArray := Id.run do
+  let mut out := ByteArray.emptyWithCapacity (3 * b.size)
+  for x in b do
+    if x == 32 then out := out.push '+'.toUInt8
+    else if x == '*'.toUInt8 || isAlnum x then out := out.push x
+    else out := pushHex (out.push '%'.toUInt8) x
+  return out
+
+/-- Number of consecutive hexadecimal digit pairs at `j`, at most `fuel`. -/
+def hexPairs (b : ByteArray) (j : Nat) : Nat → Nat
+  | 0 => 0
+  | k + 1 => if (hexAt b j).isSome && (hexAt b (j + 1)).isSome then 1 + hexPairs b (j + 2) k else 0
+
+/-- `sqlHexDecode`: `0x` or `0X` followed by at least one pair of hexadecimal digits
+becomes the bytes of every following pair; a `0x` with no pair is kept. msc_util.c
+`sql_hex2bytes_inplace` (which, as a C-string loop, also stops at a NUL byte; v3
+`sql_hex_decode.cc` and this definition process every byte). -/
+def sqlHexDecode (b : ByteArray) : ByteArray := go 0 .empty
+where
+  go (i : Nat) (out : ByteArray) : ByteArray :=
+    if h : i < b.size then
+      let isX := (byteAt b (i + 1)).any fun u => u == 'x'.toUInt8 || u == 'X'.toUInt8
+      let n := if b[i] == '0'.toUInt8 && isX then hexPairs b (i + 2) b.size else 0
+      if n == 0 then go (i + 1) (out.push b[i])
+      else
+        go (i + 2 + 2 * n) (Id.run do
+          let mut o := out
+          for k in [:n] do
+            o := o.push ((hexAt b (i + 2 + 2 * k)).getD 0 * 16 + (hexAt b (i + 3 + 2 * k)).getD 0)
+          return o)
+    else out
+  termination_by b.size - i
+
+#guard (compressWhitespace ⟨"  T  \t   C  ".toUTF8.data⟩).data == " T C ".toUTF8.data
+#guard (compressWhitespace ⟨#[0x61, 0xA0, 0xA0, 0x62, 0x00]⟩).data == #[0x61, 0x20, 0x62, 0x00]
+#guard (hexDecode ⟨"546573740043617365".toUTF8.data⟩).data == "Test\u0000Case".toUTF8.data
+#guard (hexDecode ⟨"01234567890a0".toUTF8.data⟩).data == #[0x01, 0x23, 0x45, 0x67, 0x89, 0x0A]
+#guard (urlDecode ⟨"Test+Case%41%u0042%".toUTF8.data⟩).data == "Test CaseA%u0042%".toUTF8.data
+#guard (urlEncode ⟨" !*09AZaz~\u00ff".toUTF8.data⟩).data == "+%21*09AZaz%7e%c3%bf".toUTF8.data
+#guard (sqlHexDecode ⟨"0x414243".toUTF8.data⟩).data == "ABC".toUTF8.data
+#guard (sqlHexDecode ⟨"a0X41420x0xzz0x4".toUTF8.data⟩).data == "aAB0x0xzz0x4".toUTF8.data
+
 end SecLang

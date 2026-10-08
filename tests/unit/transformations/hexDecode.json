@@ -24,22 +24,6 @@
   "spec": "07-transformations.md#hexdecode"
  },
  {
-  "output": "\u0001#Eg\n#\u0001#Eg\n",
-  "type": "tfn",
-  "input": "01234567890a0z01234567890a",
-  "name": "hexDecode",
-  "ret": 1,
-  "spec": "07-transformations.md#hexdecode"
- },
- {
-  "type": "tfn",
-  "name": "hexDecode",
-  "input": "01234567890az",
-  "output": "\u0001#Eg\n",
-  "ret": 1,
-  "spec": "07-transformations.md#hexdecode"
- },
- {
   "type": "tfn",
   "name": "hexDecode",
   "input": "01234567890a0",

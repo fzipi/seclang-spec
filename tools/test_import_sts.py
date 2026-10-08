@@ -54,6 +54,10 @@ class ConvertTests(unittest.TestCase):
         op = import_sts.convert_case({"type": "op", "name": "rx", "param": "a", "input": "a", "ret": 1}, "a#b")
         self.assertEqual(op["ret"], 1)
 
+    def test_excluded_inputs_are_dropped(self):
+        self.assertIsNone(import_sts.convert_case({"type": "tfn", "name": "hexDecode", "input": "01234567890az", "output": "x", "ret": 1}, "a#b"))
+        self.assertIsNotNone(import_sts.convert_case({"type": "tfn", "name": "hexDecode", "input": "4142", "output": "AB", "ret": 1}, "a#b"))
+
     def test_resource_cases_dropped_and_re_groups_kept(self):
         self.assertIsNone(import_sts.convert_case({"type": "op", "name": "pmFromFile", "param": "x", "input": "y", "ret": 1, "resource": "f"}, "a#b"))
         out = import_sts.convert_case({"type": "op", "name": "rx", "param": "(a)", "input": "a", "ret": 1, "re_groups": ["a", "a"]}, "a#b")
