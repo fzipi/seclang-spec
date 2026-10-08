@@ -94,4 +94,20 @@ def sha1 (msg : ByteArray) : ByteArray := Id.run do
 #guard (hexEncode (sha1 ⟨"TestCase".toUTF8.data⟩)).data == "a70ce38389e318bd2be18a0111c6dc76bd2cd9ed".toUTF8.data
 #guard (hexEncode (sha1 ⟨(List.replicate 64 0x61).toArray⟩)).data == "0098ba824b5c16427bd7a1122a5a442a25ec644d".toUTF8.data
 
+/-- The transformations the model defines, by corpus name. -/
+def byName : List (String × (ByteArray → ByteArray)) :=
+  [("lowercase", lowercase), ("hexEncode", hexEncode), ("urlDecodeUni", urlDecodeUni),
+   ("cssDecode", cssDecode), ("base64Decode", base64Decode),
+   ("uppercase", uppercase), ("removeNulls", removeNulls), ("replaceNulls", replaceNulls),
+   ("removeWhitespace", removeWhitespace), ("trimLeft", trimLeft), ("trimRight", trimRight),
+   ("trim", trim), ("length", length), ("parityEven7bit", parityEven7bit),
+   ("parityOdd7bit", parityOdd7bit), ("parityZero7bit", parityZero7bit),
+   ("compressWhitespace", compressWhitespace), ("hexDecode", hexDecode), ("urlDecode", urlDecode),
+   ("urlEncode", urlEncode), ("sqlHexDecode", sqlHexDecode),
+   ("base64Encode", base64Encode), ("base64DecodeExt", base64DecodeExt), ("md5", md5), ("sha1", sha1),
+   ("cmdLine", cmdLine), ("removeCommentsChar", removeCommentsChar), ("removeComments", removeComments),
+   ("replaceComments", replaceComments), ("escapeSeqDecode", escapeSeqDecode), ("jsDecode", jsDecode),
+   ("htmlEntityDecode", htmlEntityDecode), ("normalisePath", normalisePath),
+   ("normalisePathWin", normalisePathWin), ("utf8toUnicode", utf8toUnicode)]
+
 end SecLang

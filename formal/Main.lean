@@ -8,21 +8,7 @@ mismatch in the adapters' wording. Exit 1 when anything failed or could not be l
 -/
 open Lean SecLang
 
-/-- The transformations the model defines, by corpus name. -/
-def formalized : List (String × (ByteArray → ByteArray)) :=
-  [("lowercase", lowercase), ("hexEncode", hexEncode), ("urlDecodeUni", urlDecodeUni),
-   ("cssDecode", cssDecode), ("base64Decode", base64Decode),
-   ("uppercase", uppercase), ("removeNulls", removeNulls), ("replaceNulls", replaceNulls),
-   ("removeWhitespace", removeWhitespace), ("trimLeft", trimLeft), ("trimRight", trimRight),
-   ("trim", trim), ("length", length), ("parityEven7bit", parityEven7bit),
-   ("parityOdd7bit", parityOdd7bit), ("parityZero7bit", parityZero7bit),
-   ("compressWhitespace", compressWhitespace), ("hexDecode", hexDecode), ("urlDecode", urlDecode),
-   ("urlEncode", urlEncode), ("sqlHexDecode", sqlHexDecode),
-   ("base64Encode", base64Encode), ("base64DecodeExt", base64DecodeExt), ("md5", md5), ("sha1", sha1),
-   ("cmdLine", cmdLine), ("removeCommentsChar", removeCommentsChar), ("removeComments", removeComments),
-   ("replaceComments", replaceComments), ("escapeSeqDecode", escapeSeqDecode), ("jsDecode", jsDecode),
-   ("htmlEntityDecode", htmlEntityDecode), ("normalisePath", normalisePath),
-   ("normalisePathWin", normalisePathWin), ("utf8toUnicode", utf8toUnicode)]
+def formalized := byName
 
 structure Case where
   name : String
