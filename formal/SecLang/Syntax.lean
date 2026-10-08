@@ -379,4 +379,189 @@ def parseActions (line : Nat) (s : String) : Parse (List Action) :=
 #guard (checkArg 1 .octal "0600") matches .ok _
 #guard (checkArg 1 .octal "0699") matches .error _
 
+structure Rule where
+  line : Nat
+  variables : List Variable          -- empty for SecAction
+  operator : Option Operator         -- none for SecAction
+  actions : List Action
+  chainMember : Bool
+  deriving Repr
+
+inductive Directive
+  | rule (r : Rule)
+  | defaultAction (line : Nat) (phase : Nat) (actions : List Action)
+  | marker (line : Nat) (label : String)
+  | removeById (line : Nat) (ranges : List (Nat × Nat))
+  | removeByTag (line : Nat) (regex : String)
+  | removeByMsg (line : Nat) (regex : String)
+  | updateActionById (line : Nat) (ranges : List (Nat × Nat)) (actions : List Action)
+  | updateTargetById (line : Nat) (ranges : List (Nat × Nat)) (targets : List Variable)
+  | updateTargetByTag (line : Nat) (regex : String) (targets : List Variable)
+  | updateTargetByMsg (line : Nat) (regex : String) (targets : List Variable)
+  | setting (line : Nat) (name : String) (args : List String)
+  deriving Repr
+
+/-- A configuration: its directives in order, `Include` expanded in place. -/
+structure Config where
+  directives : List Directive
+  deriving Repr
+
+/-- Parser state across directives: open chain, ids seen, default-action phases seen. -/
+structure St where
+  pendingChain : Bool := false
+  ids : List Nat := []
+  defaultPhases : List Nat := []
+
+def metadataNames : List String := ["msg", "tag", "severity", "logdata", "rev", "ver", "accuracy", "maturity"]
+
+def hasAction (as : List Action) (n : String) : Bool := as.any (·.name == n)
+def disruptives (as : List Action) : List Action :=
+  as.filter fun a => (findAction a.name).any (·.2.2 == .disruptive)
+
+/-- Rule-level checks (`02#secrule-structure`, `03#chains`, `03#disruptive-actions`, ADR-0015). -/
+def checkRule (line : Nat) (as : List Action) (st : St) : Parse St := do
+  if (disruptives as).length > 1 then err line "more than one disruptive action"
+  if st.pendingChain then
+    for n in ["id", "phase"] ++ metadataNames do
+      if hasAction as n then err line s!"a chain member must not carry '{n}'"
+    if !(disruptives as).isEmpty then err line "a chain member must not carry a disruptive action"
+    return { st with pendingChain := hasAction as "chain" }
+  else
+    let some idv := (as.find? (·.name == "id")).bind (·.value) | err line "rule without an id (ADR-0015)"
+    let id := (natOf? idv).getD 0
+    if st.ids.contains id then err line s!"duplicate rule id {id}"
+    return { st with pendingChain := hasAction as "chain", ids := id :: st.ids }
+
+/-- `03#default-actions`, ADR-0014. -/
+def checkDefaultAction (line : Nat) (as : List Action) (st : St) : Parse (Nat × St) := do
+  let some pv := (as.find? (·.name == "phase")).bind (·.value) | err line "SecDefaultAction needs a phase"
+  let phase := (phaseNumber pv).getD 0
+  if (disruptives as).length != 1 then err line "SecDefaultAction needs exactly one disruptive action"
+  for n in ["chain", "skip", "skipAfter", "t", "id"] ++ metadataNames do
+    if hasAction as n then err line s!"SecDefaultAction must not carry '{n}'"
+  if st.defaultPhases.contains phase then err line s!"a second SecDefaultAction for phase {phase}"
+  return (phase, { st with defaultPhases := phase :: st.defaultPhases })
+
+/-- Files matching `PATH` with one `*`, in lexicographic order; a plain path matches itself
+(`01#include`). -/
+def resolveInclude (files : List String) (path : String) : List String :=
+  match path.splitOn "*" with
+  | [_] => if files.contains path then [path] else []
+  | [pre, suf] =>
+    (files.filter fun f => f.startsWith pre && f.endsWith suf && f.length ≥ pre.length + suf.length).mergeSort (· < ·)
+  | _ => []
+
+mutual
+/-- One logical line into directives; an `Include` yields the included file's directives.
+`depth` is the remaining nesting budget (the cap of 100 of `01#include`). -/
+partial def parseLine (files : List (String × String)) (depth : Nat) (st : St) (l : Line) :
+    Parse (List Directive × St) := do
+  let args ← splitArgs l
+  let line := l.num
+  let name :: rest := args | return ([], st)
+  let some (canon, shape) := findDirective name | err line s!"unknown directive '{name}' (ADR-0005)"
+  let arity (lo hi : Nat) : Parse Unit :=
+    if rest.length < lo || rest.length > hi then
+      err line s!"{canon} takes {if lo == hi then toString lo else s!"{lo} to {hi}"} argument(s), got {rest.length}"
+    else pure ()
+  let a (i : Nat) : String := rest.getD i ""
+  match shape with
+  | .rule =>
+    arity 2 3
+    let vars ← parseVariables line (a 0)
+    let op ← parseOperator line (a 1)
+    let acts ← if rest.length == 3 then parseActions line (a 2) else pure []
+    let st' ← checkRule line acts st
+    return ([.rule ⟨line, vars, some op, acts, st.pendingChain⟩], st')
+  | .actions =>
+    arity 1 1
+    let acts ← parseActions line (a 0)
+    let st' ← checkRule line acts st
+    return ([.rule ⟨line, [], none, acts, st.pendingChain⟩], st')
+  | .defaultActions =>
+    arity 1 1
+    let acts ← parseActions line (a 0)
+    let (phase, st') ← checkDefaultAction line acts st
+    return ([.defaultAction line phase acts], st')
+  | .include =>
+    arity 1 1
+    if depth == 0 then err line "Include nesting deeper than 100 files"
+    let found := resolveInclude (files.map (·.1)) (a 0)
+    if found.isEmpty then err line s!"Include: no file matches '{a 0}'"
+    let mut acc : List Directive := []
+    let mut s := st
+    for f in found do
+      let (ds, s') ← parseText files (depth - 1) s ((files.lookup f).getD "")
+      acc := acc ++ ds
+      s := s'
+    return (acc, s)
+  | .idRanges =>
+    arity 1 1000
+    return ([.removeById line (← parseRanges line rest)], st)
+  | .idRangesActions =>
+    arity 2 2
+    return ([.updateActionById line (← parseRanges line [a 0]) (← parseActions line (a 1))], st)
+  | .idRangesTargets =>
+    arity 2 2
+    return ([.updateTargetById line (← parseRanges line [a 0]) (← parseVariables line (a 1))], st)
+  | .regexTargets =>
+    arity 2 2
+    let targets ← parseVariables line (a 1)
+    let d := if canon == "SecRuleUpdateTargetByTag" then Directive.updateTargetByTag line (a 0) targets
+             else Directive.updateTargetByMsg line (a 0) targets
+    return ([d], st)
+  | .none =>
+    arity 0 0
+    return ([.setting line canon []], st)
+  | .one k =>
+    arity 1 1
+    checkArg line k (a 0)
+    let d := match canon with
+      | "SecMarker" => Directive.marker line (a 0)
+      | "SecRuleRemoveByTag" => Directive.removeByTag line (a 0)
+      | "SecRuleRemoveByMsg" => Directive.removeByMsg line (a 0)
+      | _ => Directive.setting line canon rest
+    return ([d], st)
+  | .two => arity 2 2; return ([.setting line canon rest], st)
+  | .oneOrTwo => arity 1 2; return ([.setting line canon rest], st)
+  | .twoOrThree => arity 2 3; return ([.setting line canon rest], st)
+  | .oneOrMore => arity 1 1000; return ([.setting line canon rest], st)
+
+/-- Every logical line of `text`, threading the state. -/
+partial def parseText (files : List (String × String)) (depth : Nat) (st : St) (text : String) :
+    Parse (List Directive × St) := do
+  let mut acc : List Directive := []
+  let mut s := st
+  for l in logicalLines text do
+    let (ds, s') ← parseLine files depth s l
+    acc := acc ++ ds
+    s := s'
+  return (acc, s)
+end
+
+/-- A configuration with its auxiliary files (`Include` paths are looked up in `files`). -/
+def parseConfig (files : List (String × String)) (text : String) : Parse Config := do
+  let (ds, _) ← parseText files 100 {} text
+  return ⟨ds⟩
+
+#guard (parseConfig [] "SecRuleEngine On\nSecRule ARGS \"@streq 1\" \"id:1,phase:1,deny,status:403,chain\"\n  SecRule ARGS:b \"@streq 2\"\nSecAction \"id:2,phase:1,pass\"") matches .ok _
+#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"phase:1,pass\"") matches .error ⟨1, _⟩
+#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,pass\"\nSecRule ARGS \"@streq 1\" \"id:1,phase:1,pass\"") matches .error ⟨2, _⟩
+#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,deny,drop\"") matches .error _
+#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,pass,chain\"\nSecRule ARGS \"@streq 2\" \"id:2\"") matches .error ⟨2, _⟩
+#guard (parseConfig [] "SecDefaultAction \"phase:1,log\"") matches .error _
+#guard (parseConfig [] "SecDefaultAction \"log,deny\"") matches .error _
+#guard (parseConfig [] "SecDefaultAction \"phase:request,log,deny\"\nSecDefaultAction \"phase:2,log,pass\"") matches .error ⟨2, _⟩
+#guard (parseConfig [] "SecDefaultAction \"phase:1,log,deny,t:none\"") matches .error _
+#guard (parseConfig [] "SecFrobnicate On") matches .error _
+#guard (parseConfig [] "SecRuleEngine On Off") matches .error _
+#guard (parseConfig [] "SecRuleRemoveById 200-100") matches .error _
+#guard (parseConfig [] "SecAuditLogParts AXYZ") matches .error _
+#guard (parseConfig [("a.conf", "Include b.conf\n")] "Include a.conf") matches .error ⟨1, _⟩
+#guard (parseConfig [("a.conf", "SecRule ARGS \"@streq 1\" \"id:5,phase:1,pass\"\n")]
+          "SecRuleEngine On\nInclude a.conf\nSecRule ARGS \"@streq 1\" \"id:5,phase:1,pass\"") matches .error ⟨3, _⟩
+#guard (parseConfig [("x1.conf", "SecRuleEngine On\n"), ("x2.conf", "SecRuleEngine Off\n")] "Include x*.conf") matches .ok _
+#guard (parseConfig [] "Include none*.conf") matches .error _
+#guard (parseConfig [] "SecMarker END\nSecRuleUpdateTargetById 1-3 \"!ARGS:x|REQUEST_HEADERS:y\"\nSecRuleUpdateActionById 4 \"pass\"\nSecResponseBodyMimeType text/plain text/html\nSecResponseBodyMimeTypesClear") matches .ok _
+
 end SecLang

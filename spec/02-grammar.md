@@ -3,7 +3,7 @@
 This file defines what a logical line may contain once `01-lexical.md` has split the
 configuration into lines, removed comments and joined continuations. The grammar is
 given in EBNF. `WS` is one or more spaces or tabs; `NONWS` is any character except
-whitespace; `IDENT` is one or more ASCII letters and digits.
+whitespace; `IDENT` is one or more ASCII letters, digits and underscores.
 
 ```ebnf
 directive     = name , { WS , argument } ;
@@ -18,7 +18,7 @@ secaction     = "SecAction" , WS , argument ;  (* actions *)
 variables     = variable , { "|" , variable } ;
 variable      = [ "!" | "&" ] , collection , [ ":" , selector ] ;
 collection    = IDENT ;
-selector      = regexsel | key ;
+selector      = regexsel | key ;               (* for XML the selector is an XPath expression: 05-variables.md#xml *)
 regexsel      = "/" , { rchar } , "/" ;        (* rchar: any char except an unescaped "/" *)
 key           = kchar , { kchar } ;            (* kchar: any char except "|" and whitespace *)
 
@@ -92,7 +92,9 @@ union of the values selected by each entry, evaluated in list order. A leading `
 removes the named member(s) from the values selected so far by the same collection; a
 leading `&` replaces the values by a single value, the count of members selected. `&`
 and `!` are mutually exclusive on one entry. Collection names are matched
-case-insensitively; the case rules for keys are defined in `05-variables.md`.
+case-insensitively; the case rules for keys are defined in `05-variables.md`. A
+collection name that this specification does not define MUST be a configuration error;
+Engine-specific names are reserved, not defined (ADR-0005).
 
 **Divergence notes.** None known.
 
@@ -108,7 +110,9 @@ case-insensitively; the case rules for keys are defined in `05-variables.md`.
 **Semantics.** `COLLECTION:key` selects the member(s) whose name equals `key` under the
 collection's key-comparison rule. `COLLECTION:/re/` selects every member whose name
 matches the regular expression `re`; the expression is unanchored. A selector on a
-collection that has no members (a scalar variable) MUST be a configuration error.
+collection that has no members (a scalar variable) MUST be a configuration error. For the
+`XML` collection the selector is an XPath expression (`05-variables.md#xml`) and the two
+forms above do not apply.
 
 **Divergence notes.** None known for the forms above. Whether `/` inside the expression
 may be escaped as `\/` is engine-dependent and not Core.
