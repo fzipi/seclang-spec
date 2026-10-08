@@ -134,4 +134,48 @@ where
 #guard (cssDecode ⟨"\\  x".toUTF8.data⟩).data == #[0x20, 0x20, 0x78]
 #guard (cssDecode ⟨"\\0ff21\\00ff21\\1ff21".toUTF8.data⟩).data == #[0x41, 0x41, 0x21]
 
+/-- Value of a standard Base64 alphabet byte (RFC 4648 §4). -/
+def b64Val (b : UInt8) : Option UInt8 :=
+  if 65 ≤ b && b ≤ 90 then some (b - 65)        -- A-Z
+  else if 97 ≤ b && b ≤ 122 then some (b - 71)  -- a-z
+  else if 48 ≤ b && b ≤ 57 then some (b + 4)    -- 0-9
+  else if b == '+'.toUInt8 then some 62
+  else if b == '/'.toUInt8 then some 63
+  else none
+
+/-- Sextets of the longest alphabet-only prefix. Decoding stops at the first other byte:
+padding, NUL (`spec/07#base64decode`), or anything else (the ModSecurity v2 / Coraza
+reading of input the spec leaves unspecified; libmodsecurity rejects such input). -/
+def b64Sextets (b : ByteArray) : Array UInt8 := Id.run do
+  let mut out := #[]
+  for x in b do
+    match b64Val x with
+    | some v => out := out.push v
+    | none => return out
+  return out
+
+/-- `base64Decode`: full quanta give three bytes; a trailing two or three sextets give one
+or two; a trailing single sextet gives nothing. -/
+def base64Decode (b : ByteArray) : ByteArray := Id.run do
+  let s := b64Sextets b
+  let mut out := ByteArray.emptyWithCapacity (s.size / 4 * 3 + 2)
+  let mut i := 0
+  while i + 4 ≤ s.size do
+    out := out.push (s[i]! <<< 2 ||| s[i + 1]! >>> 4)
+    out := out.push (s[i + 1]! <<< 4 ||| s[i + 2]! >>> 2)
+    out := out.push (s[i + 2]! <<< 6 ||| s[i + 3]!)
+    i := i + 4
+  if i + 2 ≤ s.size then out := out.push (s[i]! <<< 2 ||| s[i + 1]! >>> 4)
+  if i + 3 ≤ s.size then out := out.push (s[i + 1]! <<< 4 ||| s[i + 2]! >>> 2)
+  return out
+
+#guard (base64Decode ⟨"VGVzdENhc2U=".toUTF8.data⟩).data == "TestCase".toUTF8.data
+#guard (base64Decode ⟨"VGVzdENhc2Ux".toUTF8.data⟩).data == "TestCase1".toUTF8.data
+#guard (base64Decode ⟨"VGVzdABDYXNl".toUTF8.data⟩).data == #[0x54, 0x65, 0x73, 0x74, 0x00, 0x43, 0x61, 0x73, 0x65]
+#guard (base64Decode ⟨"VGVzdENhc2U".toUTF8.data⟩).data == "TestCase".toUTF8.data
+#guard (base64Decode ⟨"VGVzdENhc2UxV".toUTF8.data⟩).data == "TestCase1".toUTF8.data
+#guard (base64Decode ⟨"VGVz*dENh".toUTF8.data⟩).data == "Tes".toUTF8.data
+#guard (base64Decode ⟨#[0x56, 0x47, 0x56, 0x7A, 0x00, 0x64]⟩).data == "Tes".toUTF8.data
+#guard (base64Decode ⟨#[]⟩).data == #[]
+
 end SecLang
