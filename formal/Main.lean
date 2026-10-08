@@ -24,17 +24,6 @@ def formalized : List (String × (ByteArray → ByteArray)) :=
    ("htmlEntityDecode", htmlEntityDecode), ("normalisePath", normalisePath),
    ("normalisePathWin", normalisePathWin), ("utf8toUnicode", utf8toUnicode)]
 
-/-- A unit-tier byte string (every code point ≤ U+00FF, one byte each; `tests/README.md`). -/
-def toBytes (s : String) : Except String ByteArray := do
-  let mut out := ByteArray.emptyWithCapacity s.length
-  for c in s.toList do
-    if c.toNat > 255 then throw s!"not a byte string: {s.quote}"
-    out := out.push c.toNat.toUInt8
-  return out
-
-def ofBytes (b : ByteArray) : String :=
-  String.ofList (b.toList.map fun x => Char.ofNat x.toNat)
-
 structure Case where
   name : String
   input : String

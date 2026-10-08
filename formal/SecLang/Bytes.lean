@@ -39,4 +39,15 @@ def takeWhile (b : ByteArray) (p : UInt8 → Bool) (i : Nat) : Nat → Nat
 def mapBytes (f : UInt8 → UInt8) (b : ByteArray) : ByteArray := ⟨b.data.map f⟩
 def filterBytes (p : UInt8 → Bool) (b : ByteArray) : ByteArray := ⟨b.data.filter p⟩
 
+/-- A unit-tier byte string (every code point ≤ U+00FF, one byte each; `tests/README.md`). -/
+def toBytes (s : String) : Except String ByteArray := do
+  let mut out := ByteArray.emptyWithCapacity s.length
+  for c in s.toList do
+    if c.toNat > 255 then throw s!"not a byte string: {s.quote}"
+    out := out.push c.toNat.toUInt8
+  return out
+
+def ofBytes (b : ByteArray) : String :=
+  String.ofList (b.toList.map fun x => Char.ofNat x.toNat)
+
 end SecLang
