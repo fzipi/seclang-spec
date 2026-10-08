@@ -17,7 +17,7 @@ from tools import validate  # noqa: E402
 def extract(root: Path) -> list[dict]:
     out = []
     for path in sorted((root / "tests" / "engine").rglob("*.yaml")):
-        d = yaml.safe_load(path.read_text())
+        d = yaml.safe_load(path.read_text(encoding="utf-8"))
         expect = any(s["stage"]["output"].get("expect_error", False) for t in d["tests"] for s in t["stages"])
         out.append({
             "path": path.relative_to(root).as_posix(),

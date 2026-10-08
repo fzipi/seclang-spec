@@ -30,7 +30,7 @@ def main (args : List String) : IO UInt32 := do
   for p in profiles do
     let (accepted, text) := match parseConfig p.files p.rules with
       | .ok _ => (true, "accepted")
-      | .error e => (false, s!"rejected: line {e.line}: {e.msg}")
+      | .error e => (false, s!"rejected: {if e.file.isEmpty then "" else e.file ++ ":"}line {e.line}: {e.msg}")
     let bad := accepted == p.expectError
     IO.println s!"{p.path}: {text}{if bad then "  <-- MISMATCH" else ""}"
     if bad then mismatches := mismatches + 1

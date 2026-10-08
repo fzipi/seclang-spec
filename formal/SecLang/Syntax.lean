@@ -6,6 +6,7 @@ namespace SecLang
 structure ConfigError where
   line : Nat
   msg : String
+  file : String := ""     -- the included file the line belongs to; empty for the main configuration
   deriving Repr, BEq
 
 abbrev Parse := Except ConfigError
@@ -54,7 +55,7 @@ bare tokens end at whitespace; a `"`-delimited argument keeps whitespace, `\"` y
 any other backslash pair is passed through unchanged. -/
 partial def splitArgs (l : Line) : Parse (List String) := go l.text [] []
 where
-  err (m : String) : Parse (List String) := .error ⟨l.num, m⟩
+  err (m : String) : Parse (List String) := .error { line := l.num, msg := m }
   go : List Char → List Char → List String → Parse (List String)
     | [], [], acc => .ok acc.reverse
     | [], cur, acc => .ok (String.ofList cur.reverse :: acc).reverse
@@ -82,8 +83,8 @@ where
 #guard (splitArgs ⟨1, "SecRule ARGS \"@streq say \\\"hi\\\" now\" \"x\"".toList⟩).toOption
   == some ["SecRule", "ARGS", "@streq say \"hi\" now", "x"]
 #guard (splitArgs ⟨1, "SecRule ARGS \"a\\\\b\"".toList⟩).toOption == some ["SecRule", "ARGS", "a\\\\b"]
-#guard (splitArgs ⟨3, "SecRule ARGS \"unterminated".toList⟩) matches .error ⟨3, _⟩
-#guard (splitArgs ⟨4, "SecRule \"abc\"def".toList⟩) matches .error ⟨4, _⟩
+#guard (splitArgs ⟨3, "SecRule ARGS \"unterminated".toList⟩) matches .error ⟨3, _, _⟩
+#guard (splitArgs ⟨4, "SecRule \"abc\"def".toList⟩) matches .error ⟨4, _, _⟩
 #guard (splitArgs ⟨1, "SecArgumentSeparator ;".toList⟩).toOption == some ["SecArgumentSeparator", ";"]
 
 inductive Selector
@@ -108,7 +109,7 @@ structure Action where
   value : Option String    -- quotes removed; `t:` values canonical
   deriving Repr, BEq
 
-def err (line : Nat) (m : String) : Parse α := .error ⟨line, m⟩
+def err (line : Nat) (m : String) : Parse α := .error { line, msg := m }
 
 def dropFirst (s : String) : String := String.ofList (s.toList.drop 1)
 def trimBlanks (s : String) : String := String.ofList (dropTrailingBlanks (s.toList.dropWhile isBlank))
@@ -140,10 +141,24 @@ def parseVariable (line : Nat) (s : String) : Parse Variable := do
       else pure (some (.key sel))
   return ⟨negate, count, canon, selector⟩
 
-def parseVariables (line : Nat) (s : String) : Parse (List Variable) :=
-  (s.splitOn "|").mapM (parseVariable line)
+/-- Split a variable list on `|` outside a `/…/` selector (`02#variable-list`; `rchar` admits
+`|`). An XPath selector is not delimited, so a `|` inside one still splits. -/
+def splitVariables (s : String) : List String := go s.toList [] [] false
+where
+  go : List Char → List Char → List String → Bool → List String
+    | [], cur, acc, _ => (String.ofList cur.reverse :: acc).reverse
+    | ':' :: '/' :: rest, cur, acc, false => go rest ('/' :: ':' :: cur) acc true
+    | '\\' :: '/' :: rest, cur, acc, true => go rest ('/' :: '\\' :: cur) acc true
+    | '/' :: rest, cur, acc, true => go rest ('/' :: cur) acc false
+    | '|' :: rest, cur, acc, false => go rest [] (String.ofList cur.reverse :: acc) false
+    | c :: rest, cur, acc, inRe => go rest (c :: cur) acc inRe
 
-def natOf? (s : String) : Option Nat := if s.isEmpty then none else s.toNat?
+def parseVariables (line : Nat) (s : String) : Parse (List Variable) :=
+  (splitVariables s).mapM (parseVariable line)
+
+/-- A decimal number: digits only (`String.toNat?` alone would accept `1_0`). -/
+def natOf? (s : String) : Option Nat :=
+  if !s.isEmpty && s.toList.all Char.isDigit then s.toNat? else none
 
 /-- IPv4 `a.b.c.d`. -/
 def isIPv4 (s : String) : Bool :=
@@ -186,9 +201,9 @@ def checkIpMatch (line : Nat) (param : String) : Parse Unit :=
 
 /-- `06#validatebyterange`: decimal bytes or `LOW-HIGH` ranges. -/
 def checkByteRange (line : Nat) (param : String) : Parse Unit := do
-  if (trimBlanks param).isEmpty then err line "@validateByteRange needs at least one range"
+  if param.isEmpty then err line "@validateByteRange needs at least one range"
   (param.splitOn ",").forM fun r => do
-    let ok := match (trimBlanks r).splitOn "-" with
+    let ok := match r.splitOn "-" with
       | [a] => (natOf? a).any (· ≤ 255)
       | [a, b] => match natOf? a, natOf? b with | some x, some y => x ≤ y && y ≤ 255 | _, _ => false
       | _ => false
@@ -206,11 +221,13 @@ def parseOperator (line : Nat) (s : String) : Parse Operator := do
   if canon == "validateByteRange" then checkByteRange line param
   return ⟨negate, canon, param⟩
 
-/-- Split an action list on commas outside single quotes (`02#action-list`). -/
-def splitActions (s : String) : List String := go s.toList [] [] false
+/-- Split an action list on commas outside single quotes (`02#action-list`); an unterminated
+quote is an error (v2 `msre_parse_generic`, "Missing closing quote"). -/
+def splitActions (line : Nat) (s : String) : Parse (List String) := go s.toList [] [] false
 where
-  go : List Char → List Char → List String → Bool → List String
-    | [], cur, acc, _ => (String.ofList cur.reverse :: acc).reverse
+  go : List Char → List Char → List String → Bool → Parse (List String)
+    | [], _, _, true => err line "unterminated single quote in the action list"
+    | [], cur, acc, false => .ok (String.ofList cur.reverse :: acc).reverse
     | '\\' :: '\'' :: rest, cur, acc, inQ => go rest ('\'' :: '\\' :: cur) acc inQ
     | '\'' :: rest, cur, acc, inQ => go rest ('\'' :: cur) acc (!inQ)
     | ',' :: rest, cur, acc, false => go rest [] (String.ofList cur.reverse :: acc) false
@@ -338,8 +355,8 @@ def parseAction (line : Nat) (raw : String) : Parse Action := do
     if v.isEmpty then err line s!"{canon} needs a label" else return ⟨canon, some v⟩
   | .text => return ⟨canon, value⟩
 
-def parseActions (line : Nat) (s : String) : Parse (List Action) :=
-  (splitActions s).mapM (parseAction line)
+def parseActions (line : Nat) (s : String) : Parse (List Action) := do
+  (← splitActions line s).mapM (parseAction line)
 
 #guard (parseVariables 1 "ARGS_GET:a|!ARGS_GET:skip|&TX:/^x/|XML://@*").toOption ==
   some [⟨false, false, "ARGS_GET", some (.key "a")⟩, ⟨true, false, "ARGS_GET", some (.key "skip")⟩,
@@ -422,7 +439,7 @@ def disruptives (as : List Action) : List Action :=
 def checkRule (line : Nat) (as : List Action) (st : St) : Parse St := do
   if (disruptives as).length > 1 then err line "more than one disruptive action"
   if st.pendingChain then
-    for n in ["id", "phase"] ++ metadataNames do
+    for n in ["id", "phase", "skip", "skipAfter"] ++ metadataNames do
       if hasAction as n then err line s!"a chain member must not carry '{n}'"
     if !(disruptives as).isEmpty then err line "a chain member must not carry a disruptive action"
     return { st with pendingChain := hasAction as "chain" }
@@ -448,7 +465,10 @@ def resolveInclude (files : List String) (path : String) : List String :=
   match path.splitOn "*" with
   | [_] => if files.contains path then [path] else []
   | [pre, suf] =>
-    (files.filter fun f => f.startsWith pre && f.endsWith suf && f.length ≥ pre.length + suf.length).mergeSort (· < ·)
+    let matchesGlob (f : String) : Bool :=
+      f.startsWith pre && f.endsWith suf && f.length ≥ pre.length + suf.length &&
+        !((f.toList.drop pre.length).take (f.length - pre.length - suf.length)).contains '/'   -- `*` stays within one directory
+    (files.filter matchesGlob).mergeSort (· < ·)
   | _ => []
 
 mutual
@@ -491,7 +511,8 @@ partial def parseLine (files : List (String × String)) (depth : Nat) (st : St) 
     let mut acc : List Directive := []
     let mut s := st
     for f in found do
-      let (ds, s') ← parseText files (depth - 1) s ((files.lookup f).getD "")
+      let (ds, s') ← (parseText files (depth - 1) s ((files.lookup f).getD "")).mapError
+        fun e => if e.file.isEmpty then { e with file := f } else e
       acc := acc ++ ds
       s := s'
     return (acc, s)
@@ -500,7 +521,10 @@ partial def parseLine (files : List (String × String)) (depth : Nat) (st : St) 
     return ([.removeById line (← parseRanges line rest)], st)
   | .idRangesActions =>
     arity 2 2
-    return ([.updateActionById line (← parseRanges line [a 0]) (← parseActions line (a 1))], st)
+    let acts ← parseActions line (a 1)
+    if hasAction acts "id" || hasAction acts "chain" then err line s!"{canon} must not carry id or chain"
+    if (disruptives acts).length > 1 then err line s!"{canon}: more than one disruptive action"
+    return ([.updateActionById line (← parseRanges line [a 0]) acts], st)
   | .idRangesTargets =>
     arity 2 2
     return ([.updateTargetById line (← parseRanges line [a 0]) (← parseVariables line (a 1))], st)
@@ -545,23 +569,37 @@ def parseConfig (files : List (String × String)) (text : String) : Parse Config
   return ⟨ds⟩
 
 #guard (parseConfig [] "SecRuleEngine On\nSecRule ARGS \"@streq 1\" \"id:1,phase:1,deny,status:403,chain\"\n  SecRule ARGS:b \"@streq 2\"\nSecAction \"id:2,phase:1,pass\"") matches .ok _
-#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"phase:1,pass\"") matches .error ⟨1, _⟩
-#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,pass\"\nSecRule ARGS \"@streq 1\" \"id:1,phase:1,pass\"") matches .error ⟨2, _⟩
+#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"phase:1,pass\"") matches .error ⟨1, _, _⟩
+#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,pass\"\nSecRule ARGS \"@streq 1\" \"id:1,phase:1,pass\"") matches .error ⟨2, _, _⟩
 #guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,deny,drop\"") matches .error _
-#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,pass,chain\"\nSecRule ARGS \"@streq 2\" \"id:2\"") matches .error ⟨2, _⟩
+#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,pass,chain\"\nSecRule ARGS \"@streq 2\" \"id:2\"") matches .error ⟨2, _, _⟩
 #guard (parseConfig [] "SecDefaultAction \"phase:1,log\"") matches .error _
 #guard (parseConfig [] "SecDefaultAction \"log,deny\"") matches .error _
-#guard (parseConfig [] "SecDefaultAction \"phase:request,log,deny\"\nSecDefaultAction \"phase:2,log,pass\"") matches .error ⟨2, _⟩
+#guard (parseConfig [] "SecDefaultAction \"phase:request,log,deny\"\nSecDefaultAction \"phase:2,log,pass\"") matches .error ⟨2, _, _⟩
 #guard (parseConfig [] "SecDefaultAction \"phase:1,log,deny,t:none\"") matches .error _
 #guard (parseConfig [] "SecFrobnicate On") matches .error _
 #guard (parseConfig [] "SecRuleEngine On Off") matches .error _
 #guard (parseConfig [] "SecRuleRemoveById 200-100") matches .error _
 #guard (parseConfig [] "SecAuditLogParts AXYZ") matches .error _
-#guard (parseConfig [("a.conf", "Include b.conf\n")] "Include a.conf") matches .error ⟨1, _⟩
+#guard (parseConfig [("a.conf", "Include b.conf\n")] "Include a.conf") matches .error ⟨1, _, _⟩
 #guard (parseConfig [("a.conf", "SecRule ARGS \"@streq 1\" \"id:5,phase:1,pass\"\n")]
-          "SecRuleEngine On\nInclude a.conf\nSecRule ARGS \"@streq 1\" \"id:5,phase:1,pass\"") matches .error ⟨3, _⟩
+          "SecRuleEngine On\nInclude a.conf\nSecRule ARGS \"@streq 1\" \"id:5,phase:1,pass\"") matches .error ⟨3, _, _⟩
 #guard (parseConfig [("x1.conf", "SecRuleEngine On\n"), ("x2.conf", "SecRuleEngine Off\n")] "Include x*.conf") matches .ok _
 #guard (parseConfig [] "Include none*.conf") matches .error _
 #guard (parseConfig [] "SecMarker END\nSecRuleUpdateTargetById 1-3 \"!ARGS:x|REQUEST_HEADERS:y\"\nSecRuleUpdateActionById 4 \"pass\"\nSecResponseBodyMimeType text/plain text/html\nSecResponseBodyMimeTypesClear") matches .ok _
+
+#guard (natOf? "1_0").isNone
+#guard (parseActions 1 "id:1_0") matches .error _
+#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,pass,chain\"\nSecRule ARGS \"@streq 2\" \"skipAfter:X\"") matches .error ⟨2, _, _⟩
+#guard (parseConfig [] "SecRuleUpdateActionById 1 \"id:5\"") matches .error _
+#guard (parseConfig [] "SecRuleUpdateActionById 1-3 \"chain\"") matches .error _
+#guard (parseConfig [] "SecRuleUpdateActionById 1 \"deny,pass\"") matches .error _
+#guard (parseActions 1 "id:1,phase:1,msg:'abc,deny") matches .error _
+#guard (parseVariables 1 "REQUEST_HEADERS:/^(?:x-a|x-b)$/|ARGS").toOption ==
+  some [⟨false, false, "REQUEST_HEADERS", some (.regex "^(?:x-a|x-b)$")⟩, ⟨false, false, "ARGS", none⟩]
+#guard (parseConfig [("a.conf", "SecRuleEngine On\n\n\nInclude missing.conf\n")] "SecRuleEngine On\nInclude a.conf") matches .error ⟨4, _, "a.conf"⟩
+#guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,deny,drop\"") matches .error ⟨1, _, ""⟩
+#guard resolveInclude ["rules/a.conf", "rules/sub/b.conf"] "rules/*.conf" == ["rules/a.conf"]
+#guard (parseOperator 1 "@validateByteRange 1-255, 0") matches .error _
 
 end SecLang

@@ -3,7 +3,8 @@
 This file defines what a logical line may contain once `01-lexical.md` has split the
 configuration into lines, removed comments and joined continuations. The grammar is
 given in EBNF. `WS` is one or more spaces or tabs; `NONWS` is any character except
-whitespace; `IDENT` is one or more ASCII letters, digits and underscores.
+whitespace; `IDENT` is one or more ASCII letters and digits; `CNAME` is one or more ASCII
+letters, digits and underscores.
 
 ```ebnf
 directive     = name , { WS , argument } ;
@@ -17,7 +18,7 @@ secaction     = "SecAction" , WS , argument ;  (* actions *)
 
 variables     = variable , { "|" , variable } ;
 variable      = [ "!" | "&" ] , collection , [ ":" , selector ] ;
-collection    = IDENT ;
+collection    = CNAME ;
 selector      = regexsel | key ;               (* for XML the selector is an XPath expression: 05-variables.md#xml *)
 regexsel      = "/" , { rchar } , "/" ;        (* rchar: any char except an unescaped "/" *)
 key           = kchar , { kchar } ;            (* kchar: any char except "|" and whitespace *)
@@ -99,7 +100,8 @@ Engine-specific names are reserved, not defined (ADR-0005).
 **Divergence notes.** None known.
 
 **Tests.** `tests/engine/grammar/variable-list.yaml`,
-`tests/engine/grammar/variable-count-and-exclusion.yaml`
+`tests/engine/grammar/variable-count-and-exclusion.yaml`,
+`tests/engine/grammar/unknown-variable.yaml`
 
 ### Variable selectors
 
@@ -114,8 +116,12 @@ collection that has no members (a scalar variable) MUST be a configuration error
 `XML` collection the selector is an XPath expression (`05-variables.md#xml`) and the two
 forms above do not apply.
 
-**Divergence notes.** None known for the forms above. Whether `/` inside the expression
-may be escaped as `\/` is engine-dependent and not Core.
+**Divergence notes.** The grammar lets a regular expression selector contain `|`
+(`REQUEST_HEADERS:/^(?:x-a|x-b)$/`), as libmodsecurity v3 and Coraza do (both lex `/…/`
+as one token); ModSecurity v2 (`apache2/re.c`, `msre_parse_generic`) ends an unquoted
+selector at the first `|`, so such a selector is split there and the rule fails to load.
+No profile exercises this (a v2 adapter would be needed to observe it); CRS v4 avoids it.
+Whether `/` inside the expression may be escaped as `\/` is engine-dependent and not Core.
 
 **Tests.** `tests/engine/grammar/variable-selectors.yaml`
 

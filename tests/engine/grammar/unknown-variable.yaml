@@ -1,0 +1,15 @@
+meta:
+  name: unknown-variable
+  description: A collection name not defined by the specification is a configuration error (ADR-0005 reading, 02-grammar.md#variable-list)
+spec: 02-grammar.md#variable-list
+rules: |
+  SecRuleEngine On
+  SecRule FROBNICATE "@streq 1" "id:3030,phase:1,pass"
+tests:
+  - test_title: fails to load
+    stages:
+      - stage:
+          input:
+            uri: /
+          output:
+            expect_error: true
