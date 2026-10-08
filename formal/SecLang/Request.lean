@@ -56,8 +56,8 @@ def parseArgs (sep : Char) (lim : Option Nat) (s : String) : List Member :=
       | [n] => (n, "") | n :: rest => (n, "=".intercalate rest) | [] => ("", "")
     ⟨ofBytes (urlDecode (text n)), urlDecode (text v)⟩
 
-def namesOf (ms : List Member) : List Member := ms.map fun m => ⟨m.key, text m.key⟩
-def combinedSize (ms : List Member) : Nat := ms.foldl (fun n m => n + (text m.key).size + m.value.size) 0
+def namesOf (ms : List Member) : List Member := ms.map fun m => ⟨m.key, bytesOf m.key⟩
+def combinedSize (ms : List Member) : Nat := ms.foldl (fun n m => n + (bytesOf m.key).size + m.value.size) 0
 def natText (n : Nat) : List Member := scalar (text (toString n))
 
 /-- Phase 1 store (`05`): request line, headers, cookies, query arguments. -/
@@ -66,13 +66,13 @@ def phase1Store (st : Settings) (r : Request) : Store :=
     | [p] => (p, "") | p :: rest => (p, "?".intercalate rest) | [] => ("", "")
   let base := (path.splitOn "/").getLast?.getD path
   let getArgs := parseArgs st.argSep st.argsLimit query
-  let headers := r.headers.map fun (k, v) => Member.mk k (text (trimBlanks v))
+  let headers := r.headers.map fun (k, v) => Member.mk (latin k) (text (trimBlanks v))
   let cookies := (r.headers.filter fun (k, _) => k.toLower == "cookie").flatMap fun (_, v) =>
     (v.splitOn ";").filterMap fun c =>
       let c := trimBlanks c
       if c.isEmpty then none else some (match c.splitOn "=" with
-        | [n] => Member.mk (trimBlanks n) (text "")
-        | n :: rest => Member.mk (trimBlanks n) (text (trimBlanks ("=".intercalate rest)))
+        | [n] => Member.mk (latin (trimBlanks n)) (text "")
+        | n :: rest => Member.mk (latin (trimBlanks n)) (text (trimBlanks ("=".intercalate rest)))
         | [] => Member.mk "" (text ""))
   [("REQUEST_METHOD", scalar (text r.method)), ("REQUEST_URI", scalar (text r.uri)),
    ("REQUEST_URI_RAW", scalar (text r.uri)), ("REQUEST_FILENAME", scalar (text path)),
@@ -121,7 +121,7 @@ def phase3Store (resp : Option Response) (store : Store) : Store :=
   match resp with
   | none => store
   | some rs =>
-    let hs := rs.headers.map fun (k, v) => Member.mk k (text (trimBlanks v))
+    let hs := rs.headers.map fun (k, v) => Member.mk (latin k) (text (trimBlanks v))
     store |>.set "RESPONSE_STATUS" (natText rs.status) |>.set "RESPONSE_HEADERS" hs
 
 /-- Phase 4 additions (`05#response_body`, `04#secresponsebodyaccess`): the body when access

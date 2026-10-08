@@ -36,9 +36,11 @@ effective rules after exceptions and default actions, the five phases, chains, `
 `skipAfter`, disruptive actions and interruptions, `allow`, engine modes, `ctl`, `setvar`,
 `capture` and macros. It is parametric in a regular-expression oracle
 (`SecLang/Regex.lean`, the Core `@rx` subset) and in how the variable store is populated
-per phase (`SecLang/Request.lean`, chapters 05 and 09 for URL-encoded bodies). Six theorems
-close the file: `phase_default` and `phase_not_inherited` (ADR-0017), `skipAfter_ends_with_phase`
-and `skipAfter_missing` (ADR-0016), `interrupted_phase_quiet` and `logging_phase_runs`.
+per phase (`SecLang/Request.lean`, chapters 05 and 09 for URL-encoded bodies). Seven theorems
+close the file: `phase_default` and `phase_not_inherited` (ADR-0017); `skipAfter_missing` and
+`later_phase_unaffected` (ADR-0016: an unsatisfied `skipAfter` leaves the transaction
+untouched, so every later phase runs as if it had not fired) with `skipAfter_ends_with_phase`
+restating the construction; `interrupted_phase_quiet` and `logging_phase_runs`.
 
     cd formal && lake exe seclang-eval .lake/engine-rules.json    # exit 1 on any mismatch
 

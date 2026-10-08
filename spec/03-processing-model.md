@@ -114,8 +114,9 @@ rule's effective action list.
 
 - `deny` interrupts the transaction with the HTTP status given by `status:` (default
   403).
-- `redirect:URL` interrupts with the status given by `status:` if it is 3xx, otherwise
-  302, and the `Location` header set to `URL` (after macro expansion).
+- `redirect:URL` interrupts with the status given by `status:` if it is 301, 302, 303 or
+  307, otherwise 302 (`08-actions.md#redirect`), and the `Location` header set to `URL`
+  (after macro expansion).
 - `drop` interrupts by closing the connection without an HTTP response where the
   integration allows it; otherwise it behaves as `deny`. Adapters report the action as
   `drop` regardless of status.
@@ -159,7 +160,15 @@ when a marker of that name is evaluated. Because markers are phase-less and both
 evaluate every marker in every phase, a marker placed among later-phase rules is still
 reached in the current phase and the outcome matches this section (verified for Coraza
 by `adapters/coraza`). The behaviours differ only when **no** marker of that name exists:
-v3 and Coraza then skip every remaining rule of every later phase. See ADR-0016.
+v3 and Coraza then skip every remaining rule of every later phase. See ADR-0016. The
+rule-id form of the label is implemented by ModSecurity v2 only, through a placeholder
+inserted in the target rule's own phase (`apache2/apache2_config.c`), so a target in
+another phase never ends the skip; libmodsecurity v3 (`src/rules_set.cc`, markers only)
+and Coraza (`internal/corazawaf/rulegroup.go`, `SecMark_`) ignore the id form and skip
+the rest of the phase and transaction. No profile uses it; whether it stays Core is for
+an ADR to decide. Under `skip:N`, Coraza counts a `SecMarker` as a rule and does not
+count a rule removed by `ctl`; v2 and v3 do the reverse. This section does not decide
+either and no profile depends on it.
 
 **Tests.** `tests/engine/processing/skip-and-skipafter.yaml`,
 `tests/engine/processing/skipafter-later-phase.yaml`,
@@ -200,7 +209,12 @@ range") reject it. Coraza rejects `SecRuleUpdateTargetById` with a single id tha
 no rule (`directives.go`, `rule "%d" not found`), where ModSecurity v2 and libmodsecurity
 v3 (`rules_exceptions.cc`, exceptions are stored and applied lazily) ignore it, so
 `rule-exceptions-unknown-id.yaml` fails on Coraza. Coraza accepts
-`SecRuleUpdateTargetByMsg` and ignores it (ADR-0005). See `compat/known-gaps.md`.
+`SecRuleUpdateTargetByMsg` and ignores it (ADR-0005). For the `ctl:` tag forms,
+ModSecurity v2 matches the tag as a regular expression (`apache2/re.c`,
+`removed_rules_tag`), as this section says; libmodsecurity v3
+(`src/rule_with_actions.cc`, `containsTag`) and Coraza (`internal/actions/ctl.go`) compare
+the tag exactly. No profile uses a pattern that tells the two apart; an ADR should settle
+it. See `compat/known-gaps.md`.
 
 **Tests.** `tests/engine/processing/rule-exceptions.yaml`,
 `tests/engine/processing/rule-exceptions-update-action.yaml`,
@@ -218,11 +232,14 @@ v3 (`rules_exceptions.cc`, exceptions are stored and applied lazily) ignore it, 
 effect lasts for the remainder of the transaction. Options that edit rules
 (`ruleRemoveById`, `ruleRemoveByTag`, `ruleRemoveTargetById`, `ruleRemoveTargetByTag`)
 take effect immediately: the next rule evaluated in the same phase already sees them.
-`ctl:ruleEngine` changes the mode for every later phase. Within the current phase,
-`DetectionOnly` applies at once: a later rule of the same phase that matches is logged
-but does not interrupt (all three engines decide the mode at the moment of
-interrupting). Whether `Off` also stops the remaining rules of the current phase is
-**not specified**, so a rule that disables the engine SHOULD be the last rule of its
+`ctl:ruleEngine` changes the mode for every later phase and, at once, for the
+interruption decision of the current phase: after `On` a later matching rule of the same
+phase interrupts, after `DetectionOnly` or `Off` none does (all three engines read the
+mode when they interrupt: ModSecurity v2 `apache2/re.c` `msre_perform_disruptive_actions`,
+libmodsecurity v3 `src/rule_with_actions.cc` `executeAction`, Coraza
+`internal/corazawaf/transaction.go` `Interrupt`). Whether the remaining rules of the
+current phase are still evaluated after `Off` is **not specified** (v2 stops, v3 and
+Coraza evaluate them), so a rule that disables the engine SHOULD be the last rule of its
 phase that matters. The other state options
 (`auditEngine`, `auditLogParts`, `requestBodyAccess`, `requestBodyProcessor`,
 `forceRequestBodyVariable`) apply to whatever the engine does after the rule matched. Options that

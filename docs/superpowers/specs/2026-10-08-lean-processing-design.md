@@ -29,7 +29,7 @@ phases while phase 5 still runs).
   it points there. Where the prose says "not specified" the model makes one choice,
   names it in a docstring, and no test may depend on it (`ctl:ruleEngine` within the
   current phase: the model keeps running the phase, the v3/Coraza reading;
-  `MATCHED_VAR` after the rule: cleared).
+  `MATCHED_VAR` across rules: kept within the phase, cleared at each phase boundary).
 - Variables the runner populates: `REQUEST_*`, `QUERY_STRING`, `REMOTE_ADDR`,
   `UNIQUE_ID`, `ARGS_GET*`, `REQUEST_HEADERS*`, `REQUEST_COOKIES*`, `ARGS*`,
   `REQUEST_BODY`, `REQUEST_BODY_LENGTH`, `REQBODY_PROCESSOR` (URL-encoded only),

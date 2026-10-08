@@ -47,6 +47,9 @@ def toBytes (s : String) : Except String ByteArray := do
     out := out.push c.toNat.toUInt8
   return out
 
+/-- The bytes of a Latin-1 byte string (inverse of `ofBytes`). -/
+def bytesOf (s : String) : ByteArray := ⟨(s.toList.map (·.toNat.toUInt8)).toArray⟩
+
 def ofBytes (b : ByteArray) : String :=
   String.ofList (b.toList.map fun x => Char.ofNat x.toNat)
 

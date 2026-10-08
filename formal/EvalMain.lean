@@ -70,10 +70,19 @@ def limitDirectives : List String := ["SecRequestBodyLimit", "SecResponseBodyLim
 def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
   let rules := cfg.directives.filterMap fun | .rule r => some r | _ => none
   let ops := rules.filterMap fun r => r.operator.map (·.name)
-  let vars := rules.flatMap fun r => r.variables.map (·.collection)
+  let targets := cfg.directives.flatMap fun
+    | .updateTargetById _ _ ts => ts | .updateTargetByTag _ _ ts => ts | .updateTargetByMsg _ _ ts => ts | _ => []
+  let allVars := rules.flatMap (·.variables) ++ targets
+  let vars := allVars.map (·.collection)
   let acts := rules.flatMap (·.actions)
   let dirs := cfg.directives.filterMap fun | .setting _ n _ => some n | _ => none
+  let regexes := (rules.filterMap fun r => r.operator.bind fun op => if op.name == "rx" then some op.param else none) ++
+    (allVars.filterMap fun v => match v.selector with | some (.regex re) => some re | _ => none) ++
+    (cfg.directives.filterMap fun
+      | .removeByTag _ re => some re | .removeByMsg _ re => some re
+      | .updateTargetByTag _ re _ => some re | .updateTargetByMsg _ re _ => some re | _ => none)
   if let some op := ops.find? (fun n => !implementedOperators.contains n) then some s!"operator @{op}"
+  else if let some re := regexes.find? (fun re => match Regex.compile re with | .error _ => true | .ok _ => false) then some s!"regex outside the Core subset: {re}"
   else if let some v := vars.find? unsupportedVariables.contains then some s!"variable {v}"
   else if let some a := acts.find? (fun a => ["initcol", "expirevar", "setsid", "setuid", "setrsc"].contains a.name) then some s!"action {a.name}"
   else if acts.any (fun a => a.name == "ctl" && (a.value.getD "").startsWith "requestBodyProcessor=" && !(a.value.getD "").toLower.endsWith "urlencoded") then some "body processor selected by ctl"

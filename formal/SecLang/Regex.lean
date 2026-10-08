@@ -132,6 +132,15 @@ partial def parseAtom (p : P) : Except String (Re × P) := do
   | '$' :: rest => return (.eol, { p with rest })
   | '\\' :: 'b' :: rest => return (.wordB false, { p with rest })
   | '\\' :: 'B' :: rest => return (.wordB true, { p with rest })
+  | '\\' :: c :: _ =>
+    if c.isDigit || "AzZQEpPGKkR".contains c then .error "escape outside the Core subset" else parseEscape p
+  | [] => .error "unexpected end of pattern"
+  | c :: rest =>
+    if c == '*' || c == '+' || c == '?' then .error "nothing to repeat" else return (.lit c, { p with rest })
+
+/-- `\x`, `\b`, `\B`, class escapes and single-character escapes. -/
+partial def parseEscape (p : P) : Except String (Re × P) := do
+  match p.rest with
   | '\\' :: 'x' :: a :: b :: rest =>
     match hexChar a b with
     | some c => return (.lit c, { p with rest })
@@ -140,10 +149,7 @@ partial def parseAtom (p : P) : Except String (Re × P) := do
     match escapeItem c with
     | some it => return (.cls false [it], { p with rest })
     | none => return (.lit (escapeChar c), { p with rest })
-  | '\\' :: [] => .error "trailing backslash"
-  | c :: rest =>
-    if c == '*' || c == '+' || c == '?' then .error "nothing to repeat" else return (.lit c, { p with rest })
-  | [] => .error "unexpected end of pattern"
+  | _ => .error "trailing backslash"
 
 partial def parseGroup (cap : Option Nat) (p : P) : Except String (Re × P) := do
   let (r, p) ← parseAlt p

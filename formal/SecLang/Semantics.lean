@@ -32,6 +32,7 @@ structure Chain where
   phase : Nat
   starter : Rule
   members : List Rule := []
+  dflt : List Action              -- the SecDefaultAction list of its phase at definition time
   disruptive : Option String
   status : Option Nat
   extra : List Action
@@ -52,9 +53,8 @@ def chainPhase (r : Rule) : Nat := ((actionValue r.actions "phase").bind phaseNu
 
 /-- The chain for a starter, with the default actions of its phase merged in: the rule's own
 actions win; `block` takes the inherited disruptive action; cumulative actions are appended. -/
-def mkChain (defaults : List (Nat × List Action)) (r : Rule) : Chain :=
+def mkChainD (dflt : List Action) (r : Rule) : Chain :=
   let phase := chainPhase r
-  let dflt := (defaults.lookup phase).getD []
   let inherited := match ownDisruptive dflt with | some "block" => none | d => d
   let disruptive := match ownDisruptive r.actions with
     | some "block" => inherited
@@ -62,14 +62,23 @@ def mkChain (defaults : List (Nat × List Action)) (r : Rule) : Chain :=
     | none => inherited
   let status := match (actionValue r.actions "status").bind natOf? with
     | some s => some s | none => (actionValue dflt "status").bind natOf?
-  { id := ((actionValue r.actions "id").bind natOf?).getD 0, phase, starter := r, disruptive, status, extra := cumulative dflt }
+  { id := ((actionValue r.actions "id").bind natOf?).getD 0, phase, starter := r, dflt, disruptive, status, extra := cumulative dflt }
 
-/-- `SecRuleUpdateActionById`: a disruptive action replaces, `status` replaces, cumulative
-actions are appended (`03#rule-exceptions`). -/
+def mkChain (defaults : List (Nat × List Action)) (r : Rule) : Chain :=
+  mkChainD ((defaults.lookup (chainPhase r)).getD []) r
+
+/-- Merge an action list into a rule's own (`03#rule-exceptions`, rule-over-default
+precedence): `t:`, `tag`, `setvar` and `ctl` are appended, a disruptive action replaces the
+existing one, any other action replaces the one of the same name. -/
+def mergeActions (own acts : List Action) : List Action :=
+  acts.foldl (fun cur a =>
+    if a.name == "t" || a.name == "tag" || a.name == "setvar" || a.name == "ctl" then cur ++ [a]
+    else if isDisruptiveName a.name then (cur.filter fun b => !isDisruptiveName b.name) ++ [a]
+    else (cur.filter (·.name != a.name)) ++ [a]) own
+
+/-- `SecRuleUpdateActionById`: the chain rebuilt from the merged starter actions. -/
 def updateActions (c : Chain) (acts : List Action) : Chain :=
-  let disruptive := match ownDisruptive acts with | some "block" => c.disruptive | some d => some d | none => c.disruptive
-  let status := match (actionValue acts "status").bind natOf? with | some s => some s | none => c.status
-  { c with disruptive, status, extra := c.extra ++ cumulative acts }
+  { mkChainD c.dflt { c.starter with actions := mergeActions c.starter.actions acts } with members := c.members }
 
 def inRanges (ranges : List (Nat × Nat)) (id : Nat) : Bool := ranges.any fun (a, z) => a ≤ id && id ≤ z
 def tagsOf (c : Chain) : List String := (c.starter.actions.filter (·.name == "tag")).filterMap (·.value)
@@ -147,7 +156,7 @@ def collection (tx : Tx) (name : String) : List Member :=
   match name with
   | "TX" => tx.tx
   | "MATCHED_VAR" => scalar tx.matchedVar
-  | "MATCHED_VAR_NAME" => scalar (text tx.matchedVarName)
+  | "MATCHED_VAR_NAME" => scalar (bytesOf tx.matchedVarName)
   | "MATCHED_VARS" => tx.matchedVars
   | _ => tx.store.get name
 
@@ -345,10 +354,10 @@ def applySetvar (tx : Tx) (v : String) : Tx :=
       else e
   { tx with tx := others ++ [⟨key, newVal⟩] }
 
-/-- `ctl` (`03#ctl-timing`): rule edits are immediate; `ruleEngine` applies to the later
-phases and, for `DetectionOnly` (and `On`), to the rest of the current phase as well, so a
-later rule of the same phase no longer interrupts; `Off` leaves the current phase running
-(the model's choice where the spec is silent). -/
+/-- `ctl` (`03#ctl-timing`): rule edits are immediate; `ruleEngine` applies at once to the
+interruption decision (after `Off` or `DetectionOnly` no later rule of the phase interrupts)
+and to every later phase; the remaining rules of the phase are still evaluated after `Off`
+(the v3/Coraza reading of a point the spec leaves open). -/
 def applyCtl (tx : Tx) (v : String) : Tx :=
   let (opt, val) := match v.splitOn "=" with | [o] => (o, "") | o :: rest => (o, "=".intercalate rest) | [] => ("", "")
   let ranges (r : String) : List (Nat × Nat) := (parseRanges 0 [r]).toOption.getD []
@@ -357,7 +366,7 @@ def applyCtl (tx : Tx) (v : String) : Tx :=
   match opt with
   | "ruleEngine" =>
     let m := modeOf val
-    { tx with nextMode := m, mode := if m == .off then tx.mode else m }
+    { tx with nextMode := m, mode := m }
   | "ruleRemoveById" => { tx with removedIds := tx.removedIds ++ ids val }
   | "ruleRemoveByTag" => { tx with removedTags := tx.removedTags ++ [val] }
   | "ruleRemoveTargetById" => match val.splitOn ";" with
@@ -382,10 +391,11 @@ def applyActions (tx : Tx) (as : List Action) : Tx :=
     | "ctl", some v => applyCtl tx v
     | _, _ => tx) tx
 
-/-- Exclusions a chain inherits from `ctl:ruleRemoveTarget*` for this transaction. -/
-def targetExclusions (tx : Tx) (c : Chain) : List Variable :=
+/-- Exclusions a chain inherits from `ctl:ruleRemoveTarget*` for this transaction; the tag
+form is a regular expression, as for the directive (`03#rule-exceptions`). -/
+def targetExclusions (o : Oracle) (tx : Tx) (c : Chain) : List Variable :=
   (tx.removedTargets.filter (·.1 == c.id)).map (·.2) ++
-  (tx.removedTagTargets.filter fun (t, _) => (tagsOf c).contains t).map (·.2)
+  (tx.removedTagTargets.filter fun (re, _) => (tagsOf c).any (rxName o re)).map (·.2)
 
 /-- One rule of a chain (`02#secrule-structure`, `02#operator`, `08#multimatch`,
 `06#unconditionalmatch`): the rule matches when some value matches, or, negated, when the
@@ -394,7 +404,7 @@ def runRule (o : Oracle) (c : Chain) (r : Rule) (tx : Tx) : Tx × Bool :=
   match r.operator with
   | none => (applyActions tx r.actions, true)
   | some op =>
-    let values := selectValues o tx r.variables (targetExclusions tx c)
+    let values := selectValues o tx r.variables (targetExclusions o tx c)
     let param := expandMacros tx op.param
     let tfns := tfnList r.actions
     let multi := hasAction r.actions "multiMatch"
@@ -419,7 +429,8 @@ def runChain (o : Oracle) (c : Chain) (tx : Tx) : Tx × Bool :=
   let tx := { tx with evaluated := tx.evaluated ++ [c.id] }
   (c.starter :: c.members).foldl (fun (tx, ok) r => if ok then runRule o c r tx else (tx, false)) (tx, true)
 
-def removed (tx : Tx) (c : Chain) : Bool := tx.removedIds.contains c.id || (tagsOf c).any tx.removedTags.contains
+def removed (o : Oracle) (tx : Tx) (c : Chain) : Bool :=
+  tx.removedIds.contains c.id || tx.removedTags.any fun re => (tagsOf c).any (rxName o re)
 
 def allowScopeOf (c : Chain) : AllowScope :=
   match actionValue c.starter.actions "allow" with | some "phase" => .phase | some "request" => .request | _ => .all
@@ -428,10 +439,11 @@ def redirectStatus (s : Option Nat) : Nat :=
   match s with | some n => if n == 301 || n == 302 || n == 303 || n == 307 then n else 302 | none => 302
 
 /-- After a whole chain matched (`03#disruptive-actions`, `08#allow`): record, run the
-inherited cumulative actions, and in mode `On` apply the disruptive action. -/
-def afterMatch (c : Chain) (tx : Tx) : Tx :=
+inherited cumulative actions, and in mode `On` outside phase 5 apply the disruptive action
+(`03#phases`: in the logging phase disruptive actions have no effect). -/
+def afterMatch (phase : Nat) (c : Chain) (tx : Tx) : Tx :=
   let tx := applyActions { tx with triggered := tx.triggered ++ [c.id] } c.extra
-  if tx.mode != .on then tx else
+  if phase == 5 || tx.mode != .on then tx else
   match c.disruptive with
   | some "deny" => { tx with interruption := some ⟨c.id, "deny", c.status.getD 403⟩, ended := true }
   | some "drop" => { tx with interruption := some ⟨c.id, "drop", c.status.getD 403⟩, ended := true }
@@ -446,7 +458,9 @@ structure PhaseState where
 
 def skipOf (c : Chain) : Nat := ((actionValue c.starter.actions "skip").bind natOf?).getD 0
 def skipAfterOf (c : Chain) : Option String := actionValue c.starter.actions "skipAfter"
-def labelMatches (c : Chain) (l : String) : Bool := toString c.id == l
+/-- A chain satisfies a pending `skipAfter` label when its id is the label and it belongs to
+the current phase (ModSecurity v2 inserts the placeholder in the target's own phase). -/
+def labelMatches (c : Chain) (phase : Nat) (l : String) : Bool := c.phase == phase && toString c.id == l
 
 /-- The rules of one phase in order. A pending `skipAfter` passes everything until a marker
 or a rule id with that label; `skip` passes the next rules of the phase; chains of other
@@ -460,13 +474,13 @@ def runItems (o : Oracle) (phase : Nat) : List Item → PhaseState → Tx → Tx
     | .marker l => runItems o phase rest (if ps.skipAfter == some l then { ps with skipAfter := none } else ps) tx
     | .chain c =>
       match ps.skipAfter with
-      | some l => runItems o phase rest (if labelMatches c l then { ps with skipAfter := none } else ps) tx
+      | some l => runItems o phase rest (if labelMatches c phase l then { ps with skipAfter := none } else ps) tx
       | none =>
-        if c.phase != phase || removed tx c then runItems o phase rest ps tx
+        if c.phase != phase || removed o tx c then runItems o phase rest ps tx
         else if ps.skip > 0 then runItems o phase rest { ps with skip := ps.skip - 1 } tx
         else
           let (tx', matched) := runChain o c tx
-          if matched then runItems o phase rest ⟨skipOf c, skipAfterOf c⟩ (afterMatch c tx')
+          if matched then runItems o phase rest ⟨skipOf c, skipAfterOf c⟩ (afterMatch phase c tx')
           else runItems o phase rest ps tx'
 
 def allowPermits (a : Option AllowScope) (p : Nat) : Bool :=
@@ -504,23 +518,23 @@ theorem phase_default (r : Rule) (h : actionValue r.actions "phase" = none) : ch
 theorem phase_not_inherited (d₁ d₂ : List (Nat × List Action)) (r : Rule) :
     (mkChain d₁ r).phase = (mkChain d₂ r).phase := rfl
 
-/-- ADR-0016: every phase starts with no pending `skipAfter` and no `skip` count; the state of
-the previous phase is not consulted. -/
+/-- ADR-0016, by construction: every phase starts with no pending `skipAfter` and no `skip`
+count (this restates `step`; the flow-control state is not part of `Tx`). -/
 theorem skipAfter_ends_with_phase (o : Oracle) (items : List Item) (prepare : Nat → Tx → Store) (p : Nat) (tx : Tx) :
     step o items prepare p tx =
       (let tx' := startPhase { tx with store := prepare p tx }
        if phaseRuns tx' p then runItems o p items ⟨0, none⟩ tx' else tx') := rfl
 
-/-- ADR-0016: a pending label that no later marker or rule id carries evaluates nothing for the
-rest of its phase. -/
+/-- ADR-0016: a pending label that no later marker or same-phase rule id carries leaves the
+transaction untouched for the rest of its phase. -/
 theorem skipAfter_missing (o : Oracle) (p k : Nat) (l : String) (items : List Item) (tx : Tx)
-    (h : ∀ i ∈ items, (match i with | .marker m => m ≠ l | .chain c => labelMatches c l = false)) :
-    (runItems o p items ⟨k, some l⟩ tx).evaluated = tx.evaluated := by
+    (h : ∀ i ∈ items, (match i with | .marker m => m ≠ l | .chain c => labelMatches c p l = false)) :
+    runItems o p items ⟨k, some l⟩ tx = tx := by
   induction items generalizing tx with
   | nil => rfl
   | cons i rest ih =>
     have hi := h i (List.mem_cons_self ..)
-    have hr : ∀ j ∈ rest, (match j with | .marker m => m ≠ l | .chain c => labelMatches c l = false) :=
+    have hr : ∀ j ∈ rest, (match j with | .marker m => m ≠ l | .chain c => labelMatches c p l = false) :=
       fun j hj => h j (List.mem_cons_of_mem _ hj)
     cases i with
     | marker m =>
@@ -539,6 +553,14 @@ theorem skipAfter_missing (o : Oracle) (p k : Nat) (l : String) (items : List It
       · rfl
       · simp [hi]
         exact ih tx hr
+
+/-- ADR-0016, the consequence the ADR states: after a phase whose `skipAfter` label was never
+found, any later phase runs exactly as if that `skipAfter` had not fired. -/
+theorem later_phase_unaffected (o : Oracle) (p q k : Nat) (l : String) (items : List Item)
+    (prepare : Nat → Tx → Store) (tx : Tx)
+    (h : ∀ i ∈ items, (match i with | .marker m => m ≠ l | .chain c => labelMatches c p l = false)) :
+    step o items prepare q (runItems o p items ⟨k, some l⟩ tx) = step o items prepare q tx := by
+  rw [skipAfter_missing o p k l items tx h]
 
 /-- An interruption in an earlier phase: phases 2–4 evaluate nothing. -/
 theorem interrupted_phase_quiet (o : Oracle) (items : List Item) (prepare : Nat → Tx → Store) (p : Nat) (tx : Tx)
@@ -597,5 +619,26 @@ def demoStore (args : List (String × String)) : Store :=
 
 #guard (let tx := run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,nolog,ctl:ruleEngine=DetectionOnly\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,deny\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:2,deny\"" (demoStore [("a", "1")])
         (tx.triggered, tx.interruption)) == ([1, 2, 3], none)
+-- review fixes: phase 5 has no disruptive effect; Off stops interruptions at once; skipAfter to an
+-- id of another phase does not end the skip; ctl tag options are regexes; updates merge actions
+#guard (let tx := run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,deny,status:401\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:5,deny,status:499\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:5,allow\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:4,phase:5,pass\"" (demoStore [("a", "1")])
+        (tx.triggered, tx.interruption)) == ([1, 2, 3, 4], some ⟨1, "deny", 401⟩)
+#guard (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:5,deny\"" (demoStore [("a", "1")])).interruption == none
+#guard (let tx := run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,nolog,ctl:ruleEngine=Off\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,deny\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:2,pass\"" (demoStore [("a", "1")])
+        (tx.triggered, tx.interruption)) == ([1, 2], none)
+#guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,skipAfter:5\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:5,phase:2,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:6,phase:1,pass\"" (demoStore [("a", "1")])) == [1, 5]
+#guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,nolog,ctl:ruleRemoveByTag=attack\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass,tag:'attack-sqli'\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:1,pass\"" (demoStore [("a", "1")])) == [1, 3]
+#guard tri (run "SecRule ARGS_GET:a \"@streq abc\" \"id:1,phase:1,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass\"\nSecRuleUpdateActionById 1 \"t:lowercase\"\nSecRuleUpdateActionById 2 \"tag:'gone'\"\nSecRuleRemoveByTag gone" (demoStore [("a", "ABC")])) == [1]
+
+def runReq (cfg : String) (req : Request) : Tx :=
+  match parseConfig [] cfg with
+  | .ok c => runTransaction testOracle (effectiveItems testOracle c) (fun p tx => if p == 1 then phase1Store {} req else tx.store) {}
+  | .error _ => {}
+-- non-ASCII names follow the byte-string convention everywhere
+#guard tri (runReq "SecRule ARGS_GET_NAMES \"@streq é\" \"id:1,phase:1,pass\"\nSecRule ARGS_COMBINED_SIZE \"@eq 3\" \"id:2,phase:1,pass\"\nSecRule ARGS_GET:é \"@streq 1\" \"id:3,phase:1,pass,chain\"\n  SecRule MATCHED_VAR_NAME \"@streq ARGS_GET:é\" \"t:none\"\nSecRule REQUEST_COOKIES:é \"@streq 1\" \"id:4,phase:1,pass\"" { uri := "/?%C3%A9=1", headers := [("Cookie", "é=1")] }) == [1, 2, 3, 4]
+-- escapes outside the Core subset do not compile
+#guard (match Regex.compile "\\Afoo" with | .error _ => true | .ok _ => false)
+#guard (match Regex.compile "(a)\\1" with | .error _ => true | .ok _ => false)
+#guard (match Regex.compile "\\p{L}" with | .error _ => true | .ok _ => false)
 
 end SecLang
