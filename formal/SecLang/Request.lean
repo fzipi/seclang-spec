@@ -47,11 +47,11 @@ def headerValue (hs : List (String × String)) (name : String) : Option String :
 def limitArgs (lim : Option Nat) (ms : List Member) : List Member :=
   match lim with | some n => ms.take n | none => ms
 
-/-- `name=value` pairs split on `sep`, both sides URL-decoded (`05#args`), capped by
-`SecArgumentsLimit`. -/
+/-- `name=value` pairs split on `sep`, both sides URL-decoded (`05#args`, `09#urlencoded`: an
+empty pair is ignored), capped by `SecArgumentsLimit`. -/
 def parseArgs (sep : Char) (lim : Option Nat) (s : String) : List Member :=
   if s.isEmpty then [] else
-  limitArgs lim <| (s.splitOn (String.singleton sep)).map fun pair =>
+  limitArgs lim <| ((s.splitOn (String.singleton sep)).filter (!·.isEmpty)).map fun pair =>
     let (n, v) := match pair.splitOn "=" with
       | [n] => (n, "") | n :: rest => (n, "=".intercalate rest) | [] => ("", "")
     ⟨ofBytes (urlDecode (text n)), urlDecode (text v)⟩
@@ -97,6 +97,48 @@ def selectProcessor (override : Option String) (contentType : Option String) : S
       else if ct.toLower.startsWith "multipart/form-data" then "MULTIPART" else ""
     | none => ""
 
+structure Part where
+  name : String
+  filename : Option String
+  headers : String
+  content : ByteArray
+
+/-- A `key=value` parameter of a `;`-separated header value, quotes removed. -/
+def headerParam (v : String) (key : String) : Option String :=
+  ((v.splitOn ";").map trimBlanks).findSome? fun p =>
+    match p.splitOn "=" with
+    | k :: rest@(_ :: _) =>
+      if (trimBlanks k).toLower == key.toLower then
+        let val := "=".intercalate rest
+        some (if val.length ≥ 2 && val.startsWith "\"" && val.endsWith "\"" then String.ofList ((val.toList.drop 1).dropLast) else val)
+      else none
+    | _ => none
+
+/-- One part: the header block up to the blank line, then the content. -/
+def parsePart (piece : String) : Part :=
+  let (hdrs, content) := match piece.splitOn "\r\n\r\n" with
+    | [h] => (h, "")
+    | h :: rest => (h, "\r\n\r\n".intercalate rest)
+    | [] => ("", "")
+  let disposition := ((hdrs.splitOn "\r\n").find? fun l => l.toLower.startsWith "content-disposition:").map fun l =>
+    dropFirst (String.ofList (l.toList.dropWhile (· != ':')))
+  { name := (disposition.bind (headerParam · "name")).getD "", filename := disposition.bind (headerParam · "filename"),
+    headers := hdrs, content := text content }
+
+/-- RFC 7578 (`09#multipart`): the parts and whether an anomaly was seen (data before the
+first boundary, a bare LF line ending, or no closing delimiter). -/
+def parseMultipart (boundary : String) (body : String) : List Part × Bool :=
+  let delim := "--" ++ boundary
+  let bareLF := (body.toList.zip ('\r' :: body.toList)).any fun (c, prev) => c == '\n' && prev != '\r'
+  if !body.startsWith delim then ([], true) else
+  let pieces := (String.ofList (body.toList.drop delim.length)).splitOn ("\r\n" ++ delim)
+  match pieces.getLast? with
+  | none => ([], true)
+  | some last =>
+    let closed := last.startsWith "--"
+    let parts := (pieces.dropLast.filter fun p => p.startsWith "\r\n").map fun p => parsePart (String.ofList (p.toList.drop 2))
+    (parts, bareLF || !closed)
+
 /-- Phase 2 additions when the body is read (`09#urlencoded`, `05#request_body`, ADR-0022):
 `access` and `processor` come from the settings as overridden by phase 1 `ctl`s. -/
 def phase2Store (st : Settings) (r : Request) (access : Bool) (processor : Option String) (force : Bool) (store : Store) : Store :=
@@ -104,17 +146,29 @@ def phase2Store (st : Settings) (r : Request) (access : Bool) (processor : Optio
   | none => store
   | some body =>
     if !access then store else
-    let proc := selectProcessor processor (headerValue r.headers "Content-Type")
+    let ct := headerValue r.headers "Content-Type"
+    let proc := selectProcessor processor ct
     let get := store.get "ARGS_GET"
-    let post := if proc == "URLENCODED" then parseArgs st.argSep none body else []
+    -- multipart (`09#multipart`): fields become arguments, files become FILES*
+    let (parts, bad) := if proc != "MULTIPART" then ([], false) else
+      match ct.bind (headerParam · "boundary") with | some b => parseMultipart b body | none => ([], true)
+    let fileParts := parts.filter (·.filename.isSome)
+    let post := if proc == "URLENCODED" then parseArgs st.argSep none body
+                else (parts.filter (·.filename.isNone)).map fun p => Member.mk (latin p.name) p.content
     let all := limitArgs st.argsLimit (get ++ post)
     let post := all.drop get.length
     let reqBody := if proc == "URLENCODED" || force then scalar (text body) else []
-    store |>.set "ARGS_POST" post |>.set "ARGS_POST_NAMES" (namesOf post)
+    let files := fileParts.filterMap fun p => p.filename.map fun f => Member.mk (latin p.name) (text f)
+    let store := store |>.set "ARGS_POST" post |>.set "ARGS_POST_NAMES" (namesOf post)
       |>.set "ARGS" all |>.set "ARGS_NAMES" (namesOf all)
       |>.set "ARGS_COMBINED_SIZE" (natText (combinedSize all))
       |>.set "REQUEST_BODY" reqBody |>.set "REQUEST_BODY_LENGTH" (natText (text body).size)
       |>.set "REQBODY_PROCESSOR" (scalar (text proc))
+    if proc != "MULTIPART" then store else
+    store |>.set "FILES" files |>.set "FILES_NAMES" (namesOf files)
+      |>.set "FILES_COMBINED_SIZE" (natText (fileParts.foldl (fun n p => n + p.content.size) 0))
+      |>.set "MULTIPART_PART_HEADERS" (parts.map fun p => Member.mk (latin p.name) (text p.headers))
+      |>.set "MULTIPART_STRICT_ERROR" (natText (if bad then 1 else 0))
 
 /-- Phase 3 additions (`05#response_status`, `05#response_headers`). -/
 def phase3Store (resp : Option Response) (store : Store) : Store :=
@@ -153,5 +207,20 @@ def phase4Store (st : Settings) (resp : Option Response) (store : Store) : Store
         (s.get "REQUEST_BODY").length) == 0
 #guard ((phase4Store { responseBodyAccess := true, mimeTypes := ["text/plain"] } (some { headers := [("Content-Type", "text/plain; charset=utf-8")], body := "leak" }) []).get "RESPONSE_BODY").map (ofBytes ·.value) == ["leak"]
 #guard ((phase4Store { responseBodyAccess := true, mimeTypes := ["text/plain"] } (some { headers := [("Content-Type", "application/json")], body := "leak" }) []).get "RESPONSE_BODY").length == 0
+
+def mpBody : String := "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r\nhello\r\n--XX\r\nContent-Disposition: form-data; name=\"f\"; filename=\"a.txt\"\r\nContent-Type: text/plain\r\n\r\nabc\r\n--XX--\r\n"
+#guard (parseArgs '&' none "a=1&&b=2").map (·.key) == ["a", "b"]
+#guard ((parseMultipart "XX" mpBody).1.map fun p => (p.name, p.filename, ofBytes p.content)) == [("t", none, "hello"), ("f", some "a.txt", "abc")]
+#guard (parseMultipart "XX" mpBody).2 == false
+#guard (parseMultipart "XX" "--XX\nContent-Disposition: form-data; name=\"t\"\n\nhello\n--XX--\n").2 == true
+#guard (parseMultipart "XX" "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r\nhello\r\n").2 == true
+#guard (parseMultipart "XX" "junk\r\n--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r\nhello\r\n--XX--\r\n").2 == true
+#guard headerParam "multipart/form-data; boundary=\"XX\"" "boundary" == some "XX"
+#guard headerParam "multipart/form-data; boundary=XX" "boundary" == some "XX"
+#guard (let s := phase2Store { requestBodyAccess := true } { method := "POST", uri := "/", headers := [("Content-Type", "multipart/form-data; boundary=XX")], body := some mpBody } true none false (phase1Store {} { uri := "/" })
+        ((s.get "ARGS_POST").map (fun m => (m.key, ofBytes m.value)), (s.get "FILES").map (fun m => (m.key, ofBytes m.value)), (s.get "FILES_NAMES").map (ofBytes ·.value),
+         (s.get "FILES_COMBINED_SIZE").map (ofBytes ·.value), (s.get "MULTIPART_STRICT_ERROR").map (ofBytes ·.value), (s.get "REQBODY_PROCESSOR").map (ofBytes ·.value), (s.get "REQUEST_BODY").length))
+  == ([("t", "hello")], [("f", "a.txt")], ["f"], ["3"], ["0"], ["MULTIPART"], 0)
+#guard ((phase2Store { requestBodyAccess := true } { method := "POST", uri := "/", headers := [("Content-Type", "multipart/form-data; boundary=XX")], body := some mpBody } true none false (phase1Store {} { uri := "/" })).get "MULTIPART_PART_HEADERS").map (fun m => (m.key, (ofBytes m.value).startsWith "Content-Disposition")) == [("t", true), ("f", true)]
 
 end SecLang

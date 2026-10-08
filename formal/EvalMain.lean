@@ -59,8 +59,7 @@ def settingsOf (cfg : Config) : Settings × Mode :=
     | _ => (s, m)) ({}, .off)
 
 def unsupportedVariables : List String :=
-  ["FILES", "FILES_NAMES", "FILES_COMBINED_SIZE", "MULTIPART_PART_HEADERS", "MULTIPART_STRICT_ERROR", "XML",
-   "REQBODY_ERROR", "REQBODY_ERROR_MSG", "INBOUND_DATA_ERROR", "OUTBOUND_DATA_ERROR", "IP", "GLOBAL", "SESSION", "USER", "RESOURCE"]
+  ["XML", "REQBODY_ERROR", "REQBODY_ERROR_MSG", "INBOUND_DATA_ERROR", "OUTBOUND_DATA_ERROR", "IP", "GLOBAL", "SESSION", "USER", "RESOURCE"]
 def limitDirectives : List String := ["SecRequestBodyLimit", "SecResponseBodyLimit", "SecRequestBodyNoFilesLimit"]
 
 /-- The first feature outside the model that a profile needs, if any. -/
@@ -86,7 +85,7 @@ def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
   else if let some d := dirs.find? limitDirectives.contains then some s!"directive {d}"
   else if stages.any (fun s => (s.output.getObjVal? "log_contains").toOption.isSome || (s.output.getObjVal? "no_log_contains").toOption.isSome) then some "log assertions"
   else if stages.any (fun s => s.input.body.isSome && (headerValue s.input.headers "Content-Type").any fun ct =>
-            let c := ct.toLower; c.startsWith "multipart/" || c.startsWith "application/json" || c.endsWith "xml") then some "body processor"
+            let c := ct.toLower; c.startsWith "application/json" || c.endsWith "xml") then some "body processor"
   else none
 
 def natList (j : Json) (k : String) : List Nat :=
