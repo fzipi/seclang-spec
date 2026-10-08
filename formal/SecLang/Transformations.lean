@@ -1,3 +1,5 @@
+import SecLang.Bytes
+
 /-!
 # Transformations (`spec/07-transformations.md`)
 
@@ -5,26 +7,6 @@ Executable reference definitions over byte arrays. Reference semantics: ModSecur
 `apache2/msc_util.c` (`v2/master`, 2026-09), which is what the unit-tier corpus expects.
 -/
 namespace SecLang
-
-/-- The byte at `i`, or `none` past the end. -/
-def byteAt (b : ByteArray) (i : Nat) : Option UInt8 :=
-  if h : i < b.size then some b[i] else none
-
-/-- Value of an ASCII hexadecimal digit. -/
-def hexVal (b : UInt8) : Option UInt8 :=
-  if 48 ≤ b && b ≤ 57 then some (b - 48)        -- 0-9
-  else if 65 ≤ b && b ≤ 70 then some (b - 55)   -- A-F
-  else if 97 ≤ b && b ≤ 102 then some (b - 87)  -- a-f
-  else none
-
-/-- The hexadecimal digit at `i`, when there is one. -/
-def hexAt (b : ByteArray) (i : Nat) : Option UInt8 := byteAt b i >>= hexVal
-
-/-- C `isspace`: space, HT, LF, VT, FF, CR. -/
-def isSpace (b : UInt8) : Bool := b == 32 || (9 ≤ b && b ≤ 13)
-
-/-- Lowercase hexadecimal digit for a value below 16. -/
-def hexDigit (n : UInt8) : UInt8 := if n < 10 then 48 + n else 87 + n
 
 /-- `lowercase`: ASCII `A`–`Z` to `a`–`z`, other bytes unchanged. -/
 def lowercase (b : ByteArray) : ByteArray := Id.run do
@@ -89,11 +71,6 @@ def urlDecodeUni : ByteArray → ByteArray := urlDecodeUniWith fun _ => none
 #guard (urlDecodeUni ⟨"%0g%20%%%".toUTF8.data⟩).data == "%0g %%%".toUTF8.data
 #guard (urlDecodeUniWith (fun c => if c == 0x1141 then some 0x5A else none) ⟨"%u1141".toUTF8.data⟩).data == #[0x5A]
 
-/-- Number of hexadecimal digits at `p`, at most `max`. -/
-def hexRun (b : ByteArray) (p : Nat) : Nat → Nat
-  | 0 => 0
-  | k + 1 => if (hexAt b p).isSome then 1 + hexRun b (p + 1) k else 0
-
 /-- The byte for a CSS escape of `j` (1–6) hexadecimal digits starting at `p`: the last two
 digits, folded from full-width ASCII when the escape is `ffXX`, `0ffXX` or `00ffXX`.
 Source: `msc_util.c` `css_decode_inplace`. -/
@@ -116,7 +93,7 @@ where
       else match byteAt b (i + 1) with
         | none => out                                    -- trailing backslash: dropped
         | some n =>
-          let j := hexRun b (i + 1) 6
+          let j := takeWhile b isHex (i + 1) 6
           if j == 0 then
             if n == '\n'.toUInt8 then go (i + 2) out     -- escaped newline: dropped
             else go (i + 2) (out.push n)                 -- escaped byte: itself
@@ -178,5 +155,70 @@ def base64Decode (b : ByteArray) : ByteArray := Id.run do
 #guard (base64Decode ⟨"VGVz*dENh".toUTF8.data⟩).data == "Tes".toUTF8.data
 #guard (base64Decode ⟨#[0x56, 0x47, 0x56, 0x7A, 0x00, 0x64]⟩).data == "Tes".toUTF8.data
 #guard (base64Decode ⟨#[]⟩).data == #[]
+
+/-- `uppercase`: ASCII `a`–`z` to `A`–`Z`. libmodsecurity `upper_case.cc`; absent from v2. -/
+def uppercase : ByteArray → ByteArray := mapBytes fun x => if 97 ≤ x && x ≤ 122 then x - 32 else x
+
+/-- `removeNulls`. re_tfns.c `msre_fn_removeNulls_execute`. -/
+def removeNulls : ByteArray → ByteArray := filterBytes (· != 0)
+
+/-- `replaceNulls`: NUL to space. re_tfns.c `msre_fn_replaceNulls_execute`. -/
+def replaceNulls : ByteArray → ByteArray := mapBytes fun x => if x == 0 then 32 else x
+
+/-- Whitespace for the whitespace transformations: C `isspace` or the NBSP byte `0xA0`. -/
+def isWs (x : UInt8) : Bool := isSpace x || x == 0xA0
+
+/-- `removeWhitespace`. re_tfns.c `msre_fn_removeWhitespace_execute`. -/
+def removeWhitespace : ByteArray → ByteArray := filterBytes (!isWs ·)
+
+/-- `trimLeft`: drop leading `isspace` bytes. re_tfns.c `msre_fn_trimLeft_execute`. -/
+def trimLeft (b : ByteArray) : ByteArray :=
+  let n := takeWhile b isSpace 0 b.size
+  b.extract n b.size
+
+/-- `trimRight`: drop trailing `isspace` bytes. re_tfns.c `msre_fn_trimRight_execute`. -/
+def trimRight (b : ByteArray) : ByteArray := go b.size
+where
+  go : Nat → ByteArray
+    | 0 => .empty
+    | k + 1 => if (byteAt b k).any isSpace then go k else b.extract 0 (k + 1)
+
+/-- `trim`. re_tfns.c `msre_fn_trim_execute`. -/
+def trim (b : ByteArray) : ByteArray := trimRight (trimLeft b)
+
+/-- `length`: the byte count as a decimal string. re_tfns.c `msre_fn_length_execute`. -/
+def length (b : ByteArray) : ByteArray := (toString b.size).toUTF8
+
+/-- `true` when `x` has an odd number of one bits (all eight). re_tfns.c
+`msre_fn_parityEven7bit_execute`: `x ^= x >> 4; x &= 0xf; (0x6996 >> x) & 1`. -/
+def oddParity (x : UInt8) : Bool :=
+  let n := (x ^^^ (x >>> 4)) &&& 0xF
+  ((0x6996 : UInt32) >>> n.toUInt32) &&& 1 == 1
+
+/-- `parityEven7bit`: set bit 7 when the eight-bit parity is odd, clear it otherwise. A byte
+whose bit 7 is already set therefore keeps odd parity (v2 and v3 behaviour, `spec/07`). -/
+def parityEven7bit : ByteArray → ByteArray :=
+  mapBytes fun x => if oddParity x then x ||| 0x80 else x &&& 0x7F
+
+/-- `parityOdd7bit`: the complement rule of `parityEven7bit`. -/
+def parityOdd7bit : ByteArray → ByteArray :=
+  mapBytes fun x => if oddParity x then x &&& 0x7F else x ||| 0x80
+
+/-- `parityZero7bit`: clear bit 7. re_tfns.c `msre_fn_parityZero7bit_execute`. -/
+def parityZero7bit : ByteArray → ByteArray := mapBytes (· &&& 0x7F)
+
+#guard (uppercase ⟨"Test\u0000Case 1".toUTF8.data⟩).data == "TEST\u0000CASE 1".toUTF8.data
+#guard (removeNulls ⟨#[0, 0x54, 0, 0, 0x43, 0]⟩).data == #[0x54, 0x43]
+#guard (replaceNulls ⟨#[0, 0x54, 0]⟩).data == #[0x20, 0x54, 0x20]
+#guard (removeWhitespace ⟨#[0x20, 0x54, 9, 10, 11, 12, 13, 0xA0, 0x43, 0]⟩).data == #[0x54, 0x43, 0]
+#guard (trimLeft ⟨" \t  T \u0000 C \t\r\n ".toUTF8.data⟩).data == "T \u0000 C \t\r\n ".toUTF8.data
+#guard (trimRight ⟨" \t  T \u0000 C \t\r\n ".toUTF8.data⟩).data == " \t  T \u0000 C".toUTF8.data
+#guard (trim ⟨" \t  T \u0000 C \t\r\n ".toUTF8.data⟩).data == "T \u0000 C".toUTF8.data
+#guard (trim ⟨"   ".toUTF8.data⟩).data == #[]
+#guard (length ⟨"Test\u0000Case".toUTF8.data⟩).data == "9".toUTF8.data
+#guard (length ⟨#[]⟩).data == "0".toUTF8.data
+#guard (parityEven7bit ⟨"abc0".toUTF8.data⟩).data == #[0xE1, 0xE2, 0x63, 0x30]
+#guard (parityOdd7bit ⟨"abc0".toUTF8.data⟩).data == #[0x61, 0x62, 0xE3, 0xB0]
+#guard (parityZero7bit ⟨#[0xC2, 0x80, 0x00, 0xFF]⟩).data == #[0x42, 0x00, 0x00, 0x7F]
 
 end SecLang

@@ -426,7 +426,9 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Sets the eighth bit so each byte has even parity.
+**Semantics.** Sets bit 7 when the byte's eight-bit parity is odd and clears it otherwise,
+so a byte whose bit 7 is already set keeps odd parity (ModSecurity v2 `re_tfns.c`,
+libmodsecurity v3 `parity_even_7bit.h`).
 
 **Implemented by.** v2, v3.
 
@@ -434,7 +436,8 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Sets the eighth bit so each byte has odd parity.
+**Semantics.** Clears bit 7 when the byte's eight-bit parity is odd and sets it otherwise;
+the mirror of `parityEven7bit`, with the same high-bit caveat.
 
 **Implemented by.** v2, v3.
 
