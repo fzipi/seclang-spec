@@ -12,8 +12,8 @@
 {{- $body = replaceRE "`(?:spec/)?(\\d\\d-[a-z0-9-]+)\\.md(#[A-Za-z0-9_-]+)?`" "[`$0`](/spec/$1.md$2)" $body -}}
 {{- $body = replaceRE "`(?:compat/)?(known-gaps|matrix)\\.md(#[A-Za-z0-9_-]+)?`" "[`$0`](/compat/$1.md$2)" $body -}}
 {{- /* a last segment with a dot is a file (blob); anything else is a directory (tree) */ -}}
-{{- $body = replaceRE "`((?:tests|adapters|tools)/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\\.[A-Za-z0-9_.-]+)`" (printf "[`$1`](%sblob/main/$1)" $repo) $body -}}
-{{- $body = replaceRE "`((?:tests|adapters|tools)(?:/[A-Za-z0-9_-]+)*/?)`" (printf "[`$1`](%stree/main/$1)" $repo) $body -}}
+{{- $body = replaceRE "`((?:tests|adapters|tools|formal)/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\\.[A-Za-z0-9_.-]+)`" (printf "[`$1`](%sblob/main/$1)" $repo) $body -}}
+{{- $body = replaceRE "`((?:tests|adapters|tools|formal)(?:/[A-Za-z0-9_-]+)*/?)`" (printf "[`$1`](%stree/main/$1)" $repo) $body -}}
 {{- range resources.Match "src/adr/*.md" -}}
   {{- $stem := path.BaseName .Name -}}
   {{- with findRE `^\d{4}` $stem 1 -}}

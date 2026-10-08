@@ -55,3 +55,14 @@ jobs:
       - run: uv run python -m unittest discover -s adapters/libmodsecurity -v
         env:
           MODSECURITY_LIB: /home/runner/modsecurity/lib/libmodsecurity.so
+  lean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@f061402b660e0c34644504b324e830f2991d4865 # v1.6.1
+        with:
+          lake-package-directory: formal
+          auto-config: "false"
+          build: "true"
+      - run: lake exe seclang-check
+        working-directory: formal

@@ -22,9 +22,10 @@ all. Read this file before changing anything; the invariants below are enforced 
 | `adapters/coraza/` | Go reference adapter (Coraza v3.8.1 pinned in `go.mod`). | `cd adapters/coraza && go test ./...` |
 | `adapters/libmodsecurity/` | Python/ctypes reference adapter over the libmodsecurity v3 C API. Needs `MODSECURITY_LIB` pointing at a `libmodsecurity.so`/`.dylib` built with libxml2, yajl and PCRE2 (recipe in its README; CI builds v3.0.16 from source and caches it). Reads matched rules from the engine debug log because the C API omits `nolog` matches. | `MODSECURITY_LIB=… uv run python -m unittest discover -s adapters/libmodsecurity` |
 | `tools/` | `validate.py` (all invariants, CI runs it), `matrix.py`, `import_sts.py`, and their unit tests `test_*.py`. | `uv run python tools/validate.py`; `uv run python -m unittest discover -s tools -t .` |
+| `formal/` | Lean 4 model (`lakefile.toml`, no dependencies beyond the toolchain). `SecLang/Transformations.lean` defines transformations over `ByteArray`, each with `#guard` checks; `lake exe seclang-check` runs `tests/unit/transformations` against them and exits non-zero on any mismatch. The model is a reference, not an engine: no known-gaps rows; a mismatch is a corpus, spec or model defect to fix before merge. | `cd formal && lake build && lake exe seclang-check` (needs elan; see `formal/README.md`) |
 | `site/` | Hugo site (Hextra theme as a Hugo module). Content adapters render `spec/`, `compat/` and `adr/` in place: nothing in `site/content` duplicates a source file; backticked references and `ADR-NNNN` mentions become links. | `hugo -s site --gc --minify --cleanDestinationDir && site/smoke.sh` |
 | `docs/superpowers/` | Design documents and implementation plans the work was built from. Historical; not published. | Add a new pair for new subsystems. |
-| `.github/workflows/` | `validate.yml` (validator + tools tests, Coraza adapter, libmodsecurity adapter), `pages.yml` (site build on PRs, deploy to GitHub Pages on `main`). | Keep third-party actions pinned to a commit SHA. |
+| `.github/workflows/` | `validate.yml` (validator + tools tests, Coraza adapter, libmodsecurity adapter, Lean model), `pages.yml` (site build on PRs, deploy to GitHub Pages on `main`). | Keep third-party actions pinned to a commit SHA. |
 
 Published site: <https://fzipi.github.io/seclang-spec/>. Spec design: `docs/superpowers/specs/2026-10-06-seclang-spec-design.md`.
 
@@ -47,10 +48,11 @@ uv run python -m unittest discover -s tools -t .     # importer, matrix, validat
 (cd adapters/coraza && go test ./... -count=1)       # when tests/, compat/ or the adapter changed
 MODSECURITY_LIB=… uv run python -m unittest discover -s adapters/libmodsecurity   # same, if the library is available
 hugo -s site --gc --minify --cleanDestinationDir && site/smoke.sh                 # when site/ or any published markdown changed
+(cd formal && lake build && lake exe seclang-check)                               # when formal/, spec/07 or tests/unit/transformations changed
 ```
 
-CI runs the first four on every push and pull request and builds the site; a pull request
-cannot deploy it.
+CI runs the first four and the Lean check on every push and pull request and builds the
+site; a pull request cannot deploy it.
 
 ## Where to read more
 
