@@ -469,7 +469,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** The parameter is a regular expression. Matches are searched from each offset of the value in turn, anchors relative to the whole value, empty matches ignored; the digits of each whole match are checked with the Luhn algorithm, and the first Luhn-valid match matches (ModSecurity v2 `apache2/re_operators.c`, `msre_op_verifyCC_execute` and `luhn_verify`).
+**Semantics.** The parameter is a regular expression compiled dot-all and multiline (`.` matches a newline, `^` and `$` match at line boundaries). Matches are searched from each offset of the value in turn, anchors relative to the whole value, empty matches ignored; the digits of each whole match are checked with the Luhn algorithm, and the first Luhn-valid match matches (ModSecurity v2 `apache2/re_operators.c`, `msre_op_verifyCC_execute` and `luhn_verify`).
 
 **Implemented by.** v2, v3.
 
@@ -477,7 +477,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Searched like `verifyCC`; a match is valid when its first eleven digits are exactly eleven, are not `00000000000`, `11111111111` … `99999999999` or `01234567890`, and the last two agree with the CPF check-digit sums (weights 10…2 and 11…2, remainder below 2 giving 0, otherwise 11 minus the remainder) (ModSecurity v2 `cpf_verify`).
+**Semantics.** Searched like `verifyCC`; a match is valid when its first eleven digits are exactly eleven, are not `00000000000`, `11111111111` … `99999999999` or `01234567890`, and the last two agree with the CPF check-digit sums (weights 10…2 and 11…2, remainder below 2 giving 0, otherwise 11 minus the remainder) (ModSecurity v2 `cpf_verify`). libmodsecurity v3.0.16 searches each suffix of the value as a separate subject (`src/operators/verify_cpf.cc`, `VerifyCPF::evaluate`), so `^` and look-behind context are relative to the suffix, not the whole value.
 
 **Implemented by.** v2, v3.
 
@@ -485,7 +485,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Searched like `verifyCC`; a match is valid when it holds exactly nine digits that are neither all ascending by one nor all equal, with area (first three), group (next two) and serial (last four) non-zero, area not 666 and below 740 (ModSecurity v2 `ssn_verify`).
+**Semantics.** Searched like `verifyCC`; a match is valid when it holds exactly nine digits that are neither all ascending by one nor all equal, with area (first three), group (next two) and serial (last four) non-zero, area not 666 and below 740 (ModSecurity v2 `ssn_verify`). libmodsecurity v3.0.16 searches each suffix of the value as a separate subject (`src/operators/verify_ssn.cc`, `VerifySSN::evaluate`), so `^` and look-behind context are relative to the suffix, not the whole value.
 
 **Implemented by.** v2, v3.
 

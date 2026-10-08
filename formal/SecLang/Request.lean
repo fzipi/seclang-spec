@@ -1,7 +1,7 @@
 import SecLang.Syntax
 import SecLang.Transformations
 /-! The variable store of one transaction, populated from the request and response per
-`spec/05-variables.md` and `spec/09-body-processors.md` (URL-encoded bodies only). -/
+`spec/05-variables.md` and `spec/09-body-processors.md` (URL-encoded and multipart bodies). -/
 namespace SecLang
 
 structure Member where
@@ -103,9 +103,19 @@ structure Part where
   headers : String
   content : ByteArray
 
+/-- Split on `;` outside double quotes. -/
+def splitParams (s : String) : List String :=
+  go s.toList false [] []
+where
+  go : List Char → Bool → List Char → List String → List String
+    | [], _, cur, acc => (String.ofList cur.reverse :: acc).reverse
+    | '"' :: rest, inQ, cur, acc => go rest (!inQ) ('"' :: cur) acc
+    | ';' :: rest, inQ, cur, acc => if inQ then go rest inQ (';' :: cur) acc else go rest inQ [] (String.ofList cur.reverse :: acc)
+    | c :: rest, inQ, cur, acc => go rest inQ (c :: cur) acc
+
 /-- A `key=value` parameter of a `;`-separated header value, quotes removed. -/
 def headerParam (v : String) (key : String) : Option String :=
-  ((v.splitOn ";").map trimBlanks).findSome? fun p =>
+  ((splitParams v).map trimBlanks).findSome? fun p =>
     match p.splitOn "=" with
     | k :: rest@(_ :: _) =>
       if (trimBlanks k).toLower == key.toLower then
@@ -114,30 +124,51 @@ def headerParam (v : String) (key : String) : Option String :=
       else none
     | _ => none
 
-/-- One part: the header block up to the blank line, then the content. -/
-def parsePart (piece : String) : Part :=
-  let (hdrs, content) := match piece.splitOn "\r\n\r\n" with
-    | [h] => (h, "")
-    | h :: rest => (h, "\r\n\r\n".intercalate rest)
-    | [] => ("", "")
-  let disposition := ((hdrs.splitOn "\r\n").find? fun l => l.toLower.startsWith "content-disposition:").map fun l =>
+/-- One part from its header lines and content lines (each with its line ending). -/
+def mkPart (hdrs : List String) (content : List (String × String)) : Part :=
+  let disposition := (hdrs.find? fun l => l.toLower.startsWith "content-disposition:").map fun l =>
     dropFirst (String.ofList (l.toList.dropWhile (· != ':')))
+  -- the last content line's ending belongs to the delimiter that follows it
+  let body := String.join ((content.dropLast.map fun (l, e) => l ++ e) ++ (content.getLast?.map (·.1)).toList)
   { name := (disposition.bind (headerParam · "name")).getD "", filename := disposition.bind (headerParam · "filename"),
-    headers := hdrs, content := text content }
+    headers := "\r\n".intercalate hdrs, content := text body }
 
-/-- RFC 7578 (`09#multipart`): the parts and whether an anomaly was seen (data before the
-first boundary, a bare LF line ending, or no closing delimiter). -/
+/-- Lines with their endings (`"\r\n"`, `"\n"`, or `""` for an unterminated last line). -/
+def splitLines (s : String) : List (String × String) :=
+  match (s.splitOn "\n").reverse with
+  | [] => []
+  | last :: initRev =>
+    let ends := initRev.reverse.map fun l =>
+      if l.endsWith "\r" then (String.ofList l.toList.dropLast, "\r\n") else (l, "\n")
+    ends ++ (if last.isEmpty then [] else [(last, "")])
+
+/-- RFC 7578 (`09#multipart`): the parts and whether an anomaly was seen (ModSecurity v2
+`apache2/msc_multipart.c`): data before the first boundary or after the closing one, a
+boundary line carrying other characters, a bare LF ending on a boundary or header line, or
+no closing delimiter. A bare LF inside part content is data, not an anomaly. -/
 def parseMultipart (boundary : String) (body : String) : List Part × Bool :=
   let delim := "--" ++ boundary
-  let bareLF := (body.toList.zip ('\r' :: body.toList)).any fun (c, prev) => c == '\n' && prev != '\r'
-  if !body.startsWith delim then ([], true) else
-  let pieces := (String.ofList (body.toList.drop delim.length)).splitOn ("\r\n" ++ delim)
-  match pieces.getLast? with
-  | none => ([], true)
-  | some last =>
-    let closed := last.startsWith "--"
-    let parts := (pieces.dropLast.filter fun p => p.startsWith "\r\n").map fun p => parsePart (String.ofList (p.toList.drop 2))
-    (parts, bareLF || !closed)
+  -- state: 0 preamble, 1 headers, 2 content, 3 after the closing delimiter
+  let rec go : List (String × String) → Nat → List String → List (String × String) → List Part → Bool → List Part × Bool
+    | [], state, hdrs, content, parts, bad =>
+      let parts := if state == 1 || state == 2 then parts ++ [mkPart hdrs content] else parts
+      (parts, bad || state != 3)
+    | (l, e) :: rest, state, hdrs, content, parts, bad =>
+      let flush := if state == 1 || state == 2 then parts ++ [mkPart hdrs content] else parts
+      if l.startsWith delim && state != 3 then
+        let tail := trimBlanks (String.ofList (l.toList.drop delim.length))
+        let bad := bad || e == "\n" || tail.length + delim.length != l.length
+        if tail.isEmpty then go rest 1 [] [] flush bad
+        else if tail == "--" then go rest 3 [] [] flush bad
+        else match state with  -- not a boundary: content stays visible, the anomaly is recorded
+          | 2 => go rest 2 hdrs (content ++ [(l, e)]) parts true
+          | _ => go rest state hdrs content parts true
+      else match state with
+        | 0 => go rest 0 hdrs content parts true
+        | 1 => if l.isEmpty then go rest 2 hdrs content parts bad else go rest 1 (hdrs ++ [l]) content parts (bad || e == "\n")
+        | 2 => go rest 2 hdrs (content ++ [(l, e)]) parts bad
+        | _ => go rest 3 hdrs content parts (bad || !l.isEmpty)
+  go (splitLines body) 0 [] [] [] false
 
 /-- Phase 2 additions when the body is read (`09#urlencoded`, `05#request_body`, ADR-0022):
 `access` and `processor` come from the settings as overridden by phase 1 `ctl`s. -/
@@ -222,5 +253,18 @@ def mpBody : String := "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r
          (s.get "FILES_COMBINED_SIZE").map (ofBytes ·.value), (s.get "MULTIPART_STRICT_ERROR").map (ofBytes ·.value), (s.get "REQBODY_PROCESSOR").map (ofBytes ·.value), (s.get "REQUEST_BODY").length))
   == ([("t", "hello")], [("f", "a.txt")], ["f"], ["3"], ["0"], ["MULTIPART"], 0)
 #guard ((phase2Store { requestBodyAccess := true } { method := "POST", uri := "/", headers := [("Content-Type", "multipart/form-data; boundary=XX")], body := some mpBody } true none false (phase1Store {} { uri := "/" })).get "MULTIPART_PART_HEADERS").map (fun m => (m.key, (ofBytes m.value).startsWith "Content-Disposition")) == [("t", true), ("f", true)]
+
+-- review fixes: a bare LF inside part content is not a strict error (v2 `msc_multipart.c` flags only boundary and header lines)
+#guard (let (ps, bad) := parseMultipart "XX" "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r\na\nb\r\n--XX--\r\n"
+        (ps.map fun p => (p.name, p.headers, ofBytes p.content), bad)) == ([("t", "Content-Disposition: form-data; name=\"t\"", "a\nb")], false)
+-- LF-delimited bodies still yield their parts
+#guard ((parseMultipart "XX" "--XX\nContent-Disposition: form-data; name=\"t\"\n\nhello\n--XX--\n").1.map fun p => (p.name, ofBytes p.content)) == [("t", "hello")]
+-- a boundary line with trailing data, or data after the closing delimiter, is a strict error
+#guard (parseMultipart "XX" "--XX \r\nContent-Disposition: form-data; name=\"t\"\r\n\r\nattack\r\n--XX--\r\n").2 == true
+#guard (parseMultipart "XX" "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r\nab\r\n--XXY\r\ncd\r\n--XX--\r\n").2 == true
+#guard (parseMultipart "XX" "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r\nhello\r\n--XX--\r\nTRAILING").2 == true
+-- quoted parameter values may hold `;`
+#guard headerParam "form-data; name=\"f\"; filename=\"shell;.php\"" "filename" == some "shell;.php"
+#guard headerParam "form-data; name=\"a;b\"" "name" == some "a;b"
 
 end SecLang

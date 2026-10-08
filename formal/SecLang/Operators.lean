@@ -152,9 +152,10 @@ def ssnValid (s : ByteArray) : Bool :=
   let serial := num (ds.drop 5)
   area != 0 && grp != 0 && serial != 0 && area != 666 && area < 740
 
-/-- `verify*` scan (v2): regex matches from offset 0 upward with anchors relative to the whole
-value, the whole match checked by `ok`; after a failing match the search resumes one past its
-start. An empty match does not count (PCRE `NOTEMPTY`). -/
+/-- `verify*` scan (v2): the pattern is compiled dot-all and multiline (v2 `re_operators.c`
+`msre_op_verifyCC_init`, v3 `VerifyCC::init`); matches are searched from offset 0 upward with
+anchors relative to the whole value, the whole match checked by `ok`; after a failing match the
+search resumes one past its start. An empty match does not count (PCRE `NOTEMPTY`). -/
 def verifyWith (o : Oracle) (ok : ByteArray → Bool) (re : String) (v : ByteArray) : Bool := go 0 (v.size + 1)
 where
   go (offset fuel : Nat) : Bool :=
@@ -162,7 +163,7 @@ where
     | 0 => false
     | fuel + 1 =>
       if offset ≥ v.size then false else
-      match o.rxAt re v offset with
+      match o.rxAt ("(?sm)" ++ re) v offset with
       | some caps => match caps[0]! with
         | some (a, b) => if b > a && ok (v.extract a b) then true else go (a + 1) fuel
         | none => false
@@ -230,5 +231,9 @@ def testOracle : Oracle := ⟨Regex.searchAt⟩
 #guard !(evalOperator testOracle "verifySSN" "\\d{3}-?\\d{2}-?\\d{4}".toUTF8 "800-57-8065".toUTF8).1
 #guard !(evalOperator testOracle "verifySSN" "\\d{3}-?\\d{2}-?\\d{4}".toUTF8 "123-45-6789".toUTF8).1
 #guard (evalOperator testOracle "rx" "(a)(b?)(c)".toUTF8 "ac".toUTF8).2.map (·.toList.map (·.map ofBytes)) == some [some "ac", some "a", some "", some "c"]
+
+-- verify* compile with DOTALL|MULTILINE (v2 `re_operators.c`, v3 `VerifyCC::init`)
+#guard (evalOperator testOracle "verifyCC" "^\\d{16}$".toUTF8 "x\n4111111111111111".toUTF8).1
+#guard (evalOperator testOracle "verifyCC" "\\d{4}.\\d{4}.\\d{4}.\\d{4}".toUTF8 "4111\n1111\n1111\n1111".toUTF8).1
 
 end SecLang

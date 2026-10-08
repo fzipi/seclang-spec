@@ -513,7 +513,7 @@ name and valued by the raw header block of that part.
 
 **Semantics.** Scalar: `1` when the multipart parser detected any anomaly (unmatched or
 malformed boundary, data before or after the body, invalid quoting, header folding, bare
-LF line endings, missing semicolons, invalid parts, file limit exceeded), otherwise `0`.
+LF line endings on boundary or header lines, missing semicolons, invalid parts, file limit exceeded), otherwise `0`.
 Which anomalies an engine detects differs, so this specification only requires `0` for a
 well-formed body; the individual `MULTIPART_*` flags are Extended.
 
