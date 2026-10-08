@@ -1,0 +1,17 @@
+meta:
+  name: rx-dotall
+  description: "@rx is matched in dot-all mode: `.` matches a newline in the value (ADR-0027)"
+spec: 06-operators.md#rx
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:v "@rx a.b" "id:6202,phase:1,pass"
+  SecRule ARGS_GET:v "@rx (?m)^b$" "id:6203,phase:1,pass"
+tests:
+  - test_title: dot matches the newline; (?m) anchors a line
+    stages:
+      - stage:
+          input:
+            uri: /?v=a%0Ab
+          output:
+            triggered_rules: [6202, 6203]
+            no_interruption: true

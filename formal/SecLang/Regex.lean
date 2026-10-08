@@ -51,6 +51,7 @@ structure P where
   rest : List Char
   next : Nat := 1
   flags : Flags := {}
+  base : Flags := {}   -- the flags the matcher starts with; atoms are wrapped only when `flags` differ
 
 def withLetters (f : Flags) (letters : List Char) : Flags :=
   { ci := f.ci || letters.contains 'i', dotAll := f.dotAll || letters.contains 's', multi := f.multi || letters.contains 'm' }
@@ -106,7 +107,7 @@ partial def parseSeq (p : P) : Except String (List Re × P) := do
 
 partial def parseQuantified (p : P) : Except String (Re × P) := do
   let (a, p) ← parseAtom p
-  let a := if p.flags == {} then a else .flagged p.flags a
+  let a := if p.flags == p.base then a else .flagged p.flags a
   let q : Option (Nat × Option Nat × List Char) := match p.rest with
     | '*' :: rest => some (0, none, rest)
     | '+' :: rest => some (1, none, rest)
@@ -176,11 +177,12 @@ partial def parseGroup (cap : Option Nat) (p : P) : Except String (Re × P) := d
   | _ => .error "missing )"
 end
 
-/-- Tree and group count of a pattern (flags live in `flagged` nodes). -/
-def compile (pat : String) : Except String (Flags × Re × Nat) := do
-  let (r, p) ← parseAlt { rest := pat.toList }
+/-- Tree and group count of a pattern (flags live in `flagged` nodes). `@rx` is compiled
+dot-all by every engine (ADR-0027); `^` and `$` see the subject ends only unless `(?m)`. -/
+def compile (pat : String) (dflt : Flags := { dotAll := true }) : Except String (Flags × Re × Nat) := do
+  let (r, p) ← parseAlt { rest := pat.toList, flags := dflt, base := dflt }
   if !p.rest.isEmpty then throw "unbalanced )"
-  return ({}, r, p.next - 1)
+  return (dflt, r, p.next - 1)
 
 abbrev Caps := Array (Option (Nat × Nat))
 
@@ -204,7 +206,7 @@ partial def m (f : Flags) (s : Array Char) (r : Re) (i : Nat) (caps : Caps) (k :
   | .any => if h : i < s.size then (if s[i] == '\n' && !f.dotAll then none else k (i + 1) caps) else none
   | .cls neg items => if h : i < s.size then (if classMatch f neg items s[i] then k (i + 1) caps else none) else none
   | .bol => if i == 0 || (f.multi && s[i - 1]! == '\n') then k i caps else none
-  | .eol => if i == s.size || (i + 1 == s.size && s[i]! == '\n') || (f.multi && i < s.size && s[i]! == '\n') then k i caps else none
+  | .eol => if i == s.size || (f.multi && i < s.size && s[i]! == '\n') then k i caps else none   -- v2 DOLLAR_ENDONLY
   | .wordB neg =>
     let before := i > 0 && isWordC s[i - 1]!
     let after := i < s.size && isWordC s[i]!
@@ -279,5 +281,12 @@ def searchStr (pat subject : String) : Option (List (Option String)) :=
 #guard (searchStr "(?i:(sleep\\((\\s*?)(\\d*?)(\\s*?)\\)|benchmark\\((.*?)\\,(.*?)\\)))" "SELECT pg_sleep(10);").isSome
 #guard (searchAt "^b" "ab".toUTF8 1).isNone
 #guard (searchAt "b" "ab".toUTF8 1).map (·.toList) == some [some (1, 2)]
+
+-- compile mode (ADR-0027): dot-all by default, anchors at the subject ends unless (?m)
+#guard (searchStr "a.b" "a\nb").isSome
+#guard (searchStr "a$" "a\n").isNone
+#guard (searchStr "(?m)^b" "a\nb").isSome
+#guard (searchStr "(?i:x).y" "X\ny").isSome
+#guard (searchStr "^b" "a\nb").isNone
 
 end SecLang.Regex

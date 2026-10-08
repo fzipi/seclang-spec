@@ -274,14 +274,21 @@ Core syntax is the subset shared by PCRE, PCRE2 and RE2: literals, `.`, characte
 classes and `\d \w \s` with negations, `\b`, anchors, alternation, grouping with `(...)`
 and `(?:...)`, greedy and lazy quantifiers `* + ? {m,n}`, inline flags `(?i)`, `(?s)`,
 `(?m)` (not `(?x)`, which RE2 rejects). Named groups MUST use `(?P<name>...)`, which all three accept. Anything
-in `#rx-pcre-extensions` is not Core (ADR-0018). With `capture`, `TX:0` receives the
+in `#rx-pcre-extensions` is not Core (ADR-0018). The pattern is matched in dot-all mode:
+`.` matches every byte including the newline. Whether `^` and `$` match at inner line
+boundaries without `(?m)` is **not specified** (ADR-0027): rules that need line anchors
+MUST write `(?m)`. With `capture`, `TX:0` receives the
 whole match and `TX:1`…`TX:9` the groups; unit cases carry them as `re_groups`.
 
 **Divergence notes.** ModSecurity v2 uses PCRE, libmodsecurity v3 PCRE2, Coraza Go
 `regexp` (RE2). OWASP CRS v4 is written within the Core subset and checked by its
-toolchain. Match limits (`SecPcreMatchLimit`) apply to PCRE engines only.
+toolchain. Match limits (`SecPcreMatchLimit`) apply to PCRE engines only. Compile
+options differ: v2 `PCRE_DOTALL | PCRE_DOLLAR_ENDONLY` (`apache2/re_operators.c`), v3.0.16
+`PCRE2_DOTALL | PCRE2_MULTILINE` (`src/utils/regex.cc`), Coraza v3.8.1 `(?sm)` by default
+(`internal/operators/rx.go`); see ADR-0027.
 
-**Tests.** `tests/unit/operators/rx.json`, `tests/engine/operators/rx-capture.yaml`
+**Tests.** `tests/unit/operators/rx.json`, `tests/engine/operators/rx-capture.yaml`,
+`tests/engine/operators/rx-dotall.yaml`
 
 ### streq
 
