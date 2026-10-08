@@ -4,7 +4,10 @@ import SecLang.Bytes
 # Transformations (`spec/07-transformations.md`)
 
 Executable reference definitions over byte arrays. Reference semantics: ModSecurity v2
-`apache2/msc_util.c` (`v2/master`, 2026-09), which is what the unit-tier corpus expects.
+`apache2/msc_util.c` and `apache2/re_tfns.c` (`v2/master`, 2026-09), which is what the
+unit-tier corpus expects, except where a definition's docstring names another reference or
+a deliberate deviation (`normalisePathWin`, `sqlHexDecode`, `utf8toUnicode`, `cmdLine`,
+`base64DecodeExt`).
 -/
 namespace SecLang
 
@@ -280,9 +283,10 @@ def hexPairs (b : ByteArray) (j : Nat) : Nat → Nat
   | k + 1 => if (hexAt b j).isSome && (hexAt b (j + 1)).isSome then 1 + hexPairs b (j + 2) k else 0
 
 /-- `sqlHexDecode`: `0x` or `0X` followed by at least one pair of hexadecimal digits
-becomes the bytes of every following pair; a `0x` with no pair is kept. msc_util.c
-`sql_hex2bytes_inplace` (which, as a C-string loop, also stops at a NUL byte; v3
-`sql_hex_decode.cc` and this definition process every byte). -/
+becomes the bytes of every following pair; a `0x` with no pair is kept. Reference:
+libmodsecurity v3 `sql_hex_decode.cc`. ModSecurity v2 `sql_hex2bytes_inplace` differs:
+it copies the byte after a literal without examining it (`0x410x42` gives `A0x42`) and
+truncates the value at a decoded NUL (`strlen`). -/
 def sqlHexDecode (b : ByteArray) : ByteArray := go 0 .empty
 where
   go (i : Nat) (out : ByteArray) : ByteArray :=
@@ -308,13 +312,13 @@ where
 #guard (sqlHexDecode ⟨"0x414243".toUTF8.data⟩).data == "ABC".toUTF8.data
 #guard (sqlHexDecode ⟨"a0X41420x0xzz0x4".toUTF8.data⟩).data == "aAB0x0xzz0x4".toUTF8.data
 
-/-- Sextets of every alphabet byte up to the first NUL; `=` and any other byte are skipped.
-msc_util.c `decode_base64_ext` (its "`=` after a dangling sextet yields the empty value"
-quirk is not modelled: `spec/07#base64decodeext` leaves it unspecified). -/
+/-- Sextets of every alphabet byte; `=`, NUL and any other byte are skipped (libmodsecurity v3
+`decode_forgiven_engine`, Coraza `base64decode.go` ext mode; ModSecurity v2
+`decode_base64_ext` stops at NUL). The "`=` after a dangling sextet yields the empty
+value" quirk of v2 and v3 is not modelled: `spec/07#base64decodeext` leaves it unspecified. -/
 def b64SextetsExt (b : ByteArray) : Array UInt8 := Id.run do
   let mut out := #[]
   for x in b do
-    if x == 0 then return out
     if let some v := b64Val x then out := out.push v
   return out
 
@@ -356,7 +360,7 @@ def base64Encode (b : ByteArray) : ByteArray := Id.run do
 #guard (base64Encode ⟨"TestCase12".toUTF8.data⟩).data == "VGVzdENhc2UxMg==".toUTF8.data
 #guard (base64Encode ⟨#[]⟩).data == #[]
 #guard (base64DecodeExt ⟨"P.HNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==".toUTF8.data⟩).data == "<script>alert(1)</script>".toUTF8.data
-#guard (base64DecodeExt ⟨"VGVz\u0000dENh".toUTF8.data⟩).data == "Tes".toUTF8.data
+#guard (base64DecodeExt ⟨"VGVz\u0000dENh".toUTF8.data⟩).data == "TestCa".toUTF8.data
 #guard (base64DecodeExt ⟨"VG=Vz".toUTF8.data⟩).data == "Tes".toUTF8.data
 
 /-- `cmdLine`. re_tfns.c `msre_fn_cmdline_execute`: deletes `"`, `'`, `\`, `^`; collapses
@@ -558,8 +562,10 @@ where
 
 /-- `normalisePath` / `normalisePathWin`. A transcription of msc_util.c
 `normalize_path_inplace`: `src` walks the input, `out` is the output written so far (the C
-`dst`), `hitroot` remembers a relative path that climbed above its start. Backslashes are
-converted to `/` first when `win`. -/
+`dst`), `hitroot` remembers a relative path that climbed above its start. When `win`, every
+backslash is converted to `/` first, as the spec says; v2 and v3 convert only the current
+and the next byte and keep a backslash reached while skipping a run of slashes
+(`spec/07#normalisepathwin`). -/
 def normalisePathWith (win : Bool) (b0 : ByteArray) : ByteArray := Id.run do
   if b0.size == 0 then return b0
   let b := if win then mapBytes (fun x => if x == '\\'.toUInt8 then '/'.toUInt8 else x) b0 else b0
@@ -663,6 +669,7 @@ where
 #guard (normalisePath ⟨"dir//.//..//.//..//..//foo//bar//".toUTF8.data⟩).data == "../../foo/bar/".toUTF8.data
 #guard (normalisePathWin ⟨"\\dir\\foo\\\\bar".toUTF8.data⟩).data == "/dir/foo/bar".toUTF8.data
 #guard (normalisePathWin ⟨"..\\".toUTF8.data⟩).data == "../".toUTF8.data
+#guard (normalisePathWin ⟨"a//\\b".toUTF8.data⟩).data == "a/b".toUTF8.data
 #guard (utf8toUnicode ⟨#[0x61, 0xC3, 0xA9, 0xE2, 0x82, 0xAC, 0xF0, 0x9F, 0x98, 0x80, 0x62]⟩).data == "a%u00e9%u20ac%u1f600b".toUTF8.data
 #guard (utf8toUnicode ⟨#[0x61, 0xC3]⟩).data == #[0x61, 0xC3]
 #guard (utf8toUnicode ⟨#[0xC0, 0x80, 0xED, 0xA0, 0x80, 0x00, 0xC3]⟩).data == #[0xC0, 0x80, 0xED, 0xA0, 0x80, 0x00, 0xC3]

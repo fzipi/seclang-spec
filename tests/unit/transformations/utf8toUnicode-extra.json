@@ -1,0 +1,11 @@
+[
+ {
+  "type": "tfn",
+  "name": "utf8toUnicode",
+  "input": "a\u00c3",
+  "output": "a\u00c3",
+  "ret": 0,
+  "spec": "07-transformations.md#utf8tounicode",
+  "note": "a malformed lead byte at the end of the value is left unchanged"
+ }
+]

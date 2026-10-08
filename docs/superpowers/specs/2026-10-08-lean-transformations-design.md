@@ -85,3 +85,20 @@ Done when `lake exe seclang-check` prints 36 files with zero failures and zero s
 (35 generated or hand-maintained files plus `compressWhitespace-extra.json`),
 `tools/validate.py` is at 0 errors, the Coraza adapter is green with the updated known-gaps
 rows, and every row of §3 is reflected in the spec text.
+
+## 7. Corrections from the whole-branch review
+
+A differential run of the compiled v2 functions against the Lean definitions corrected
+four rows of §3:
+
+- `normalisePathWin`: v2 and v3 convert only the current and next byte, keeping a backslash
+  reached while skipping a slash run; the model follows the prose (convert all). Divergence
+  note, `normalisePathWin-extra.json`, v3 known-gaps row.
+- `utf8toUnicode`: every engine emits five digits above U+FFFF (the prose said four); v3 and
+  Coraza do not leave malformed bytes unchanged. Prose corrected, divergence notes
+  extended, `utf8toUnicode-extra.json` with v3 and Coraza known-gaps rows.
+- `base64DecodeExt`: v3 and Coraza skip NUL; only v2 stops. The model and the prose now skip
+  it.
+- `sqlHexDecode`: the model matches v3, not v2 (v2 copies the byte after a literal unchecked
+  and truncates at a decoded NUL). Docstring and prose say so.
+- `compressWhitespace` is a Core semantics change and got ADR-0026.

@@ -117,9 +117,10 @@ stops at the first NUL byte; libmodsecurity v3 and Coraza process every byte.
 FF, CR, and the non-breaking space byte 0xA0, as in `removeWhitespace`) with a single
 space; NUL is not whitespace.
 
-**Divergence notes.** libmodsecurity v3 (`compress_whitespace.cc`, `isspace`) does not
-treat 0xA0 as whitespace; ModSecurity v2 (`NBSP`) and Coraza (`rawNBSP`) do
-(`compat/known-gaps.md`).
+**Divergence notes.** Decided by ADR-0026. libmodsecurity v3 (`compress_whitespace.cc`,
+`isspace`) does not treat 0xA0 as whitespace; ModSecurity v2 (`NBSP`) and Coraza
+(`rawNBSP`) do (`compat/known-gaps.md`). Coraza decodes runes, so it also compresses the
+UTF-8 sequences `C2 A0` and `C2 85` and keeps an 0xA0 inside another valid sequence.
 
 **Tests.** `tests/unit/transformations/compressWhitespace.json`,
 `tests/unit/transformations/compressWhitespace-extra.json`
@@ -275,9 +276,13 @@ it to path variables, not to `REQUEST_URI` with a query string.
 
 **Semantics.** Converts `\` to `/`, then behaves as `normalisePath`.
 
-**Divergence notes.** None known.
+**Divergence notes.** ModSecurity v2 (`normalize_path_inplace`) and libmodsecurity v3
+(`normalise_path.cc`) convert a backslash only when it is the current or the next byte, so
+a backslash reached while skipping a run of slashes is kept: `a//\b` yields `a\b`
+(`compat/known-gaps.md`). Coraza converts every backslash first.
 
-**Tests.** `tests/unit/transformations/normalisePathWin.json`
+**Tests.** `tests/unit/transformations/normalisePathWin.json`,
+`tests/unit/transformations/normalisePathWin-extra.json`
 
 ### removeCommentsChar
 
@@ -385,16 +390,29 @@ ModSecurity expectation.
 
 **Syntax.** `t:utf8toUnicode`
 
-**Semantics.** Replaces each well-formed multi-byte UTF-8 sequence with `%uXXXX` (four
-lowercase hex digits); ASCII and malformed bytes are left unchanged.
+**Semantics.** Replaces each well-formed multi-byte UTF-8 sequence (RFC 3629) with `%u`
+followed by the code point in lowercase hexadecimal, at least four digits (five for code
+points above U+FFFF); ASCII and malformed bytes are left unchanged.
 
-**Divergence notes.** A NUL byte is ASCII and is left unchanged by Coraza, as specified;
-ModSecurity v2 (`utf8_unicode_inplace_ex`) treats NUL as the lead byte of a two-byte
-sequence and emits `%u00XX` when the next byte is 0x80 or above, and libmodsecurity v3
-(`utf8_to_unicode.cc`) drops a NUL that is not the last byte. No corpus case contains a
-NUL.
+**Divergence notes.** The engines agree only on well-formed input in the Basic
+Multilingual Plane, which is all the imported corpus covers.
 
-**Tests.** `tests/unit/transformations/utf8toUnicode.json`
+- Malformed input: libmodsecurity v3 (`utf8_to_unicode.cc`) drops a lead byte whose
+  sequence is incomplete or invalid, and emits both `%u…` and the raw lead byte for an
+  overlong or surrogate sequence; Coraza (`utf8_to_unicode.go`, Go `range` decoding)
+  turns each malformed byte into `%ufffd` (`compat/known-gaps.md`). ModSecurity v2 leaves
+  malformed bytes unchanged.
+- Code points above U+FFFF: v3 and Coraza emit five digits as specified; v2
+  (`utf8_unicode_inplace_ex`, `sprintf("%%u%04x")` advancing six bytes) lets the
+  following byte overwrite the fifth digit. v2 and v3 also accept sequences above
+  U+10FFFF (`F4 90`–`F4 BF`), which are not well-formed.
+- NUL: a NUL byte is ASCII and is left unchanged by Coraza, as specified; v2 treats NUL
+  as the lead byte of a two-byte sequence, emits `%u00XX` when the next byte is 0x80 or
+  above and otherwise truncates the value there (`strlen`); v3 drops a NUL that is not the
+  last byte.
+
+**Tests.** `tests/unit/transformations/utf8toUnicode.json`,
+`tests/unit/transformations/utf8toUnicode-extra.json`
 
 ## Extended transformations
 
@@ -404,7 +422,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Base64 decoding that ignores `=` and skips every other byte outside the alphabet instead of stopping at it (Coraza ADR-0014 lineage); decoding stops at a NUL byte. The result when `=` follows a single dangling sextet is not specified (ModSecurity v2 `decode_base64_ext` returns the empty value).
+**Semantics.** Base64 decoding that skips every byte outside the alphabet, NUL included, and ignores `=` instead of stopping (Coraza ADR-0014 lineage; libmodsecurity v3 `decode_forgiven_engine`). The result when `=` follows a single dangling sextet is not specified (ModSecurity v2 `decode_base64_ext` and v3 return the empty value). ModSecurity v2 stops at a NUL byte (C string); Coraza 3.8.1 (`base64decode.go`) stops at `=` and also accepts the base64url alphabet (`-`, `_`).
 
 **Implemented by.** v2, v3, Coraza.
 
@@ -479,7 +497,7 @@ the mirror of `parityEven7bit`, with the same high-bit caveat.
 
 **Status:** Extended
 
-**Semantics.** Decodes SQL `0xHH...` hexadecimal literals (`0x` or `0X` followed by at least one pair of hexadecimal digits) to their bytes; a `0x` with no complete pair is kept as is.
+**Semantics.** Decodes SQL `0xHH...` hexadecimal literals (`0x` or `0X` followed by at least one pair of hexadecimal digits) to their bytes; a `0x` with no complete pair is kept as is (libmodsecurity v3 `sql_hex_decode.cc`). ModSecurity v2 (`sql_hex2bytes_inplace`) copies the byte after a literal without examining it, so `0x410x42` yields `A0x42`, and truncates the value at a decoded NUL byte.
 
 **Implemented by.** v2, v3.
 

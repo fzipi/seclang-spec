@@ -46,3 +46,4 @@ promoted into the spec (Extension).
 | [0023](0023-reference-adapters.md) | Reference adapters live in this repository | Clarification | proposed |
 | [0024](0024-ipmatch-invalid-entries.md) | Unparsable `@ipMatch` entries are configuration errors | Divergence | proposed |
 | [0025](0025-secrequestbodyinmemorylimit-extended.md) | `SecRequestBodyInMemoryLimit` is Extended, not Core | Divergence | proposed |
+| [0026](0026-compresswhitespace-nbsp.md) | `compressWhitespace` treats the byte 0xA0 as whitespace | Divergence | proposed |

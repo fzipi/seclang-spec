@@ -1,0 +1,11 @@
+[
+ {
+  "type": "tfn",
+  "name": "normalisePathWin",
+  "input": "a//\\b",
+  "output": "a/b",
+  "ret": 1,
+  "spec": "07-transformations.md#normalisepathwin",
+  "note": "every backslash is converted before the slashes collapse; v2 and v3 keep a backslash reached while skipping a slash run"
+ }
+]
