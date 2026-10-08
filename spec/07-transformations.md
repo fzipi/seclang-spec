@@ -120,10 +120,13 @@ FF, CR) with a single space; NUL is not whitespace.
 
 **Syntax.** `t:cssDecode`
 
-**Semantics.** Decodes CSS 2.x escape sequences: a backslash followed by one to six
-hexadecimal digits (and an optional following whitespace) becomes the character, a
+**Semantics.** Decodes CSS 2.x escape sequences. A backslash followed by one to six
+hexadecimal digits yields one byte: the value of the last two digits (of the single digit
+for a one-digit escape), except that a full-width ASCII escape, `\ffXX`, `\0ffXX` or
+`\00ffXX` with `XX` in `01`–`5e`, yields `XX + 0x20`, its ASCII counterpart. One
+whitespace byte (space, HT, LF, VT, FF or CR) directly after the digits is consumed. A
 backslash followed by a newline is removed, a backslash followed by any other byte
-becomes that byte.
+yields that byte, and a trailing backslash is removed.
 
 **Divergence notes.** Two corpus inputs differ: ModSecurity emits the low byte of an
 escape's code point (`\123` is `#`), Coraza 3.8.1 emits the UTF-8 encoding of the code

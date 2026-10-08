@@ -89,4 +89,49 @@ def urlDecodeUni : ByteArray → ByteArray := urlDecodeUniWith fun _ => none
 #guard (urlDecodeUni ⟨"%0g%20%%%".toUTF8.data⟩).data == "%0g %%%".toUTF8.data
 #guard (urlDecodeUniWith (fun c => if c == 0x1141 then some 0x5A else none) ⟨"%u1141".toUTF8.data⟩).data == #[0x5A]
 
+/-- Number of hexadecimal digits at `p`, at most `max`. -/
+def hexRun (b : ByteArray) (p : Nat) : Nat → Nat
+  | 0 => 0
+  | k + 1 => if (hexAt b p).isSome then 1 + hexRun b (p + 1) k else 0
+
+/-- The byte for a CSS escape of `j` (1–6) hexadecimal digits starting at `p`: the last two
+digits, folded from full-width ASCII when the escape is `ffXX`, `0ffXX` or `00ffXX`.
+Source: `msc_util.c` `css_decode_inplace`. -/
+def cssByte (b : ByteArray) (p j : Nat) : UInt8 :=
+  let d := fun k => (hexAt b (p + k)).getD 0
+  if j == 1 then d 0
+  else
+    let low := d (j - 2) * 16 + d (j - 1)
+    let fullWidth := j == 4 || (j == 5 && d 0 == 0) || (j == 6 && d 0 == 0 && d 1 == 0)
+    if fullWidth && d (j - 3) == 15 && d (j - 4) == 15 && 0 < low && low < 0x5F then low + 0x20
+    else low
+
+/-- `cssDecode`: CSS 2.x escapes. -/
+def cssDecode (b : ByteArray) : ByteArray := go 0 .empty
+where
+  go (i : Nat) (out : ByteArray) : ByteArray :=
+    if h : i < b.size then
+      let c := b[i]
+      if c != '\\'.toUInt8 then go (i + 1) (out.push c)
+      else match byteAt b (i + 1) with
+        | none => out                                    -- trailing backslash: dropped
+        | some n =>
+          let j := hexRun b (i + 1) 6
+          if j == 0 then
+            if n == '\n'.toUInt8 then go (i + 2) out     -- escaped newline: dropped
+            else go (i + 2) (out.push n)                 -- escaped byte: itself
+          else
+            let ws := if (byteAt b (i + 1 + j)).any isSpace then 1 else 0
+            go (i + 1 + j + ws) (out.push (cssByte b (i + 1) j))
+    else out
+  termination_by b.size - i
+
+#guard (cssDecode ⟨"\\a\\b\\n\\?\\12\\123\\1234\\ff01\\ff5e".toUTF8.data⟩).data
+  == #[0x0A, 0x0B, 0x6E, 0x3F, 0x12, 0x23, 0x34, 0x21, 0x7E]
+#guard (cssDecode ⟨"\\1A\\1 A\\1234567\\123456 7\\1x\\1 x".toUTF8.data⟩).data
+  == #[0x1A, 0x01, 0x41, 0x56, 0x37, 0x56, 0x37, 0x01, 0x78, 0x01, 0x78]
+#guard (cssDecode ⟨"\\\n\\\u0000  s\\".toUTF8.data⟩).data == #[0x00, 0x20, 0x20, 0x73]
+#guard (cssDecode ⟨"\\  x".toUTF8.data⟩).data == #[0x20, 0x20, 0x78]
+#guard (cssDecode ⟨"\\0ff21\\00ff21\\1ff21".toUTF8.data⟩).data == #[0x41, 0x41, 0x21]
+
 end SecLang
