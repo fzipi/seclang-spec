@@ -103,11 +103,12 @@ where
     else true
   termination_by v.size - i
 
-def isWordByte (b : UInt8) : Bool := isAlnum b || b == '_'.toUInt8
+/-- Word bytes for `containsWord`: ASCII letters, as libmodsecurity v3 `contains_word.cc`
+`acceptableChar` has it; ModSecurity v2 also counts digits and `_` (`spec/06#containsword`). -/
+def isWordByte (b : UInt8) : Bool := (65 ≤ b && b ≤ 90) || (97 ≤ b && b ≤ 122)
 
-/-- `containsWord` (v2 `msre_op_containsWord_execute`): the parameter at a position preceded
-by the start or a non-word byte and followed by the end or a non-word byte; word bytes are
-ASCII alphanumerics and `_`; the empty parameter matches. -/
+/-- `containsWord`: the parameter at a position preceded by the start or a non-word byte and
+followed by the end or a non-word byte; the empty parameter matches. -/
 def containsWord (v param : ByteArray) : Bool :=
   if param.size == 0 then true else
   let h := v.toList
@@ -211,7 +212,9 @@ def testOracle : Oracle := ⟨Regex.searchAt⟩
 
 #guard (evalOperator testOracle "containsWord" "abc".toUTF8 "abc def".toUTF8).1
 #guard !(evalOperator testOracle "containsWord" "abc".toUTF8 "abcdef".toUTF8).1
-#guard !(evalOperator testOracle "containsWord" "abc".toUTF8 "x_abc".toUTF8).1
+#guard (evalOperator testOracle "containsWord" "abc".toUTF8 "x_abc".toUTF8).1    -- `_` and digits bound words (v3)
+#guard (evalOperator testOracle "containsWord" "def".toUTF8 "abc0def".toUTF8).1
+#guard !(evalOperator testOracle "containsWord" "def".toUTF8 "abcXdef".toUTF8).1
 #guard (evalOperator testOracle "containsWord" "abc".toUTF8 "x\u0000abc".toUTF8).1
 #guard (evalOperator testOracle "containsWord" "".toUTF8 "".toUTF8).1
 #guard (evalOperator testOracle "strmatch" "def".toUTF8 "abcdefghi".toUTF8).1

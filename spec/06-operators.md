@@ -381,7 +381,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Matches when the parameter occurs in the value delimited by non-word characters or string boundaries.
+**Semantics.** Matches when the parameter occurs in the value at a position preceded by the start of the value or a non-word byte and followed by the end of the value or a non-word byte; the empty parameter matches every value. Word bytes are the ASCII letters (libmodsecurity v3 `src/operators/contains_word.cc`, `acceptableChar`); ModSecurity v2 (`apache2/re_operators.c`, `msre_op_containsWord_execute`) also counts digits and `_`, so `def` is a word in `0def` for v3 and not for v2. The corpus follows v3.
 
 **Implemented by.** v2, v3.
 
@@ -437,7 +437,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Matches when the parameter occurs in the value, like `contains`, implemented with Boyer-Moore-Horspool; `contains` is preferred.
+**Semantics.** Matches when the parameter occurs anywhere in the value, byte-wise and case-sensitively, like `contains`; engines implement it with Boyer-Moore-Horspool. `contains` is preferred.
 
 **Implemented by.** v2, v3, Coraza.
 
@@ -469,7 +469,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Matches when the parameter regex finds a Luhn-valid credit card number in the value.
+**Semantics.** The parameter is a regular expression. Matches are searched from each offset of the value in turn, anchors relative to the whole value, empty matches ignored; the digits of each whole match are checked with the Luhn algorithm, and the first Luhn-valid match matches (ModSecurity v2 `apache2/re_operators.c`, `msre_op_verifyCC_execute` and `luhn_verify`).
 
 **Implemented by.** v2, v3.
 
@@ -477,7 +477,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Matches when the parameter regex finds a valid Brazilian CPF in the value.
+**Semantics.** Searched like `verifyCC`; a match is valid when its first eleven digits are exactly eleven, are not `00000000000`, `11111111111` … `99999999999` or `01234567890`, and the last two agree with the CPF check-digit sums (weights 10…2 and 11…2, remainder below 2 giving 0, otherwise 11 minus the remainder) (ModSecurity v2 `cpf_verify`).
 
 **Implemented by.** v2, v3.
 
@@ -485,7 +485,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Matches when the parameter regex finds a valid US social security number in the value.
+**Semantics.** Searched like `verifyCC`; a match is valid when it holds exactly nine digits that are neither all ascending by one nor all equal, with area (first three), group (next two) and serial (last four) non-zero, area not 666 and below 740 (ModSecurity v2 `ssn_verify`).
 
 **Implemented by.** v2, v3.
 
