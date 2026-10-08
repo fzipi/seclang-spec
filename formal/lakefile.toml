@@ -1,0 +1,9 @@
+name = "seclang"
+defaultTargets = ["seclang-check"]
+
+[[lean_lib]]
+name = "SecLang"
+
+[[lean_exe]]
+name = "seclang-check"
+root = "Main"
