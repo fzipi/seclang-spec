@@ -556,4 +556,115 @@ where
 #guard (htmlEntityDecode ⟨"&#x41;&#X42&#67;&#68&quot;&AMP&lt&gt;&nbsp;&foo;&#xg;&#;&".toUTF8.data⟩).data
   == ("ABCD\"&<>".toUTF8.push 0xA0 ++ "&foo;&#xg;&#;&".toUTF8).data
 
+/-- `normalisePath` / `normalisePathWin`. A transcription of msc_util.c
+`normalize_path_inplace`: `src` walks the input, `out` is the output written so far (the C
+`dst`), `hitroot` remembers a relative path that climbed above its start. Backslashes are
+converted to `/` first when `win`. -/
+def normalisePathWith (win : Bool) (b0 : ByteArray) : ByteArray := Id.run do
+  if b0.size == 0 then return b0
+  let b := if win then mapBytes (fun x => if x == '\\'.toUInt8 then '/'.toUInt8 else x) b0 else b0
+  let last := b.size - 1
+  let slash := '/'.toUInt8
+  let dot := '.'.toUInt8
+  let relative := b[0]! != slash
+  let trailing := b[last]! == slash
+  let mut src := 0
+  let mut out : Array UInt8 := #[]
+  let mut hitroot := false
+  let mut done := false
+  while !done && src ≤ last && out.size ≤ last do
+    let c := b[src]!
+    let mut copy := true
+    if src == last then done := true
+    if done || byteAt b (src + 1) == some slash then
+      if src != last && c == slash then
+        pure ()                                              -- empty segment: copy skips it
+      else if c == dot then
+        if out.size > 0 && out[out.size - 1]! == dot then     -- back-reference
+          if relative && (hitroot || out.size ≤ 2) then
+            hitroot := true
+          else
+            let mut d := out.size - 3
+            while d > 0 && out[d]! != slash do d := d - 1
+            if d == 0 then
+              hitroot := true
+              d := if !relative && src == last then 1 else 0
+            out := out.extract 0 d
+            if done then copy := false else src := src + 1
+        else if out.size == 0 then                            -- relative self-reference
+          if done then copy := false else src := src + 1
+        else if out[out.size - 1]! == slash then              -- self-reference
+          if done then copy := false
+          else
+            out := out.pop
+            src := src + 1
+      else if out.size > 0 then
+        hitroot := false
+    if copy then
+      if b[src]! == slash then
+        while src < last && b[src + 1]! == slash do src := src + 1
+        if relative && out.size == 0 then
+          src := src + 1
+          copy := false
+      if copy then
+        out := out.push b[src]!
+        src := src + 1
+  if !trailing && out.size > 0 && out[out.size - 1]! == slash then out := out.pop
+  return ⟨out⟩
+
+def normalisePath : ByteArray → ByteArray := normalisePathWith false
+def normalisePathWin : ByteArray → ByteArray := normalisePathWith true
+
+/-- A well-formed multi-byte UTF-8 sequence at `i` (RFC 3629: continuation bytes, no
+overlong form, no surrogate, at most U+10FFFF): its length and code point. -/
+def utf8Seq (b : ByteArray) (i : Nat) : Option (Nat × Nat) := do
+  let c := (← byteAt b i).toNat
+  let cont (k : Nat) : Option Nat := do
+    let x := (← byteAt b (i + k)).toNat
+    if x &&& 0xC0 == 0x80 then some (x &&& 0x3F) else none
+  if c &&& 0xE0 == 0xC0 then
+    let d := ((c &&& 0x1F) <<< 6) ||| (← cont 1)
+    if d < 0x80 then none else some (2, d)
+  else if c &&& 0xF0 == 0xE0 then
+    let d := ((c &&& 0x0F) <<< 12) ||| ((← cont 1) <<< 6) ||| (← cont 2)
+    if d < 0x800 || (0xD800 ≤ d && d ≤ 0xDFFF) then none else some (3, d)
+  else if c &&& 0xF8 == 0xF0 then
+    let d := ((c &&& 0x07) <<< 18) ||| ((← cont 1) <<< 12) ||| ((← cont 2) <<< 6) ||| (← cont 3)
+    if d < 0x10000 || d > 0x10FFFF then none else some (4, d)
+  else none
+
+/-- `%u` followed by at least four lowercase hexadecimal digits of `d`. -/
+def pushUni (out : ByteArray) (d : Nat) : ByteArray := Id.run do
+  let digits := Nat.toDigits 16 d
+  let mut o := (out.push '%'.toUInt8).push 'u'.toUInt8
+  for _ in [:4 - min 4 digits.length] do o := o.push '0'.toUInt8
+  for ch in digits do o := o.push ch.toNat.toUInt8
+  return o
+
+/-- `utf8toUnicode`: each well-formed multi-byte sequence becomes `%uXXXX`; every other byte
+is copied. msc_util.c `utf8_unicode_inplace_ex` for well-formed input; its NUL handling
+and v3's differ from the prose and from each other (`spec/07#utf8tounicode`). -/
+def utf8toUnicode (b : ByteArray) : ByteArray := go 0 .empty
+where
+  go (i : Nat) (out : ByteArray) : ByteArray :=
+    if h : i < b.size then
+      match utf8Seq b i with
+      | some (2, d) => go (i + 2) (pushUni out d)
+      | some (3, d) => go (i + 3) (pushUni out d)
+      | some (4, d) => go (i + 4) (pushUni out d)
+      | _ => go (i + 1) (out.push b[i])
+    else out
+  termination_by b.size - i
+
+#guard (normalisePath ⟨"dir/../../foo".toUTF8.data⟩).data == "../foo".toUTF8.data
+#guard (normalisePath ⟨"/dir/./subdir/../subsubdir/../subsubsubdir/../".toUTF8.data⟩).data == "/dir/".toUTF8.data
+#guard (normalisePath ⟨"./..".toUTF8.data⟩).data == "..".toUTF8.data
+#guard (normalisePath ⟨"/./.././../../../../../../../\u0000/../etc/./passwd".toUTF8.data⟩).data == "/etc/passwd".toUTF8.data
+#guard (normalisePath ⟨"dir//.//..//.//..//..//foo//bar//".toUTF8.data⟩).data == "../../foo/bar/".toUTF8.data
+#guard (normalisePathWin ⟨"\\dir\\foo\\\\bar".toUTF8.data⟩).data == "/dir/foo/bar".toUTF8.data
+#guard (normalisePathWin ⟨"..\\".toUTF8.data⟩).data == "../".toUTF8.data
+#guard (utf8toUnicode ⟨#[0x61, 0xC3, 0xA9, 0xE2, 0x82, 0xAC, 0xF0, 0x9F, 0x98, 0x80, 0x62]⟩).data == "a%u00e9%u20ac%u1f600b".toUTF8.data
+#guard (utf8toUnicode ⟨#[0x61, 0xC3]⟩).data == #[0x61, 0xC3]
+#guard (utf8toUnicode ⟨#[0xC0, 0x80, 0xED, 0xA0, 0x80, 0x00, 0xC3]⟩).data == #[0xC0, 0x80, 0xED, 0xA0, 0x80, 0x00, 0xC3]
+
 end SecLang

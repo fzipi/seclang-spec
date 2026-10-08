@@ -388,7 +388,11 @@ ModSecurity expectation.
 **Semantics.** Replaces each well-formed multi-byte UTF-8 sequence with `%uXXXX` (four
 lowercase hex digits); ASCII and malformed bytes are left unchanged.
 
-**Divergence notes.** None known.
+**Divergence notes.** A NUL byte is ASCII and is left unchanged by Coraza, as specified;
+ModSecurity v2 (`utf8_unicode_inplace_ex`) treats NUL as the lead byte of a two-byte
+sequence and emits `%u00XX` when the next byte is 0x80 or above, and libmodsecurity v3
+(`utf8_to_unicode.cc`) drops a NUL that is not the last byte. No corpus case contains a
+NUL.
 
 **Tests.** `tests/unit/transformations/utf8toUnicode.json`
 
