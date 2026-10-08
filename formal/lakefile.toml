@@ -1,5 +1,5 @@
 name = "seclang"
-defaultTargets = ["seclang-check"]
+defaultTargets = ["seclang-check", "seclang-parse"]
 
 [[lean_lib]]
 name = "SecLang"
@@ -7,3 +7,7 @@ name = "SecLang"
 [[lean_exe]]
 name = "seclang-check"
 root = "Main"
+
+[[lean_exe]]
+name = "seclang-parse"
+root = "ParseMain"
