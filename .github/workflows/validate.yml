@@ -73,3 +73,5 @@ jobs:
       - run: uv run python tools/engine_rules.py > formal/.lake/engine-rules.json
       - run: lake exe seclang-parse .lake/engine-rules.json
         working-directory: formal
+      - run: lake exe seclang-eval .lake/engine-rules.json
+        working-directory: formal

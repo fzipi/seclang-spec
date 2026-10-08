@@ -29,6 +29,25 @@ directive table of `spec/04-directives.md`, with the vocabulary of chapters 05â€
 A profile whose stages assert `expect_error` must be rejected, every other profile must be
 accepted; the runner prints the rule a rejected profile violates.
 
+## Processing model
+
+`SecLang/Semantics.lean` is `spec/03-processing-model.md` over the parsed configuration:
+effective rules after exceptions and default actions, the five phases, chains, `skip` and
+`skipAfter`, disruptive actions and interruptions, `allow`, engine modes, `ctl`, `setvar`,
+`capture` and macros. It is parametric in a regular-expression oracle
+(`SecLang/Regex.lean`, the Core `@rx` subset) and in how the variable store is populated
+per phase (`SecLang/Request.lean`, chapters 05 and 09 for URL-encoded bodies). Six theorems
+close the file: `phase_default` and `phase_not_inherited` (ADR-0017), `skipAfter_ends_with_phase`
+and `skipAfter_missing` (ADR-0016), `interrupted_phase_quiet` and `logging_phase_runs`.
+
+    cd formal && lake exe seclang-eval .lake/engine-rules.json    # exit 1 on any mismatch
+
+Every stage of every profile the abstract transaction can carry is run and its
+`triggered_rules`, `non_triggered_rules`, `interruption` and `no_interruption` checked. A
+profile is reported `unsupported (<reason>)` when it needs a body processor other than
+URL-encoded, body limits, persistent collections, `@detectSQLi`/`@detectXSS`,
+`@pmFromFile` or log assertions; that list is the model's boundary, not a known gap.
+
 ## What a mismatch means
 
 The model is a reference, not an engine: it has no rows in `compat/known-gaps.md`. A
