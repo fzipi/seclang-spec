@@ -132,10 +132,9 @@ def b64Sextets (b : ByteArray) : Array UInt8 := Id.run do
     | none => return out
   return out
 
-/-- `base64Decode`: full quanta give three bytes; a trailing two or three sextets give one
-or two; a trailing single sextet gives nothing. -/
-def base64Decode (b : ByteArray) : ByteArray := Id.run do
-  let s := b64Sextets b
+/-- Bytes of a sextet sequence: full quanta give three bytes; a trailing two or three
+sextets give one or two; a trailing single sextet gives nothing (`apr_base64_decode`). -/
+def b64Emit (s : Array UInt8) : ByteArray := Id.run do
   let mut out := ByteArray.emptyWithCapacity (s.size / 4 * 3 + 2)
   let mut i := 0
   while i + 4 ≤ s.size do
@@ -146,6 +145,9 @@ def base64Decode (b : ByteArray) : ByteArray := Id.run do
   if i + 2 ≤ s.size then out := out.push (s[i]! <<< 2 ||| s[i + 1]! >>> 4)
   if i + 3 ≤ s.size then out := out.push (s[i + 1]! <<< 4 ||| s[i + 2]! >>> 2)
   return out
+
+/-- `base64Decode`. -/
+def base64Decode (b : ByteArray) : ByteArray := b64Emit (b64Sextets b)
 
 #guard (base64Decode ⟨"VGVzdENhc2U=".toUTF8.data⟩).data == "TestCase".toUTF8.data
 #guard (base64Decode ⟨"VGVzdENhc2Ux".toUTF8.data⟩).data == "TestCase1".toUTF8.data
@@ -305,5 +307,56 @@ where
 #guard (urlEncode ⟨" !*09AZaz~\u00ff".toUTF8.data⟩).data == "+%21*09AZaz%7e%c3%bf".toUTF8.data
 #guard (sqlHexDecode ⟨"0x414243".toUTF8.data⟩).data == "ABC".toUTF8.data
 #guard (sqlHexDecode ⟨"a0X41420x0xzz0x4".toUTF8.data⟩).data == "aAB0x0xzz0x4".toUTF8.data
+
+/-- Sextets of every alphabet byte up to the first NUL; `=` and any other byte are skipped.
+msc_util.c `decode_base64_ext` (its "`=` after a dangling sextet yields the empty value"
+quirk is not modelled: `spec/07#base64decodeext` leaves it unspecified). -/
+def b64SextetsExt (b : ByteArray) : Array UInt8 := Id.run do
+  let mut out := #[]
+  for x in b do
+    if x == 0 then return out
+    if let some v := b64Val x then out := out.push v
+  return out
+
+/-- `base64DecodeExt`. -/
+def base64DecodeExt (b : ByteArray) : ByteArray := b64Emit (b64SextetsExt b)
+
+/-- Alphabet byte of a sextet. -/
+def b64Char (v : UInt8) : UInt8 :=
+  if v < 26 then 65 + v else if v < 52 then 71 + v else if v < 62 then v - 4
+  else if v == 62 then '+'.toUInt8 else '/'.toUInt8
+
+/-- `base64Encode`: RFC 4648 §4 with `=` padding. re_tfns.c `msre_fn_base64Encode_execute`
+(`apr_base64_encode`). -/
+def base64Encode (b : ByteArray) : ByteArray := Id.run do
+  let mut out := ByteArray.emptyWithCapacity ((b.size + 2) / 3 * 4)
+  let mut i := 0
+  while i + 3 ≤ b.size do
+    let x := b[i]!; let y := b[i + 1]!; let z := b[i + 2]!
+    out := out.push (b64Char (x >>> 2))
+    out := out.push (b64Char (((x &&& 3) <<< 4) ||| (y >>> 4)))
+    out := out.push (b64Char (((y &&& 15) <<< 2) ||| (z >>> 6)))
+    out := out.push (b64Char (z &&& 63))
+    i := i + 3
+  if i + 1 == b.size then
+    let x := b[i]!
+    out := out.push (b64Char (x >>> 2))
+    out := out.push (b64Char ((x &&& 3) <<< 4))
+    out := (out.push 61).push 61
+  else if i + 2 == b.size then
+    let x := b[i]!; let y := b[i + 1]!
+    out := out.push (b64Char (x >>> 2))
+    out := out.push (b64Char (((x &&& 3) <<< 4) ||| (y >>> 4)))
+    out := out.push (b64Char ((y &&& 15) <<< 2))
+    out := out.push 61
+  return out
+
+#guard (base64Encode ⟨"Test\u0000Case".toUTF8.data⟩).data == "VGVzdABDYXNl".toUTF8.data
+#guard (base64Encode ⟨"TestCase1".toUTF8.data⟩).data == "VGVzdENhc2Ux".toUTF8.data
+#guard (base64Encode ⟨"TestCase12".toUTF8.data⟩).data == "VGVzdENhc2UxMg==".toUTF8.data
+#guard (base64Encode ⟨#[]⟩).data == #[]
+#guard (base64DecodeExt ⟨"P.HNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==".toUTF8.data⟩).data == "<script>alert(1)</script>".toUTF8.data
+#guard (base64DecodeExt ⟨"VGVz\u0000dENh".toUTF8.data⟩).data == "Tes".toUTF8.data
+#guard (base64DecodeExt ⟨"VG=Vz".toUTF8.data⟩).data == "Tes".toUTF8.data
 
 end SecLang

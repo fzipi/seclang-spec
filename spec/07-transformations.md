@@ -398,7 +398,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** Base64 decoding that skips characters outside the alphabet instead of stopping at them (Coraza ADR-0014 lineage).
+**Semantics.** Base64 decoding that ignores `=` and skips every other byte outside the alphabet instead of stopping at it (Coraza ADR-0014 lineage); decoding stops at a NUL byte. The result when `=` follows a single dangling sextet is not specified (ModSecurity v2 `decode_base64_ext` returns the empty value).
 
 **Implemented by.** v2, v3, Coraza.
 
