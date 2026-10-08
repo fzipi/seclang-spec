@@ -1,14 +1,11 @@
 import SecLang.Syntax
 import SecLang.Digest
 import SecLang.Request
-import SecLang.Regex
+import SecLang.Operators
 /-! The processing model (`spec/03-processing-model.md`): effective rules, one transaction
 through five phases, parametric in a regular-expression oracle and in how the store is
 populated per phase. -/
 namespace SecLang
-
-structure Oracle where
-  rx : String → ByteArray → Option (Array (Option ByteArray))
 
 inductive Mode | on | off | detectionOnly
   deriving Repr, BEq, DecidableEq
@@ -212,120 +209,6 @@ where
       go ((rest.dropWhile (· != '}')).drop 1) (acc ++ macroValue tx (String.ofList name))
     | c :: rest, acc => go rest (acc ++ (String.singleton c).toUTF8)
     | [], acc => acc
-
-/-- C `atoi`: optional sign and leading digits, 0 otherwise (`06#eq`). -/
-def atoi (b : ByteArray) : Int :=
-  let cs := (ofBytes b).toList.dropWhile isBlank
-  let (neg, cs) := match cs with | '-' :: r => (true, r) | '+' :: r => (false, r) | _ => (false, cs)
-  let n : Int := ((String.ofList (cs.takeWhile Char.isDigit)).toNat?).getD 0
-  if neg then -n else n
-
-def containsBytes (hay needle : ByteArray) : Bool :=
-  let h := hay.toList
-  let n := needle.toList
-  (List.range (h.length + 1)).any fun i => n.isPrefixOf (h.drop i)
-
-/-- `@pm` phrases: space-separated, `|hex|` runs decoded. -/
-partial def pmPhrases (param : ByteArray) : List ByteArray :=
-  ((ofBytes param).splitOn " ").filterMap fun p => if p.isEmpty then none else some (pmDecode p.toList .empty)
-where
-  pmDecode : List Char → ByteArray → ByteArray
-    | '|' :: rest, acc =>
-      let hex := rest.takeWhile (· != '|')
-      pmDecode ((rest.dropWhile (· != '|')).drop 1) (acc ++ hexDecode (String.ofList hex).toUTF8)
-    | c :: rest, acc => pmDecode rest (acc.push c.toNat.toUInt8)
-    | [], acc => acc
-
-def ipv4 (s : String) : Option Nat :=
-  match (s.splitOn ".").mapM natOf? with
-  | some [a, b, c, d] => if a ≤ 255 && b ≤ 255 && c ≤ 255 && d ≤ 255 then some (((a * 256 + b) * 256 + c) * 256 + d) else none
-  | _ => none
-
-def hexGroupValue (h : String) : Nat := h.toList.foldl (fun acc c => acc * 16 + ((hexVal c.toNat.toUInt8).getD 0).toNat) 0
-
-def v6Groups (g : String) : Option (List Nat) :=
-  if g.isEmpty then some [] else
-  (g.splitOn ":").mapM fun h => if isHexGroup h then some (hexGroupValue h) else none
-
-/-- Groups of a run that may end in a dotted quad (two groups). -/
-def v6Tail (g : String) : Option (List Nat) :=
-  match (g.splitOn ":").getLast? with
-  | some last =>
-    if last.contains '.' then do
-      let v4 ← ipv4 last
-      let head ← v6Groups (":".intercalate (g.splitOn ":").dropLast)
-      some (head ++ [v4 / 65536, v4 % 65536])
-    else v6Groups g
-  | none => v6Groups g
-
-def ipv6 (s : String) : Option Nat :=
-  let expand (gs : List Nat) : Nat := gs.foldl (fun acc g => acc * 65536 + g) 0
-  match s.splitOn "::" with
-  | [a] => (v6Tail a).bind fun gs => if gs.length == 8 then some (expand gs) else none
-  | [a, b] => do
-    let x ← v6Groups a
-    let y ← v6Tail b
-    if x.length + y.length ≤ 7 then some (expand (x ++ List.replicate (8 - x.length - y.length) 0 ++ y)) else none
-  | _ => none
-
-/-- `@ipMatch` (`06#ipmatch`): the value as an address inside any listed address or network. -/
-def ipMatch (param : ByteArray) (v : ByteArray) : Bool :=
-  let value := ofBytes v
-  (((ofBytes param).splitOn ",").map trimBlanks).any fun e =>
-    let (addr, pfx) := match e.splitOn "/" with | [a] => (a, none) | [a, p] => (a, natOf? p) | _ => ("", none)
-    if addr.contains ':' then
-      match ipv6 addr, ipv6 value with
-      | some net, some ip => let shift := 128 - pfx.getD 128; net >>> shift == ip >>> shift
-      | _, _ => false
-    else
-      match ipv4 addr, ipv4 value with
-      | some net, some ip => let shift := 32 - pfx.getD 32; net >>> shift == ip >>> shift
-      | _, _ => false
-
-def validUrlEncoding (v : ByteArray) : Bool := go 0
-where
-  go (i : Nat) : Bool :=
-    if i < v.size then
-      if v[i]! == '%'.toUInt8 then (hexAt v (i + 1)).isSome && (hexAt v (i + 2)).isSome && go (i + 3) else go (i + 1)
-    else true
-  termination_by v.size - i
-
-def validUtf8 (v : ByteArray) : Bool := go 0
-where
-  go (i : Nat) : Bool :=
-    if h : i < v.size then
-      if v[i] < 0x80 then go (i + 1)
-      else match utf8Seq v i with
-        | some (2, _) => go (i + 2) | some (3, _) => go (i + 3) | some (4, _) => go (i + 4) | _ => false
-    else true
-  termination_by v.size - i
-
-/-- One operator against one value (`06`); `@rx` through the oracle, with its groups. -/
-def evalOperator (o : Oracle) (name : String) (param : ByteArray) (v : ByteArray) : Bool × Option (Array (Option ByteArray)) :=
-  match name with
-  | "rx" => match o.rx (ofBytes param) v with | some g => (true, some g) | none => (false, none)
-  | "streq" => (v.data == param.data, none)
-  | "contains" => (containsBytes v param, none)
-  | "beginsWith" => (param.toList.isPrefixOf v.toList, none)
-  | "endsWith" => (param.toList.reverse.isPrefixOf v.toList.reverse, none)
-  | "within" => (containsBytes param v, none)
-  | "eq" => (atoi v == atoi param, none)
-  | "ge" => (decide (atoi v ≥ atoi param), none)
-  | "gt" => (decide (atoi v > atoi param), none)
-  | "le" => (decide (atoi v ≤ atoi param), none)
-  | "lt" => (decide (atoi v < atoi param), none)
-  | "pm" => ((pmPhrases param).any fun p => containsBytes (lowercase v) (lowercase p), none)
-  | "unconditionalMatch" => (true, none)
-  | "validateByteRange" =>
-    let ranges := ((ofBytes param).splitOn ",").filterMap fun r => match r.splitOn "-" with
-      | [a] => (natOf? a).map fun n => (n, n)
-      | [a, b] => match natOf? a, natOf? b with | some x, some y => some (x, y) | _, _ => none
-      | _ => none
-    (v.toList.any fun b => !ranges.any fun (lo, hi) => lo ≤ b.toNat && b.toNat ≤ hi, none)
-  | "validateUrlEncoding" => (!validUrlEncoding v, none)
-  | "validateUtf8Encoding" => (!validUtf8 v, none)
-  | "ipMatch" => (ipMatch param v, none)
-  | _ => (false, none)
 
 def setCaptures (tx : Tx) (caps : Array (Option ByteArray)) : Tx :=
   let keep := tx.tx.filter fun m => !(m.key.length == 1 && m.key.toList.all Char.isDigit)
@@ -581,7 +464,6 @@ theorem logging_phase_runs (tx : Tx) (h : tx.nextMode ≠ .off) : phaseRuns (sta
   | on => rfl
   | detectionOnly => rfl
 
-def testOracle : Oracle := ⟨Regex.search⟩
 def run (cfg : String) (store : Store) : Tx :=
   match parseConfig [] cfg with
   | .ok c => runTransaction testOracle (effectiveItems testOracle c) (fun _ tx => if tx.store.isEmpty then store else tx.store) {}

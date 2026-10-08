@@ -10,6 +10,12 @@ inductive ClassItem
   | ch (c : Char) | range (lo hi : Char) | digit (neg : Bool) | word (neg : Bool) | space (neg : Bool)
   deriving Repr
 
+structure Flags where
+  ci : Bool := false
+  dotAll : Bool := false
+  multi : Bool := false
+  deriving Repr, BEq
+
 inductive Re
   | lit (c : Char)
   | any
@@ -20,13 +26,9 @@ inductive Re
   | alt (a b : Re)
   | seq (rs : List Re)
   | rep (r : Re) (min : Nat) (max : Option Nat) (greedy : Bool)
+  | flagged (f : Flags) (r : Re)          -- the flags in force inside `r`
   deriving Repr
 
-structure Flags where
-  ci : Bool := false
-  dotAll : Bool := false
-  multi : Bool := false
-  deriving Repr
 
 def isWordC (c : Char) : Bool := c.isAlphanum || c == '_'
 def isSpaceC (c : Char) : Bool := c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\x0c' || c == '\x0b'
@@ -44,10 +46,14 @@ def hexChar (a b : Char) : Option Char := do
   let y ← hexVal b.toNat.toUInt8
   some (Char.ofNat (x.toNat * 16 + y.toNat))
 
-/-- Parser state: remaining pattern and the next capture index. -/
+/-- Parser state: remaining pattern, the next capture index and the flags in force. -/
 structure P where
   rest : List Char
   next : Nat := 1
+  flags : Flags := {}
+
+def withLetters (f : Flags) (letters : List Char) : Flags :=
+  { ci := f.ci || letters.contains 'i', dotAll := f.dotAll || letters.contains 's', multi := f.multi || letters.contains 'm' }
 
 def parseNat (cs : List Char) : Nat × List Char :=
   let ds := cs.takeWhile Char.isDigit
@@ -100,6 +106,7 @@ partial def parseSeq (p : P) : Except String (List Re × P) := do
 
 partial def parseQuantified (p : P) : Except String (Re × P) := do
   let (a, p) ← parseAtom p
+  let a := if p.flags == {} then a else .flagged p.flags a
   let q : Option (Nat × Option Nat × List Char) := match p.rest with
     | '*' :: rest => some (0, none, rest)
     | '+' :: rest => some (1, none, rest)
@@ -119,7 +126,17 @@ partial def parseAtom (p : P) : Except String (Re × P) := do
   | '(' :: '?' :: 'P' :: '<' :: rest =>
     let rest := (rest.dropWhile (· != '>')).drop 1
     parseGroup (some p.next) { rest, next := p.next + 1 }
-  | '(' :: '?' :: _ => .error "group syntax outside the Core subset"
+  | '(' :: '?' :: rest =>
+    -- `(?flags:…)` scopes the flags to the group; `(?flags)` sets them for the rest of the enclosing group
+    let letters := rest.takeWhile fun c => c == 'i' || c == 's' || c == 'm'
+    if letters.isEmpty then .error "group syntax outside the Core subset" else
+    let f' := withLetters p.flags letters
+    match rest.drop letters.length with
+    | ':' :: rest' =>
+      let (g, p') ← parseGroup none { p with rest := rest', flags := f' }
+      return (g, { p' with flags := p.flags })
+    | ')' :: rest' => return (.seq [], { p with rest := rest', flags := f' })
+    | _ => .error "group syntax outside the Core subset"
   | '(' :: rest => parseGroup (some p.next) { rest, next := p.next + 1 }
   | '[' :: '^' :: rest =>
     let (items, rest) ← parseClass rest [] true
@@ -152,30 +169,18 @@ partial def parseEscape (p : P) : Except String (Re × P) := do
   | _ => .error "trailing backslash"
 
 partial def parseGroup (cap : Option Nat) (p : P) : Except String (Re × P) := do
+  let outer := p.flags
   let (r, p) ← parseAlt p
   match p.rest with
-  | ')' :: rest => return (.group cap r, { p with rest })
+  | ')' :: rest => return (.group cap r, { p with rest, flags := outer })   -- flags set inside end with the group
   | _ => .error "missing )"
 end
 
-/-- Leading `(?flags)` groups. -/
-partial def leadingFlags (cs : List Char) (f : Flags) : List Char × Flags :=
-  match cs with
-  | '(' :: '?' :: rest =>
-    let letters := rest.takeWhile fun c => c == 'i' || c == 's' || c == 'm'
-    match rest.drop letters.length with
-    | ')' :: rest' =>
-      if letters.isEmpty then (cs, f)
-      else leadingFlags rest' { ci := f.ci || letters.contains 'i', dotAll := f.dotAll || letters.contains 's', multi := f.multi || letters.contains 'm' }
-    | _ => (cs, f)
-  | _ => (cs, f)
-
-/-- Flags, tree and group count of a pattern. -/
+/-- Tree and group count of a pattern (flags live in `flagged` nodes). -/
 def compile (pat : String) : Except String (Flags × Re × Nat) := do
-  let (cs, f) := leadingFlags pat.toList {}
-  let (r, p) ← parseAlt { rest := cs }
+  let (r, p) ← parseAlt { rest := pat.toList }
   if !p.rest.isEmpty then throw "unbalanced )"
-  return (f, r, p.next - 1)
+  return ({}, r, p.next - 1)
 
 abbrev Caps := Array (Option (Nat × Nat))
 
@@ -209,6 +214,7 @@ partial def m (f : Flags) (s : Array Char) (r : Re) (i : Nat) (caps : Caps) (k :
   | .seq [] => k i caps
   | .seq (r :: rs) => m f s r i caps fun j c => m f s (.seq rs) j c k
   | .rep r mn mx greedy => repM f s r mn mx greedy i caps k 0
+  | .flagged f' r => m f' s r i caps k
 
 partial def repM (f : Flags) (s : Array Char) (r : Re) (mn : Nat) (mx : Option Nat) (greedy : Bool)
     (i : Nat) (caps : Caps) (k : Nat → Caps → Option Caps) (count : Nat) : Option Caps :=
@@ -221,9 +227,8 @@ partial def repM (f : Flags) (s : Array Char) (r : Re) (mn : Nat) (mx : Option N
   else (match stop () with | some c => some c | none => more ())
 end
 
-/-- Leftmost match of `pat` anywhere in `subject`; groups as byte slices, `none` for a group
-that did not take part or for a pattern outside the subset. -/
-def search (pat : String) (subject : ByteArray) : Option (Array (Option ByteArray)) :=
+/-- Leftmost match at or after `start`, as group positions; anchors see the whole subject. -/
+def searchAt (pat : String) (subject : ByteArray) (start : Nat) : Option (Array (Option (Nat × Nat))) :=
   match compile pat with
   | .error _ => none
   | .ok (f, r, n) =>
@@ -235,9 +240,14 @@ def search (pat : String) (subject : ByteArray) : Option (Array (Option ByteArra
         match m f s r i (Array.replicate (n + 1) none) (fun j caps => some (caps.setIfInBounds 0 (some (i, j)))) with
         | some caps => some caps
         | none => if i < s.size then tryFrom (i + 1) fuel else none
-    (tryFrom 0 (s.size + 1)).map fun caps => caps.map fun
-      | some (a, b) => some (subject.extract a b)
-      | none => none
+    tryFrom start (s.size + 1 - start)
+
+/-- Leftmost match of `pat` anywhere in `subject`; groups as byte slices, `none` for a group
+that did not take part or for a pattern outside the subset. -/
+def search (pat : String) (subject : ByteArray) : Option (Array (Option ByteArray)) :=
+  (searchAt pat subject 0).map fun caps => caps.map fun
+    | some (a, b) => some (subject.extract a b)
+    | none => none
 
 /-- Guard helper: pattern and subject as strings. -/
 def searchStr (pat subject : String) : Option (List (Option String)) :=
@@ -262,5 +272,12 @@ def searchStr (pat subject : String) : Option (List (Option String)) :=
 #guard (searchStr "^v" "v1").isSome
 #guard (searchStr "(?i)^x-test$" "X-Test").isSome
 #guard searchStr "(?P<n>ab)c" "zabc" == some [some "abc", some "ab"]
+
+#guard searchStr "(?i:abc)D" "ABCD" == some [some "ABCD"]
+#guard (searchStr "(?i:abc)d" "ABCD").isNone
+#guard (searchStr "a(?i)b" "aB").isSome
+#guard (searchStr "(?i:(sleep\\((\\s*?)(\\d*?)(\\s*?)\\)|benchmark\\((.*?)\\,(.*?)\\)))" "SELECT pg_sleep(10);").isSome
+#guard (searchAt "^b" "ab".toUTF8 1).isNone
+#guard (searchAt "b" "ab".toUTF8 1).map (·.toList) == some [some (1, 2)]
 
 end SecLang.Regex

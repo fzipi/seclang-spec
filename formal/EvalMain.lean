@@ -58,9 +58,6 @@ def settingsOf (cfg : Config) : Settings × Mode :=
     | .setting _ "SecResponseBodyMimeTypesClear" _ => ({ s with mimeTypes := [] }, m)
     | _ => (s, m)) ({}, .off)
 
-def implementedOperators : List String :=
-  ["rx", "streq", "contains", "beginsWith", "endsWith", "within", "eq", "ge", "gt", "le", "lt", "pm",
-   "unconditionalMatch", "validateByteRange", "validateUrlEncoding", "validateUtf8Encoding", "ipMatch"]
 def unsupportedVariables : List String :=
   ["FILES", "FILES_NAMES", "FILES_COMBINED_SIZE", "MULTIPART_PART_HEADERS", "MULTIPART_STRICT_ERROR", "XML",
    "REQBODY_ERROR", "REQBODY_ERROR_MSG", "INBOUND_DATA_ERROR", "OUTBOUND_DATA_ERROR", "IP", "GLOBAL", "SESSION", "USER", "RESOURCE"]
@@ -81,7 +78,7 @@ def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
     (cfg.directives.filterMap fun
       | .removeByTag _ re => some re | .removeByMsg _ re => some re
       | .updateTargetByTag _ re _ => some re | .updateTargetByMsg _ re _ => some re | _ => none)
-  if let some op := ops.find? (fun n => !implementedOperators.contains n) then some s!"operator @{op}"
+  if let some op := ops.find? (fun n => !implemented.contains n) then some s!"operator @{op}"
   else if let some re := regexes.find? (fun re => match Regex.compile re with | .error _ => true | .ok _ => false) then some s!"regex outside the Core subset: {re}"
   else if let some v := vars.find? unsupportedVariables.contains then some s!"variable {v}"
   else if let some a := acts.find? (fun a => ["initcol", "expirevar", "setsid", "setuid", "setrsc"].contains a.name) then some s!"action {a.name}"
@@ -132,7 +129,7 @@ def main (args : List String) : IO UInt32 := do
   let some file := args.head? | IO.eprintln "usage: seclang-eval engine-rules.json"; return 2
   let txt ← IO.FS.readFile file
   let profiles ← IO.ofExcept (Json.parse txt >>= Json.getArr? >>= (·.mapM Profile.ofJson))
-  let o : Oracle := ⟨Regex.search⟩
+  let o : Oracle := ⟨Regex.searchAt⟩
   let mut stages := 0
   let mut mismatches := 0
   let mut unsupported := 0
