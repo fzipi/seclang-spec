@@ -204,33 +204,90 @@ def parseMultipart (boundary : String) (body : String) : List Part × Bool :=
         | _ => go rest 3 hdrs content parts (bad || !l.isEmpty)
   go (splitLines body) 0 [] [] [] false
 
-/-- JSON leaves as `(name, value)` with ModSecurity v2's names (`apache2/msc_json.c`): the key
-path joined by `.`, array elements under the containing key (`array` at the top level);
-`null` is the empty string. The names are not specified (ADR-0020, `09#json`); members come
-in key order, not document order. -/
-partial def jsonLeaves (j : Json) (prefix_ : String := "") : List (String × String) :=
-  match j with
-  | .obj kvs => kvs.toList.flatMap fun (k, v) => jsonLeaves v (if prefix_.isEmpty then k else prefix_ ++ "." ++ k)
-  | .arr xs => xs.toList.flatMap fun v => jsonLeaves v (if prefix_.isEmpty then "array" else prefix_)
-  | .num n => [(prefix_, toString n)]
-  | .str s => [(prefix_, s)]
-  | .bool b => [(prefix_, toString b)]
-  | .null => [(prefix_, "")]
+/-! Minimal JSON reader (RFC 8259) for `09#json`: leaves in document order, each number kept
+as written (its text is the member value), strings decoded through `Json.parse`, depth
+counting every object or array entered (`04#secrequestbodyjsondepthlimit`). Names follow
+ModSecurity v2 (`apache2/msc_json.c`): the key path joined by `.`, array elements under the
+containing key, `array` at the top level; `null` is the empty string. Names are not
+specified (ADR-0020). -/
+namespace JsonRead
 
-/-- Container nesting depth (`04#secrequestbodyjsondepthlimit`): v2 counts each object or
-array entered, so `{"a":{"b":1}}` is 2. -/
-partial def jsonDepth : Json → Nat
-  | .obj kvs => 1 + (kvs.toList.map fun (_, v) => jsonDepth v).foldl max 0
-  | .arr xs => 1 + (xs.toList.map jsonDepth).foldl max 0
-  | _ => 0
+def ws : List Char → List Char := List.dropWhile fun c => c == ' ' || c == '\t' || c == '\n' || c == '\r'
+
+/-- The characters of a string token after its opening quote, escapes kept, and the rest. -/
+partial def strTok : List Char → List Char → Except String (List Char × List Char)
+  | [], _ => .error "unterminated string"
+  | '\\' :: c :: rest, acc => strTok rest (c :: '\\' :: acc)
+  | '"' :: rest, acc => .ok (acc.reverse, rest)
+  | c :: rest, acc => strTok rest (c :: acc)
+
+def decodeStr (tok : List Char) : Except String String :=
+  match Json.parse (String.ofList ('"' :: tok ++ ['"'])) with
+  | .ok (.str s) => .ok s
+  | _ => .error s!"invalid string {String.ofList tok}"
+
+def isNumChar (c : Char) : Bool := c.isDigit || c == '-' || c == '+' || c == '.' || c == 'e' || c == 'E'
+
+abbrev Leaves := List (String × String)
+
+mutual
+partial def value (limit depth : Nat) (name : String) (cs : List Char) : Except String (Leaves × List Char) := do
+  match ws cs with
+  | '{' :: rest =>
+    if depth + 1 > limit then throw s!"depth limit ({limit}) exceeded"
+    members limit (depth + 1) name (ws rest) true
+  | '[' :: rest =>
+    if depth + 1 > limit then throw s!"depth limit ({limit}) exceeded"
+    elements limit (depth + 1) (if name.isEmpty then "array" else name) (ws rest) true
+  | '"' :: rest =>
+    let (tok, rest) ← strTok rest []
+    return ([(name, ← decodeStr tok)], rest)
+  | 't' :: 'r' :: 'u' :: 'e' :: rest => return ([(name, "true")], rest)
+  | 'f' :: 'a' :: 'l' :: 's' :: 'e' :: rest => return ([(name, "false")], rest)
+  | 'n' :: 'u' :: 'l' :: 'l' :: rest => return ([(name, "")], rest)
+  | cs' =>
+    let tok := cs'.takeWhile isNumChar
+    if tok.isEmpty then throw "unexpected character"
+    match Json.parse (String.ofList tok) with
+    | .ok (.num _) => return ([(name, String.ofList tok)], cs'.drop tok.length)
+    | _ => throw s!"invalid number {String.ofList tok}"
+
+partial def members (limit depth : Nat) (prefix_ : String) (cs : List Char) (first : Bool) : Except String (Leaves × List Char) := do
+  match cs with
+  | '}' :: rest => if first then return ([], rest) else throw "trailing comma"
+  | '"' :: rest =>
+    let (tok, rest) ← strTok rest []
+    let k ← decodeStr tok
+    match ws rest with
+    | ':' :: rest =>
+      let (vs, rest) ← value limit depth (if prefix_.isEmpty then k else prefix_ ++ "." ++ k) rest
+      match ws rest with
+      | ',' :: rest => let (more, rest) ← members limit depth prefix_ (ws rest) false; return (vs ++ more, rest)
+      | '}' :: rest => return (vs, rest)
+      | _ => throw "expected , or }"
+    | _ => throw "expected :"
+  | _ => throw "expected a string key"
+
+partial def elements (limit depth : Nat) (name : String) (cs : List Char) (first : Bool) : Except String (Leaves × List Char) := do
+  match cs with
+  | ']' :: rest => if first then return ([], rest) else throw "trailing comma"
+  | _ =>
+    let (vs, rest) ← value limit depth name cs
+    match ws rest with
+    | ',' :: rest => let (more, rest) ← elements limit depth name (ws rest) false; return (vs ++ more, rest)
+    | ']' :: rest => return (vs, rest)
+    | _ => throw "expected , or ]"
+end
+
+end JsonRead
 
 /-- `09#json`: the members, or the `REQBODY_ERROR_MSG` text. -/
 def parseJsonBody (depthLimit : Nat) (body : String) : Except String (List Member) :=
-  match Json.parse body with
+  match JsonRead.value depthLimit 0 "" body.toList with
   | .error e => .error s!"JSON parsing error: {e}"
-  | .ok j =>
-    if jsonDepth j > depthLimit then .error s!"JSON depth limit ({depthLimit}) exceeded"
-    else .ok ((jsonLeaves j).map fun (k, v) => Member.mk (latin k) (text v))
+  | .ok (leaves, rest) =>
+    if (JsonRead.ws rest).isEmpty then .ok (leaves.map fun (k, v) => Member.mk (latin k) (text v))
+    else .error "JSON parsing error: trailing data"
 
 /-- Phase 2 additions when the body is read (`09#urlencoded`, `05#request_body`, ADR-0022):
 `access` and `processor` come from the settings as overridden by phase 1 `ctl`s. -/
@@ -342,10 +399,6 @@ def mpBody : String := "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r
 #guard applyLimit none .reject true 413 "0123456789" == ("0123456789", false, none)
 
 -- JSON (`09#json`): v2 key-path names, depth counted per container
-#guard jsonLeaves (Json.parse "{\"a\":1,\"b\":{\"c\":\"x\"},\"d\":[1,2]}").toOption.get! == [("a", "1"), ("b.c", "x"), ("d", "1"), ("d", "2")]
-#guard jsonLeaves (Json.parse "[true,null]").toOption.get! == [("array", "true"), ("array", "")]
-#guard jsonDepth (Json.parse "{\"a\":{\"b\":{\"c\":1}}}").toOption.get! == 3
-#guard jsonDepth (Json.parse "[1,[2]]").toOption.get! == 2
 #guard (let s := phase2Store { requestBodyAccess := true } { method := "POST", uri := "/", headers := [("Content-Type", "application/json")], body := some "{\"a\":" } true (some "JSON") false (phase1Store {} { uri := "/" })
         ((s.get "REQBODY_ERROR").map (ofBytes ·.value), (s.get "REQBODY_ERROR_MSG").any (·.value.size > 0), (s.get "ARGS_POST").length, (s.get "REQBODY_PROCESSOR").map (ofBytes ·.value))) == (["1"], true, 0, ["JSON"])
 #guard (let s := phase2Store { requestBodyAccess := true, jsonDepthLimit := 2 } { method := "POST", uri := "/", headers := [], body := some "[1,[2,[3]]]" } true (some "JSON") false (phase1Store {} { uri := "/" })
@@ -354,5 +407,12 @@ def mpBody : String := "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r
         ((s.get "REQBODY_ERROR").map (ofBytes ·.value), (s.get "ARGS_POST").map (fun m => (m.key, ofBytes m.value)))) == (["0"], [("array", "1"), ("array", "2")])
 #guard (let s := phase2Store { requestBodyAccess := true } { uri := "/", headers := [("Content-Type", "application/x-www-form-urlencoded")], body := some "p=1" } true none false (phase1Store {} { uri := "/" })
         ((s.get "REQBODY_ERROR").map (ofBytes ·.value), (s.get "REQBODY_ERROR_MSG").map (ofBytes ·.value))) == (["0"], [""])
+
+-- JSON leaves keep the number text as written and come in document order (`09#json`: "the leaf's text")
+#guard (parseJsonBody 10 "[1.0, 1e2, 1.50, -0, 1E-2]").toOption.map (·.map fun m => ofBytes m.value) == some ["1.0", "1e2", "1.50", "-0", "1E-2"]
+#guard (parseJsonBody 10 "{\"b\":1,\"a\":\"x\\u00e9\\n\"}").toOption.map (·.map fun m => (m.key, ofBytes m.value)) == some [("b", "1"), ("a", latin "xé\n")]
+#guard (parseJsonBody 10 "{\"a\":1,} ").toOption.isNone
+#guard (parseJsonBody 10 "{\"a\":1} x").toOption.isNone
+#guard (parseJsonBody 10 " {\"a\" : [ true , null , \"s\" ] } ").toOption.map (·.map fun m => (m.key, ofBytes m.value)) == some [("a", "true"), ("a", ""), ("a", "s")]
 
 end SecLang
