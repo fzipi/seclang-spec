@@ -13,6 +13,9 @@ module:
       target: assets/src/compat
     - source: ../adr
       target: assets/src/adr
+    - source: ../formal
+      target: assets/src/formal
+      includeFiles: "/*.md"
 markup:
   goldmark:
     renderer:
@@ -33,12 +36,15 @@ menu:
     - name: Compatibility
       pageRef: /compat
       weight: 2
+    - name: Formal model
+      pageRef: /formal
+      weight: 3
     - name: Decisions
       pageRef: /adr
-      weight: 3
+      weight: 4
     - name: GitHub
       url: https://github.com/fzipi/seclang-spec
-      weight: 4
+      weight: 5
       params:
         icon: github
 params:

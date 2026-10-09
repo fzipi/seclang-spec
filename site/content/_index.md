@@ -16,5 +16,6 @@ tests, a verified compatibility matrix and the decisions behind every divergence
   {{< card link="spec" title="Specification" subtitle="Lexical structure, grammar, processing model, directives, variables, operators, transformations, actions, body processors and logging." icon="book-open" >}}
   {{< card link="compat/known-gaps" title="Known gaps" subtitle="Core tests each surveyed engine fails today, verified in CI by the reference adapters." icon="table" >}}
   {{< card link="compat/matrix" title="Engine matrix" subtitle="Every directive, variable, operator, transformation and action across ModSecurity v2, libmodsecurity v3 and Coraza." icon="view-grid" >}}
+  {{< card link="formal/results" title="Formal model" subtitle="Lean 4 definitions of the specification, run against the conformance corpus, every engine profile and OWASP CRS; theorems for the divergence decisions." icon="beaker" >}}
   {{< card link="adr" title="Decisions" subtitle="Architecture Decision Records for the choices made where engines diverge." icon="scale" >}}
 {{< /cards >}}

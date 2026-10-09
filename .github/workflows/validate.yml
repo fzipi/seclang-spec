@@ -85,3 +85,4 @@ jobs:
       - run: uv run python tools/crs_rules.py crs > formal/.lake/crs.json
       - run: lake exe seclang-parse .lake/crs.json
         working-directory: formal
+      - run: uv run python tools/formal_results.py --crs crs --check
