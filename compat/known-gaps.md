@@ -20,6 +20,7 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 | `tests/engine/processing/default-phase.yaml` | libmodsecurity v3 | phase-less rule runs in phase 1 | ADR-0017 |
 | `tests/engine/processing/default-action-no-phase.yaml` | libmodsecurity v3 | missing phase defaults to 1 | ADR-0014 |
 | `tests/engine/processing/default-action-redefined.yaml` | ModSecurity v2 | second `SecDefaultAction` replaces the first | ADR-0014 |
+| `tests/engine/processing/rule-exceptions-tag-literal.yaml` | ModSecurity v2 | `ByTag` parameter matched as an unanchored regular expression: `app/foo` also removes the rule tagged `app/foobar` (`apache2/re.c`, `msre_ruleset_rule_matches_exception`) | ADR-0029 |
 | `tests/engine/processing/skipafter-missing-marker.yaml` | libmodsecurity v3, Coraza | `skipAfter` naming a marker that does not exist disables every later phase | ADR-0016 |
 | `tests/engine/processing/rule-exceptions-bad-range.yaml` | ModSecurity v2 | `200-100` accepted silently | `03-processing-model.md#rule-exceptions` |
 | `tests/engine/processing/rule-exceptions-unknown-id.yaml` | Coraza | `SecRuleUpdateTargetById` with an unknown id is an error | `03-processing-model.md#rule-exceptions` |

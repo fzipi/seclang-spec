@@ -225,7 +225,7 @@ are ignored. A range with start greater than end MUST be a configuration error.
 
 **Status:** Extended
 
-**Syntax.** `SecRuleRemoveByMsg REGEX`
+**Syntax.** `SecRuleRemoveByMsg MSG`
 
 **Semantics.** Removes every previously defined rule whose `msg` matches the regular
 expression (`03-processing-model.md#rule-exceptions`). Implemented by ModSecurity v2,
@@ -236,14 +236,18 @@ it and `msg` values are not stable identifiers.
 
 **Status:** Core
 
-**Syntax.** `SecRuleRemoveByTag REGEX`
+**Syntax.** `SecRuleRemoveByTag TAG`
 
-**Semantics.** Removes every previously defined rule any of whose `tag` values matches
-the regular expression, unanchored (`03-processing-model.md#rule-exceptions`).
+**Semantics.** Removes every previously defined rule any of whose `tag` values equals
+`TAG` (`03-processing-model.md#rule-exceptions`, ADR-0029).
 
-**Divergence notes.** None known.
+**Divergence notes.** ModSecurity v2 matches `TAG` as an unanchored regular expression
+(`apache2/re.c`, `msre_ruleset_rule_matches_exception`); libmodsecurity v3
+(`src/rules_set.cc`, `containsTag`) and Coraza (`internal/corazawaf/rulegroup.go`,
+`DeleteByTag`) compare exactly. See ADR-0029.
 
-**Tests.** `tests/engine/processing/rule-exceptions.yaml`
+**Tests.** `tests/engine/processing/rule-exceptions.yaml`,
+`tests/engine/processing/rule-exceptions-tag-literal.yaml`
 
 ### SecRuleUpdateActionById
 
@@ -279,7 +283,7 @@ CRS v4 itself.
 
 **Status:** Extended
 
-**Syntax.** `SecRuleUpdateTargetByMsg REGEX "TARGETS"`
+**Syntax.** `SecRuleUpdateTargetByMsg MSG "TARGETS"`
 
 **Semantics.** As `SecRuleUpdateTargetById`, selecting rules by `msg`. Implemented by
 ModSecurity v2 and libmodsecurity v3; Coraza 3.8.1 accepts and ignores it (ADR-0005).
@@ -288,12 +292,15 @@ ModSecurity v2 and libmodsecurity v3; Coraza 3.8.1 accepts and ignores it (ADR-0
 
 **Status:** Core
 
-**Syntax.** `SecRuleUpdateTargetByTag REGEX "TARGETS"`
+**Syntax.** `SecRuleUpdateTargetByTag TAG "TARGETS"`
 
 **Semantics.** As `SecRuleUpdateTargetById`, selecting every rule any of whose tags
-matches `REGEX`.
+equals `TAG` (ADR-0029).
 
-**Divergence notes.** None known (Coraza added it in Coraza ADR-0012).
+**Divergence notes.** ModSecurity v2 matches `TAG` as an unanchored regular expression
+(`apache2/apache2_config.c`, `msc_pregcomp`); libmodsecurity v3 (`src/rule_with_operator.cc`,
+`containsTag`) and Coraza (`internal/seclang/directives.go`, `utils.InSlice`; added in
+Coraza ADR-0012) compare exactly. See ADR-0029.
 
 **Tests.** `tests/engine/directives/secruleupdatetargetbytag.yaml`
 

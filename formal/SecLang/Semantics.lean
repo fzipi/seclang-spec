@@ -112,12 +112,13 @@ def buildStep (o : Oracle) (b : Build) : Directive → Build
   | .defaultAction _ phase acts => let b := b.flush; { b with defaults := (phase, acts) :: b.defaults }
   | .marker _ l => let b := b.flush; { b with items := .marker l :: b.items }
   | .removeById _ rs => b.filterChains fun c => !inRanges rs c.id
-  | .removeByTag _ re => b.filterChains fun c => !(tagsOf c).any (rxName o re)
-  | .removeByMsg _ re => b.filterChains fun c => !rxName o re (msgOf c)
+  -- tag and msg exceptions compare exactly (ADR-0029)
+  | .removeByTag _ tag => b.filterChains fun c => !(tagsOf c).contains tag
+  | .removeByMsg _ msg => b.filterChains fun c => msgOf c != msg
   | .updateActionById _ rs acts => b.mapChains fun c => if inRanges rs c.id then updateActions c acts else c
   | .updateTargetById _ rs ts => b.mapChains fun c => if inRanges rs c.id then addTargets c ts else c
-  | .updateTargetByTag _ re ts => b.mapChains fun c => if (tagsOf c).any (rxName o re) then addTargets c ts else c
-  | .updateTargetByMsg _ re ts => b.mapChains fun c => if rxName o re (msgOf c) then addTargets c ts else c
+  | .updateTargetByTag _ tag ts => b.mapChains fun c => if (tagsOf c).contains tag then addTargets c ts else c
+  | .updateTargetByMsg _ msg ts => b.mapChains fun c => if msgOf c == msg then addTargets c ts else c
   | .setting .. => b
 
 /-- Effective chains and markers in configuration order. -/
@@ -290,10 +291,10 @@ def applyActions (tx : Tx) (as : List Action) : Tx :=
     | _, _ => tx) tx   -- `expirevar` has no effect within one transaction
 
 /-- Exclusions a chain inherits from `ctl:ruleRemoveTarget*` for this transaction; the tag
-form is a regular expression, as for the directive (`03#rule-exceptions`). -/
+form compares exactly, as for the directive (`03#rule-exceptions`, ADR-0029). -/
 def targetExclusions (o : Oracle) (tx : Tx) (c : Chain) : List Variable :=
   (tx.removedTargets.filter (·.1 == c.id)).map (·.2) ++
-  (tx.removedTagTargets.filter fun (re, _) => (tagsOf c).any (rxName o re)).map (·.2)
+  (tx.removedTagTargets.filter fun (tag, _) => (tagsOf c).contains tag).map (·.2)
 
 /-- One rule of a chain (`02#secrule-structure`, `02#operator`, `08#multimatch`,
 `06#unconditionalmatch`): the rule matches when some value matches, or, negated, when the
@@ -328,7 +329,7 @@ def runChain (o : Oracle) (c : Chain) (tx : Tx) : Tx × Bool :=
   (c.starter :: c.members).foldl (fun (tx, ok) r => if ok then runRule o c r tx else (tx, false)) (tx, true)
 
 def removed (o : Oracle) (tx : Tx) (c : Chain) : Bool :=
-  tx.removedIds.contains c.id || tx.removedTags.any fun re => (tagsOf c).any (rxName o re)
+  tx.removedIds.contains c.id || tx.removedTags.any (tagsOf c).contains
 
 def allowScopeOf (c : Chain) : AllowScope :=
   match actionValue c.starter.actions "allow" with | some "phase" => .phase | some "request" => .request | _ => .all
@@ -531,7 +532,7 @@ def demoStore (args : List (String × String)) : Store :=
 #guard (let tx := run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,nolog,ctl:ruleEngine=Off\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,deny\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:2,pass\"" (demoStore [("a", "1")])
         (tx.triggered, tx.interruption)) == ([1, 2], none)
 #guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,skipAfter:5\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:5,phase:2,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:6,phase:1,pass\"" (demoStore [("a", "1")])) == [1, 5]
-#guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,nolog,ctl:ruleRemoveByTag=attack\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass,tag:'attack-sqli'\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:1,pass\"" (demoStore [("a", "1")])) == [1, 3]
+#guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,nolog,ctl:ruleRemoveByTag=attack\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass,tag:'attack-sqli'\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:1,pass\"" (demoStore [("a", "1")])) == [1, 2, 3]   -- `attack` is not the tag `attack-sqli` (ADR-0029)
 #guard tri (run "SecRule ARGS_GET:a \"@streq abc\" \"id:1,phase:1,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass\"\nSecRuleUpdateActionById 1 \"t:lowercase\"\nSecRuleUpdateActionById 2 \"tag:'gone'\"\nSecRuleRemoveByTag gone" (demoStore [("a", "ABC")])) == [1]
 
 def runReq (cfg : String) (req : Request) : Tx :=
@@ -549,5 +550,8 @@ def runReq (cfg : String) (req : Request) : Tx :=
 #guard tri (run "SecAction \"id:1,phase:1,pass,nolog,initcol:ip=%{REMOTE_ADDR},setvar:ip.hits=+1\"\nSecRule IP:hits \"@ge 1\" \"id:2,phase:1,pass\"" (demoStore [])) == [1, 2]
 #guard tri (run "SecAction \"id:1,phase:1,pass,nolog,setvar:ip.hits=+1\"\nSecRule IP:hits \"@ge 1\" \"id:2,phase:1,pass\"\nSecRule &IP:hits \"@eq 0\" \"id:3,phase:1,pass\"" (demoStore [])) == [1, 3]
 #guard tri (run "SecAction \"id:1,phase:1,pass,nolog,initcol:ip=%{REMOTE_ADDR},setvar:ip.hits=+1,setvar:ip.hits=+1,expirevar:ip.hits=60\"\nSecRule IP:hits \"@eq 2\" \"id:2,phase:1,pass\"\nSecRule &TX:hits \"@eq 0\" \"id:3,phase:1,pass\"" (demoStore [])) == [1, 2, 3]
+
+-- tag exceptions are exact (ADR-0029): a tag that merely contains the parameter is not selected
+#guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,tag:'app/foo'\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass,tag:'app/foobar'\"\nSecRuleRemoveByTag app/foo\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:1,pass,nolog,ctl:ruleRemoveByTag=app/bar\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:4,phase:1,pass,tag:'app/bar'\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:5,phase:1,pass,tag:'app/barbaz'\"" (demoStore [("a", "1")])) == [2, 3, 5]
 
 end SecLang

@@ -49,3 +49,4 @@ promoted into the spec (Extension).
 | [0026](0026-compresswhitespace-nbsp.md) | `compressWhitespace` treats the byte 0xA0 as whitespace | Divergence | proposed |
 | [0027](0027-rx-compile-mode.md) | `@rx` is compiled dot-all; line anchors need `(?m)` | Divergence | proposed |
 | [0028](0028-skipafter-label-is-a-marker.md) | `skipAfter` resolves to a `SecMarker`, never to a rule id | Divergence | proposed |
+| [0029](0029-tag-exceptions-exact.md) | Tag and message rule exceptions select by exact string | Divergence | proposed |

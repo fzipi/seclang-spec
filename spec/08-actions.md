@@ -522,9 +522,10 @@ rules are still evaluated after `Off` is not specified.
 
 **Status:** Core
 
-**Syntax.** `ctl:ruleRemoveByTag=REGEX`
+**Syntax.** `ctl:ruleRemoveByTag=TAG`
 
-**Semantics.** Disables rules with a matching tag for the rest of this transaction.
+**Semantics.** Disables every rule one of whose `tag` values equals `TAG` for the rest of
+this transaction (`03-processing-model.md#rule-exceptions`, ADR-0029).
 
 **Tests.** `tests/engine/actions/ctl-options.yaml`
 
@@ -544,9 +545,10 @@ documents for per-request exclusions.
 
 **Status:** Core
 
-**Syntax.** `ctl:ruleRemoveTargetByTag=REGEX;TARGET`
+**Syntax.** `ctl:ruleRemoveTargetByTag=TAG;TARGET`
 
-**Semantics.** As `ctl:ruleRemoveTargetById`, selecting rules by tag.
+**Semantics.** As `ctl:ruleRemoveTargetById`, selecting every rule one of whose `tag`
+values equals `TAG` (ADR-0029).
 
 **Tests.** `tests/engine/actions/ctl-options.yaml`
 

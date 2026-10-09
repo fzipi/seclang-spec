@@ -1,0 +1,22 @@
+meta:
+  name: rule-exceptions-tag-literal
+  description: Tag exceptions select rules whose tag equals the parameter; a tag that merely contains it is not selected (ADR-0029)
+spec: 03-processing-model.md#rule-exceptions
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4120,phase:1,pass,tag:'app/foo'"
+  SecRule ARGS_GET:a "@streq 1" "id:4121,phase:1,pass,tag:'app/foobar'"
+  SecRuleRemoveByTag app/foo
+  SecRule ARGS_GET:a "@streq 1" "id:4122,phase:1,pass,nolog,ctl:ruleRemoveByTag=app/bar"
+  SecRule ARGS_GET:a "@streq 1" "id:4123,phase:1,pass,tag:'app/bar'"
+  SecRule ARGS_GET:a "@streq 1" "id:4124,phase:1,pass,tag:'app/barbaz'"
+tests:
+  - test_title: only the rules carrying exactly the tag are removed
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [4121, 4122, 4124]
+            non_triggered_rules: [4120, 4123]
+            no_interruption: true

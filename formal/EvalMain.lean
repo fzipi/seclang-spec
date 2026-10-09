@@ -79,10 +79,7 @@ def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
   let vars := allVars.map (·.collection)
   let acts := rules.flatMap (·.actions)
   let regexes := (rules.filterMap fun r => r.operator.bind fun op => if op.name == "rx" then some op.param else none) ++
-    (allVars.filterMap fun v => match v.selector with | some (.regex re) => some re | _ => none) ++
-    (cfg.directives.filterMap fun
-      | .removeByTag _ re => some re | .removeByMsg _ re => some re
-      | .updateTargetByTag _ re _ => some re | .updateTargetByMsg _ re _ => some re | _ => none)
+    (allVars.filterMap fun v => match v.selector with | some (.regex re) => some re | _ => none)
   if let some op := ops.find? (fun n => !implemented.contains n) then some s!"operator @{op}"
   else if let some re := regexes.find? (fun re => match Regex.compile re with | .error _ => true | .ok _ => false) then some s!"regex outside the Core subset: {re}"
   else if let some v := vars.find? unsupportedVariables.contains then some s!"variable {v}"

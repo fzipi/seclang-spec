@@ -181,11 +181,11 @@ either and no profile depends on it.
 
 **Syntax.**
 `SecRuleRemoveById ID|RANGE [ID|RANGE ...]`,
-`SecRuleRemoveByTag REGEX`,
-`SecRuleRemoveByMsg REGEX` (Extended),
+`SecRuleRemoveByTag TAG`,
+`SecRuleRemoveByMsg MSG` (Extended),
 `SecRuleUpdateTargetById ID|RANGE "TARGETS"`,
-`SecRuleUpdateTargetByTag REGEX "TARGETS"`,
-`SecRuleUpdateTargetByMsg REGEX "TARGETS"` (Extended),
+`SecRuleUpdateTargetByTag TAG "TARGETS"`,
+`SecRuleUpdateTargetByMsg MSG "TARGETS"` (Extended),
 `SecRuleUpdateActionById ID|RANGE "ACTIONS"`.
 A `RANGE` is `A-B` with `A <= B`, inclusive.
 
@@ -197,8 +197,10 @@ the `|` syntax of `02-grammar.md#variable-list`. `UpdateActionById` merges `ACTI
 the rule's action list with the same precedence as a rule's own actions over
 `SecDefaultAction`: a disruptive action replaces the existing one. An id or range that
 matches no rule is silently ignored. A range with `A > B` MUST be a configuration error.
-`ByTag` and `ByMsg` match the regular expression against every `tag` or the `msg` of
-every rule, unanchored. The `ctl:` forms (`ruleRemoveById`, `ruleRemoveByTag`,
+`ByTag` selects a rule when one of its `tag` values equals `TAG`; `ByMsg` when its `msg`
+equals `MSG`. Both are literals: whether a rule is also selected when the parameter matches
+a tag or the message as an unanchored regular expression is **not specified** (ADR-0029);
+portable configurations write the full tag or message. The `ctl:` forms (`ruleRemoveById`, `ruleRemoveByTag`,
 `ruleRemoveTargetById`, `ruleRemoveTargetByTag`) apply the same edits for the current
 transaction only.
 
@@ -210,17 +212,19 @@ range") reject it. Coraza rejects `SecRuleUpdateTargetById` with a single id tha
 no rule (`directives.go`, `rule "%d" not found`), where ModSecurity v2 and libmodsecurity
 v3 (`rules_exceptions.cc`, exceptions are stored and applied lazily) ignore it, so
 `rule-exceptions-unknown-id.yaml` fails on Coraza. Coraza accepts
-`SecRuleUpdateTargetByMsg` and ignores it (ADR-0005). For the `ctl:` tag forms,
-ModSecurity v2 matches the tag as a regular expression (`apache2/re.c`,
-`removed_rules_tag`), as this section says; libmodsecurity v3
-(`src/rule_with_actions.cc`, `containsTag`) and Coraza (`internal/actions/ctl.go`) compare
-the tag exactly. No profile uses a pattern that tells the two apart; an ADR should settle
-it. See `compat/known-gaps.md`.
+`SecRuleUpdateTargetByMsg` and ignores it (ADR-0005). ModSecurity v2 matches the `ByTag`
+and `ByMsg` parameters as unanchored regular expressions in every form (`apache2/re.c`,
+`msre_ruleset_rule_matches_exception`; `apache2/re_actions.c` for `ctl:`), so
+`rule-exceptions-tag-literal.yaml` fails on v2; libmodsecurity v3
+(`src/rule_with_actions.cc`, `containsTag`, `containsMsg`) and Coraza
+(`internal/corazawaf/rulegroup.go`, `internal/actions/ctl.go`, `utils.InSlice`) compare
+exactly. See ADR-0029 and `compat/known-gaps.md`.
 
 **Tests.** `tests/engine/processing/rule-exceptions.yaml`,
 `tests/engine/processing/rule-exceptions-update-action.yaml`,
 `tests/engine/processing/rule-exceptions-bad-range.yaml`,
-`tests/engine/processing/rule-exceptions-unknown-id.yaml`
+`tests/engine/processing/rule-exceptions-unknown-id.yaml`,
+`tests/engine/processing/rule-exceptions-tag-literal.yaml`
 
 ### ctl timing
 
