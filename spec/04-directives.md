@@ -384,7 +384,9 @@ does ModSecurity v2 (`apache2_config.c`, "Invalid value for SecRequestBodyLimit"
 (`msc_reqbody.c`, `HTTP_REQUEST_ENTITY_TOO_LARGE`) and Coraza (`transaction.go`,
 `setAndReturnBodyLimitInterruption(tx, 413)`) but 403 in libmodsecurity v3
 (`transaction.cc`, `m_it.status = 403`). The tests therefore assert only that the
-transaction is denied. Coraza also caps the value at 1 GiB.
+transaction is denied. Coraza also caps the value at 1 GiB, and treats a body of exactly
+`BYTES` as over the limit (`transaction.go`, `>= tx.RequestBodyLimit`) where ModSecurity v2
+uses `>`; no test uses a body at the limit.
 
 **Tests.** `tests/engine/directives/secrequestbodylimit-reject.yaml`,
 `tests/engine/directives/body-limit-directives-load.yaml`
@@ -512,7 +514,8 @@ Coraza (`waf.go`); libmodsecurity v3 applies no limit until set. Unspecified.
 **Semantics.** The maximum response body size the engine will buffer. Behaviour above
 the limit is governed by `SecResponseBodyLimitAction`.
 
-**Divergence notes.** None beyond the defaults.
+**Divergence notes.** Coraza treats a response of exactly `BYTES` as over the limit
+(`transaction.go`, `>=`), ModSecurity v2 uses `>`; no test uses a body at the limit.
 
 **Tests.** `tests/engine/directives/secresponsebodylimit-processpartial.yaml`,
 `tests/engine/directives/body-limit-directives-load.yaml`

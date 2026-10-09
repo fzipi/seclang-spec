@@ -47,7 +47,7 @@ is outside the Core syntax. Normative text: `spec/06-operators.md#rx`.
 
 ## Consequences
 
-- For ModSecurity: none.
+- For ModSecurity v2: none. For libmodsecurity v3: none, it is already dot-all.
 - For Coraza: none; a build with `coraza.rule.no_regex_multiline` stays conforming.
 - For rule authors: write `(?m)` for line anchors; never write a pattern whose result
   depends on `$` matching before a trailing newline.
@@ -58,6 +58,9 @@ is outside the Core syntax. Normative text: `spec/06-operators.md#rx`.
 
 - `tests/engine/operators/rx-dotall.yaml` (dot-all, Core)
 - `tests/unit/operators/rx.json`
+
+The unspecified part (`^`/`$` without `(?m)` against a value containing a newline) is
+deliberately untested: a Core test cannot assert behaviour the engines do not share.
 
 ## References
 

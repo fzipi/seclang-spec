@@ -476,7 +476,7 @@ Specified in outline; SHOULD be implemented.
 
 **Status:** Extended
 
-**Semantics.** The parameter is a regular expression compiled dot-all and multiline (`.` matches a newline, `^` and `$` match at line boundaries). Matches are searched from each offset of the value in turn, anchors relative to the whole value, empty matches ignored; the digits of each whole match are checked with the Luhn algorithm, and the first Luhn-valid match matches (ModSecurity v2 `apache2/re_operators.c`, `msre_op_verifyCC_execute` and `luhn_verify`).
+**Semantics.** The parameter is a regular expression compiled dot-all and multiline (`.` matches a newline, `^` and `$` match at line boundaries). Matches are searched from each offset of the value in turn, anchors relative to the whole value; an empty match is skipped (ModSecurity v2 passes PCRE `NOTEMPTY`, which backtracks to a non-empty match at the same offset, so a pattern with an empty alternative such as `(?:|\d{16})` matches in v2 only; libmodsecurity v3 skips it); the digits of each whole match are checked with the Luhn algorithm, and the first Luhn-valid match matches (ModSecurity v2 `apache2/re_operators.c`, `msre_op_verifyCC_execute` and `luhn_verify`).
 
 **Implemented by.** v2, v3.
 
