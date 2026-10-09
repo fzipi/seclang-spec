@@ -77,3 +77,11 @@ jobs:
         working-directory: formal
       - run: lake exe seclang-eval .lake/engine-rules.json
         working-directory: formal
+      - uses: actions/checkout@v4
+        with:
+          repository: coreruleset/coreruleset
+          ref: v4.25.2
+          path: crs
+      - run: uv run python tools/crs_rules.py crs > formal/.lake/crs.json
+      - run: lake exe seclang-parse .lake/crs.json
+        working-directory: formal

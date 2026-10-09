@@ -37,6 +37,14 @@ directive table of `spec/04-directives.md`, with the vocabulary of chapters 05â€
 A profile whose stages assert `expect_error` must be rejected, every other profile must be
 accepted; the runner prints the rule a rejected profile violates.
 
+The same runner is the CRS acceptance run: `tools/crs_rules.py` packages an OWASP CRS
+checkout (`crs-setup.conf.example`, every `rules/*.conf`, the `.data` files, and all of them
+concatenated as `ALL`) and every profile must be accepted. CI runs it against CRS v4.25.2;
+locally:
+
+    uv run python tools/crs_rules.py /path/to/coreruleset > formal/.lake/crs.json
+    cd formal && lake exe seclang-parse .lake/crs.json
+
 ## Processing model
 
 `SecLang/Semantics.lean` is `spec/03-processing-model.md` over the parsed configuration:
