@@ -73,6 +73,9 @@ var (
 	reParam          = regexp.MustCompile(`"!?@[A-Za-z]+ ([^"]{1,40})"`)
 	reNumericOp      = regexp.MustCompile(`@(eq|ge|gt|le|lt)\b`)
 	reBodyLimit      = regexp.MustCompile(`SecRequestBodyLimit (\d+)`)
+	reRespLimit      = regexp.MustCompile(`SecResponseBodyLimit (\d+)`)
+	reRequestBody    = regexp.MustCompile(`\bREQUEST_BODY\b`)
+	reMime           = regexp.MustCompile(`SecResponseBodyMimeType ([^\n]+)`)
 	reDigitsThenText = regexp.MustCompile(`^[+-]?\d+[^\d]`)
 )
 
@@ -170,23 +173,59 @@ func main() {
 		wantsBody := strings.Contains(p.Rules, "ARGS_POST") || strings.Contains(p.Rules, "REQUEST_BODY") ||
 			strings.Contains(p.Rules, "REQBODY") || strings.Contains(p.Rules, "FILES") || strings.Contains(p.Rules, "MULTIPART") ||
 			regexp.MustCompile(`\bARGS\b`).MatchString(p.Rules)
+		kinds := []string{"urlencoded"}
+		// REQUEST_BODY is unspecified for a body no processor parsed (ADR-0022): a profile that
+		// reads it only gets URL-encoded bodies.
+		readsRequestBody := reRequestBody.MatchString(p.Rules)
+		if strings.Contains(strings.ToLower(p.Rules), "requestbodyprocessor=json") && !readsRequestBody {
+			kinds = append(kinds, "json", "json")
+		}
+		if (strings.Contains(p.Rules, "MULTIPART") || strings.Contains(p.Rules, "FILES")) && !readsRequestBody {
+			kinds = append(kinds, "multipart", "multipart")
+		}
+		// known gap (compat/known-gaps.md, files-combined-size-fields.yaml): Coraza counts field
+		// bytes in FILES_COMBINED_SIZE, so such a profile only gets file parts.
+		filesOnly := strings.Contains(p.Rules, "FILES_COMBINED_SIZE")
+		wantsResponse := strings.Contains(p.Rules, "RESPONSE_")
+		// known gap (secresponsebodylimit-uninspected.yaml): Coraza enforces the response limit on
+		// uninspected types, so a profile with a response limit only sees its inspected types.
+		inspected := captures(reMime, p.Rules)
+		if !strings.Contains(p.Rules, "SecResponseBodyLimit") {
+			inspected = nil
+		}
 		// a body of exactly SecRequestBodyLimit bytes is a recorded Coraza gap (>=); never generate one
 		avoid := map[int]bool{}
 		for _, m := range reBodyLimit.FindAllStringSubmatch(p.Rules, -1) {
 			n, _ := strconv.Atoi(m[1])
 			avoid[n] = true
 		}
+		avoidResp := map[int]bool{} // same gap on the response side (secresponsebodylimit-boundary.yaml)
+		for _, m := range reRespLimit.FindAllStringSubmatch(p.Rules, -1) {
+			n, _ := strconv.Atoi(m[1])
+			avoidResp[n] = true
+		}
 		po := profileOut{Path: p.Path + "#differential", Rules: p.Rules, Files: p.Files}
 		if po.Files == nil {
 			po.Files = map[string]string{}
 		}
 		for k := 0; k < *n; k++ {
-			in := genInput(r, args, headers, cookies, values, wantsBody && r.Intn(3) > 0, reNumericOp.MatchString(p.Rules))
+			kind := ""
+			if wantsBody && r.Intn(3) > 0 {
+				kind = pick(r, kinds)
+			}
+			in := genInput(r, args, headers, cookies, values, kind, reNumericOp.MatchString(p.Rules), filesOnly)
 			if avoid[len(in.Data)] {
-				in.Data += "&z=1"
+				in.Data += " "
+			}
+			resp := responseOut{Status: 200, Headers: map[string]string{"Content-Type": "text/plain"}, Data: "ok"}
+			if wantsResponse {
+				resp = genResponse(r, values, inspected)
+				if avoidResp[len(resp.Data)] {
+					resp.Data += " "
+				}
 			}
 			stage := adapter.Stage{Input: adapter.Input{Method: in.Method, URI: in.URI, Headers: in.Headers, Data: in.Data},
-				Response: &adapter.Response{Status: 200, Headers: map[string]string{"Content-Type": "text/plain"}, Data: "ok"}}
+				Response: &adapter.Response{Status: resp.Status, Headers: resp.Headers, Data: resp.Data}}
 			obs := adapter.RunStage(waf, log, stage)
 			if obs.Panic != "" {
 				continue
@@ -206,7 +245,7 @@ func main() {
 				o.NoInterruption = true
 			}
 			po.Tests = append(po.Tests, testOut{Title: fmt.Sprintf("gen %d", k), Stages: []stageOut{{Stage: stageBody{
-				Input: in, Response: responseOut{Status: 200, Headers: map[string]string{"Content-Type": "text/plain"}, Data: "ok"}, Output: o}}}})
+				Input: in, Response: resp, Output: o}}}})
 		}
 		os.RemoveAll(dir)
 		out = append(out, po)
@@ -241,7 +280,19 @@ func idsOf(rules string) []int {
 	return ids
 }
 
-func genInput(r *rand.Rand, args, headers, cookies, values []string, body bool, numeric bool) inputOut {
+// genResponse varies status, content type and body for profiles with response-phase rules.
+func genResponse(r *rand.Rand, values []string, inspected []string) responseOut {
+	ct := pick(r, []string{"text/plain", "text/html; charset=utf-8", "application/json", "text/plain", "image/png"})
+	if len(inspected) > 0 {
+		ct = pick(r, strings.Fields(strings.Join(inspected, " ")))
+	}
+	body := pick(r, append([]string{"ok", "<html>hi</html>", "{\"a\":1}", "SQL syntax error near", "password=secret", "0123456789"}, values...))
+	return responseOut{Status: pickInt(r, []int{200, 200, 404, 500, 302}), Headers: map[string]string{"Content-Type": ct}, Data: body}
+}
+
+func pickInt(r *rand.Rand, xs []int) int { return xs[r.Intn(len(xs))] }
+
+func genInput(r *rand.Rand, args, headers, cookies, values []string, kind string, numeric bool, filesOnly bool) inputOut {
 	in := inputOut{Method: "GET", Headers: map[string]string{}}
 	value := func() string {
 		for {
@@ -269,7 +320,8 @@ func genInput(r *rand.Rand, args, headers, cookies, values []string, body bool, 
 	if len(cookies) > 0 && r.Intn(2) == 0 {
 		in.Headers["Cookie"] = pick(r, cookies) + "=" + value()
 	}
-	if body {
+	switch kind {
+	case "urlencoded":
 		in.Method = "POST"
 		var b []string
 		for i := 1 + r.Intn(3); i > 0; i-- {
@@ -277,6 +329,37 @@ func genInput(r *rand.Rand, args, headers, cookies, values []string, body bool, 
 		}
 		in.Headers["Content-Type"] = "application/x-www-form-urlencoded"
 		in.Data = strings.Join(b, "&")
+	case "json":
+		in.Method = "POST"
+		in.Headers["Content-Type"] = "application/json"
+		switch r.Intn(6) {
+		case 0:
+			in.Data = "{\"" + pick(r, args) + "\":" // malformed
+		case 1:
+			in.Data = "[1,[2,[3,[4]]]]"
+		default:
+			var kv []string
+			for i := 1 + r.Intn(3); i > 0; i-- {
+				v, _ := json.Marshal(value())
+				kv = append(kv, "\""+pick(r, args)+"\":"+string(v))
+			}
+			in.Data = "{" + strings.Join(kv, ",") + "}"
+			if r.Intn(3) == 0 {
+				in.Data = "{\"" + pick(r, args) + "\":" + in.Data + "}"
+			}
+		}
+	case "multipart":
+		in.Method = "POST"
+		in.Headers["Content-Type"] = "multipart/form-data; boundary=XX"
+		var parts []string
+		for i := 1 + r.Intn(2); i > 0 && !filesOnly; i-- {
+			parts = append(parts, "--XX\r\nContent-Disposition: form-data; name=\""+pick(r, args)+"\"\r\n\r\n"+value()+"\r\n")
+		}
+		if filesOnly || r.Intn(2) == 0 {
+			name := pick(r, []string{"a.txt", "shell.php", "x.png", "a b.txt"})
+			parts = append(parts, "--XX\r\nContent-Disposition: form-data; name=\"f\"; filename=\""+name+"\"\r\nContent-Type: text/plain\r\n\r\n"+value()+"\r\n")
+		}
+		in.Data = strings.Join(parts, "") + "--XX--\r\n"
 	}
 	return in
 }

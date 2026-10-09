@@ -10,6 +10,7 @@ compat/known-gaps.md are skipped. Exit 1 when the engines disagree.
 """
 import argparse
 import json
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -42,6 +43,19 @@ def disagreement(a: dict, b: dict) -> str:
     if ia and (ia.get("rule_id"), ia.get("action")) != (ib.get("rule_id"), ib.get("action")):
         return f"interruption {ia} vs {ib}"
     return ""
+
+
+def phase4_gap(rules: str, stage: dict) -> bool:
+    """compat/known-gaps.md, phase4-without-inspection.yaml: libmodsecurity evaluates no phase 4
+    rule when the response body is not inspected, so such a stage is not replayed when the
+    profile has phase 4 or 5 rules."""
+    if not re.search(r"phase:[45]\b", rules):
+        return False
+    r = stage.get("response") or {}
+    ct = (r.get("headers") or {}).get("Content-Type", "").split(";")[0].strip()
+    access_on = re.search(r"SecResponseBodyAccess\s+On", rules, re.I) is not None
+    types = " ".join(re.findall(r"SecResponseBodyMimeType ([^\n]+)", rules)).split()
+    return not access_on or ct not in types
 
 
 def stage_of(d: dict) -> data.Stage:
@@ -78,6 +92,8 @@ def main() -> int:
             tests = []
             for t in p["tests"]:
                 st = t["stages"][0]["stage"]
+                if phase4_gap(p["rules"], st):
+                    continue
                 coraza = st["output"]
                 ids = sorted((coraza.get("triggered_rules") or []) + (coraza.get("non_triggered_rules") or []))
                 observed = engine_tier.run_stage(ms, rules, debug, stage_of(st))
