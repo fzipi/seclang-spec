@@ -53,7 +53,7 @@ where
 /-- The directive name and its arguments (`01#quoting-and-escapes`, `02` `directive`):
 bare tokens end at whitespace; a `"`-delimited argument keeps whitespace, `\"` yields `"`,
 any other backslash pair is passed through unchanged. -/
-partial def splitArgs (l : Line) : Parse (List String) := go l.text [] []
+def splitArgs (l : Line) : Parse (List String) := go l.text [] []
 where
   err (m : String) : Parse (List String) := .error { line := l.num, msg := m }
   go : List Char → List Char → List String → Parse (List String)
@@ -482,8 +482,11 @@ def fileOperators : List String := ["pmFromFile", "ipMatchFromFile"]
 mutual
 /-- One logical line into directives; an `Include` yields the included file's directives.
 `depth` is the remaining nesting budget (the cap of 100 of `01#include`). -/
-partial def parseLine (files : List (String × String)) (depth : Nat) (st : St) (l : Line) :
-    Parse (List Directive × St) := do
+def parseLine (fuel : Nat) (files : List (String × String)) (depth : Nat) (st : St) (l : Line) :
+    Parse (List Directive × St) :=
+  match fuel with
+  | 0 => err l.num "Include nesting too deep"
+  | fuel + 1 => do
   let args ← splitArgs l
   let line := l.num
   let name :: rest := args | return ([], st)
@@ -522,7 +525,7 @@ partial def parseLine (files : List (String × String)) (depth : Nat) (st : St) 
     let mut acc : List Directive := []
     let mut s := st
     for f in found do
-      let (ds, s') ← (parseText files (depth - 1) s ((files.lookup f).getD "")).mapError
+      let (ds, s') ← (parseText fuel files (depth - 1) s ((files.lookup f).getD "")).mapError
         fun e => if e.file.isEmpty then { e with file := f } else e
       acc := acc ++ ds
       s := s'
@@ -563,12 +566,15 @@ partial def parseLine (files : List (String × String)) (depth : Nat) (st : St) 
   | .oneOrMore => arity 1 1000; return ([.setting line canon rest], st)
 
 /-- Every logical line of `text`, threading the state. -/
-partial def parseText (files : List (String × String)) (depth : Nat) (st : St) (text : String) :
-    Parse (List Directive × St) := do
+def parseText (fuel : Nat) (files : List (String × String)) (depth : Nat) (st : St) (text : String) :
+    Parse (List Directive × St) :=
+  match fuel with
+  | 0 => err 0 "Include nesting too deep"
+  | fuel + 1 => do
   let mut acc : List Directive := []
   let mut s := st
   for l in logicalLines text do
-    let (ds, s') ← parseLine files depth s l
+    let (ds, s') ← parseLine fuel files depth s l
     acc := acc ++ ds
     s := s'
   return (acc, s)
@@ -576,7 +582,7 @@ end
 
 /-- A configuration with its auxiliary files (`Include` paths are looked up in `files`). -/
 def parseConfig (files : List (String × String)) (text : String) : Parse Config := do
-  let (ds, _) ← parseText files 100 {} text
+  let (ds, _) ← parseText 202 files 100 {} text   -- fuel: two per Include level, never reached before depth
   return ⟨ds⟩
 
 #guard (parseConfig [] "SecRuleEngine On\nSecRule ARGS \"@streq 1\" \"id:1,phase:1,deny,status:403,chain\"\n  SecRule ARGS:b \"@streq 2\"\nSecAction \"id:2,phase:1,pass\"") matches .ok _

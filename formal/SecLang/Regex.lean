@@ -75,7 +75,7 @@ def parseBraces (cs : List Char) : Option (Nat × Option Nat × List Char) :=
   | [] => none
 
 /-- A `[...]` class after the opening bracket (and `^`). -/
-partial def parseClass (cs : List Char) (acc : List ClassItem) (first : Bool) : Except String (List ClassItem × List Char) :=
+def parseClass (cs : List Char) (acc : List ClassItem) (first : Bool) : Except String (List ClassItem × List Char) :=
   match cs with
   | [] => .error "unterminated class"
   | ']' :: rest => if first then parseClass rest (.ch ']' :: acc) false else .ok (acc.reverse, rest)
@@ -84,29 +84,38 @@ partial def parseClass (cs : List Char) (acc : List ClassItem) (first : Bool) : 
     | some it => parseClass rest (it :: acc) false
     | none => parseClass rest (.ch (escapeChar c) :: acc) false
   | a :: '-' :: b :: rest =>
-    if b == ']' then parseClass ('-' :: b :: rest) (.ch a :: acc) false
+    if b == ']' then .ok ((.ch '-' :: .ch a :: acc).reverse, rest)   -- a trailing `-` is literal
     else parseClass rest (.range a b :: acc) false
   | c :: rest => parseClass rest (.ch c :: acc) false
 
 mutual
-partial def parseAlt (p : P) : Except String (Re × P) := do
-  let (rs, p) ← parseSeq p
+def parseAlt (fuel : Nat) (p : P) : Except String (Re × P) :=
+  match fuel with
+  | 0 => .error "pattern too complex"
+  | fuel + 1 => do
+  let (rs, p) ← parseSeq fuel p
   match p.rest with
   | '|' :: rest =>
-    let (r2, p2) ← parseAlt { p with rest }
+    let (r2, p2) ← parseAlt fuel { p with rest }
     return (.alt (.seq rs) r2, p2)
   | _ => return (.seq rs, p)
 
-partial def parseSeq (p : P) : Except String (List Re × P) := do
+def parseSeq (fuel : Nat) (p : P) : Except String (List Re × P) :=
+  match fuel with
+  | 0 => .error "pattern too complex"
+  | fuel + 1 => do
   match p.rest with
   | [] | ')' :: _ | '|' :: _ => return ([], p)
   | _ =>
-    let (a, p) ← parseQuantified p
-    let (rs, p) ← parseSeq p
+    let (a, p) ← parseQuantified fuel p
+    let (rs, p) ← parseSeq fuel p
     return (a :: rs, p)
 
-partial def parseQuantified (p : P) : Except String (Re × P) := do
-  let (a, p) ← parseAtom p
+def parseQuantified (fuel : Nat) (p : P) : Except String (Re × P) :=
+  match fuel with
+  | 0 => .error "pattern too complex"
+  | fuel + 1 => do
+  let (a, p) ← parseAtom fuel p
   let a := if p.flags == p.base then a else .flagged p.flags a
   let q : Option (Nat × Option Nat × List Char) := match p.rest with
     | '*' :: rest => some (0, none, rest)
@@ -121,12 +130,15 @@ partial def parseQuantified (p : P) : Except String (Re × P) := do
     | '?' :: rest' => return (.rep a mn mx false, { p with rest := rest' })
     | _ => return (.rep a mn mx true, { p with rest })
 
-partial def parseAtom (p : P) : Except String (Re × P) := do
+def parseAtom (fuel : Nat) (p : P) : Except String (Re × P) :=
+  match fuel with
+  | 0 => .error "pattern too complex"
+  | fuel + 1 => do
   match p.rest with
-  | '(' :: '?' :: ':' :: rest => parseGroup none { p with rest }
+  | '(' :: '?' :: ':' :: rest => parseGroup fuel none { p with rest }
   | '(' :: '?' :: 'P' :: '<' :: rest =>
     let rest := (rest.dropWhile (· != '>')).drop 1
-    parseGroup (some p.next) { rest, next := p.next + 1 }
+    parseGroup fuel (some p.next) { rest, next := p.next + 1 }
   | '(' :: '?' :: rest =>
     -- `(?flags:…)` scopes the flags to the group; `(?flags)` sets them for the rest of the enclosing group
     let letters := rest.takeWhile fun c => c == 'i' || c == 's' || c == 'm'
@@ -134,11 +146,11 @@ partial def parseAtom (p : P) : Except String (Re × P) := do
     let f' := withLetters p.flags letters
     match rest.drop letters.length with
     | ':' :: rest' =>
-      let (g, p') ← parseGroup none { p with rest := rest', flags := f' }
+      let (g, p') ← parseGroup fuel none { p with rest := rest', flags := f' }
       return (g, { p' with flags := p.flags })
     | ')' :: rest' => return (.seq [], { p with rest := rest', flags := f' })
     | _ => .error "group syntax outside the Core subset"
-  | '(' :: rest => parseGroup (some p.next) { rest, next := p.next + 1 }
+  | '(' :: rest => parseGroup fuel (some p.next) { rest, next := p.next + 1 }
   | '[' :: '^' :: rest =>
     let (items, rest) ← parseClass rest [] true
     return (.cls true items, { p with rest })
@@ -151,13 +163,16 @@ partial def parseAtom (p : P) : Except String (Re × P) := do
   | '\\' :: 'b' :: rest => return (.wordB false, { p with rest })
   | '\\' :: 'B' :: rest => return (.wordB true, { p with rest })
   | '\\' :: c :: _ =>
-    if c.isDigit || "AzZQEpPGKkR".contains c then .error "escape outside the Core subset" else parseEscape p
+    if c.isDigit || "AzZQEpPGKkR".contains c then .error "escape outside the Core subset" else parseEscape fuel p
   | [] => .error "unexpected end of pattern"
   | c :: rest =>
     if c == '*' || c == '+' || c == '?' then .error "nothing to repeat" else return (.lit c, { p with rest })
 
 /-- `\x`, `\b`, `\B`, class escapes and single-character escapes. -/
-partial def parseEscape (p : P) : Except String (Re × P) := do
+def parseEscape (fuel : Nat) (p : P) : Except String (Re × P) :=
+  match fuel with
+  | 0 => .error "pattern too complex"
+  | _ + 1 => do
   match p.rest with
   | '\\' :: 'x' :: a :: b :: rest =>
     match hexChar a b with
@@ -169,9 +184,12 @@ partial def parseEscape (p : P) : Except String (Re × P) := do
     | none => return (.lit (escapeChar c), { p with rest })
   | _ => .error "trailing backslash"
 
-partial def parseGroup (cap : Option Nat) (p : P) : Except String (Re × P) := do
+def parseGroup (fuel : Nat) (cap : Option Nat) (p : P) : Except String (Re × P) :=
+  match fuel with
+  | 0 => .error "pattern too complex"
+  | fuel + 1 => do
   let outer := p.flags
-  let (r, p) ← parseAlt p
+  let (r, p) ← parseAlt fuel p
   match p.rest with
   | ')' :: rest => return (.group cap r, { p with rest, flags := outer })   -- flags set inside end with the group
   | _ => .error "missing )"
@@ -180,7 +198,7 @@ end
 /-- Tree and group count of a pattern (flags live in `flagged` nodes). `@rx` is compiled
 dot-all by every engine (ADR-0027); `^` and `$` see the subject ends only unless `(?m)`. -/
 def compile (pat : String) (dflt : Flags := { dotAll := true }) : Except String (Flags × Re × Nat) := do
-  let (r, p) ← parseAlt { rest := pat.toList, flags := dflt, base := dflt }
+  let (r, p) ← parseAlt (8 * pat.length + 16) { rest := pat.toList, flags := dflt, base := dflt }   -- fuel: the recursion depth is linear in the pattern
   if !p.rest.isEmpty then throw "unbalanced )"
   return (dflt, r, p.next - 1)
 
@@ -198,9 +216,22 @@ def classMatch (f : Flags) (neg : Bool) (items : List ClassItem) (c : Char) : Bo
     | .space n => isSpaceC c != n
   hit != neg
 
+/-- Nodes of a pattern, for the match budget. -/
+def Re.size : Re → Nat
+  | .group _ r | .rep r _ _ _ | .flagged _ r => 1 + r.size
+  | .alt a b => 1 + a.size + b.size
+  | .seq rs => 1 + (rs.map Re.size).sum
+  | _ => 1
+
 mutual
-/-- Match `r` at `i`, then continue with `k`. -/
-partial def m (f : Flags) (s : Array Char) (r : Re) (i : Nat) (caps : Caps) (k : Nat → Caps → Option Caps) : Option Caps :=
+/-- Match `r` at `i`, then continue with `k`. `fuel` bounds the depth of the search: a branch
+that exhausts it fails, so a search beyond the budget is no match, as a PCRE match-limit hit
+is in ModSecurity (`04#secpcrematchlimit`); `searchAt` sizes it so that no Core pattern on
+a request-sized subject reaches it. -/
+def m (fuel : Nat) (f : Flags) (s : Array Char) (r : Re) (i : Nat) (caps : Caps) (k : Nat → Caps → Option Caps) : Option Caps :=
+  match fuel with
+  | 0 => none
+  | fuel + 1 =>
   match r with
   | .lit c => if h : i < s.size then (if eqc f s[i] c then k (i + 1) caps else none) else none
   | .any => if h : i < s.size then (if s[i] == '\n' && !f.dotAll then none else k (i + 1) caps) else none
@@ -211,18 +242,21 @@ partial def m (f : Flags) (s : Array Char) (r : Re) (i : Nat) (caps : Caps) (k :
     let before := i > 0 && isWordC s[i - 1]!
     let after := i < s.size && isWordC s[i]!
     if (before != after) != neg then k i caps else none
-  | .group cap r => m f s r i caps fun j caps' => k j (match cap with | some n => caps'.setIfInBounds n (some (i, j)) | none => caps')
-  | .alt a b => match m f s a i caps k with | some c => some c | none => m f s b i caps k
+  | .group cap r => m fuel f s r i caps fun j caps' => k j (match cap with | some n => caps'.setIfInBounds n (some (i, j)) | none => caps')
+  | .alt a b => match m fuel f s a i caps k with | some c => some c | none => m fuel f s b i caps k
   | .seq [] => k i caps
-  | .seq (r :: rs) => m f s r i caps fun j c => m f s (.seq rs) j c k
-  | .rep r mn mx greedy => repM f s r mn mx greedy i caps k 0
-  | .flagged f' r => m f' s r i caps k
+  | .seq (r :: rs) => m fuel f s r i caps fun j c => m fuel f s (.seq rs) j c k
+  | .rep r mn mx greedy => repM fuel f s r mn mx greedy i caps k 0
+  | .flagged f' r => m fuel f' s r i caps k
 
-partial def repM (f : Flags) (s : Array Char) (r : Re) (mn : Nat) (mx : Option Nat) (greedy : Bool)
+def repM (fuel : Nat) (f : Flags) (s : Array Char) (r : Re) (mn : Nat) (mx : Option Nat) (greedy : Bool)
     (i : Nat) (caps : Caps) (k : Nat → Caps → Option Caps) (count : Nat) : Option Caps :=
+  match fuel with
+  | 0 => none
+  | fuel + 1 =>
   let canMore : Bool := match mx with | some x => decide (count < x) | none => true
   let more := fun (_ : Unit) => if canMore then
-      m f s r i caps (fun j c => if j == i && decide (count ≥ mn) then none else repM f s r mn mx greedy j c k (count + 1))
+      m fuel f s r i caps (fun j c => if j == i && decide (count ≥ mn) then none else repM fuel f s r mn mx greedy j c k (count + 1))
     else none
   let stop := fun (_ : Unit) => if count ≥ mn then k i caps else none
   if greedy then (match more () with | some c => some c | none => stop ())
@@ -235,11 +269,12 @@ def searchAt (pat : String) (subject : ByteArray) (start : Nat) : Option (Array 
   | .error _ => none
   | .ok (f, r, n) =>
     let s : Array Char := subject.data.map fun b => Char.ofNat b.toNat
+    let budget := 1024 + 16 * (s.size + 1) * (r.size + 1)   -- the match limit, see `m`
     let rec tryFrom (i : Nat) (fuel : Nat) : Option Caps :=
       match fuel with
       | 0 => none
       | fuel + 1 =>
-        match m f s r i (Array.replicate (n + 1) none) (fun j caps => some (caps.setIfInBounds 0 (some (i, j)))) with
+        match m budget f s r i (Array.replicate (n + 1) none) (fun j caps => some (caps.setIfInBounds 0 (some (i, j)))) with
         | some caps => some caps
         | none => if i < s.size then tryFrom (i + 1) fuel else none
     tryFrom start (s.size + 1 - start)

@@ -205,14 +205,17 @@ def macroValue (tx : Tx) (name : String) : ByteArray :=
   | some k => ((ms.find? fun m => keyEq m.key (latin k)).map (·.value)).getD .empty
 
 /-- `%{NAME}` and `%{COLL.key}` expansion (`02#macro-expansion`); an unset variable is empty. -/
-partial def expandMacros (tx : Tx) (s : String) : ByteArray := go s.toList .empty
+def expandMacros (tx : Tx) (s : String) : ByteArray := go s.toList .empty
 where
   go : List Char → ByteArray → ByteArray
-    | '%' :: '{' :: rest, acc =>
-      let name := rest.takeWhile (· != '}')
-      go ((rest.dropWhile (· != '}')).drop 1) (acc ++ macroValue tx (String.ofList name))
+    | '%' :: '{' :: rest, acc => inMacro rest [] acc
     | c :: rest, acc => go rest (acc ++ (String.singleton c).toUTF8)
     | [], acc => acc
+  /-- Inside `%{…}`: the name so far (reversed); an unterminated macro runs to the end. -/
+  inMacro : List Char → List Char → ByteArray → ByteArray
+    | '}' :: rest, name, acc => go rest (acc ++ macroValue tx (String.ofList name.reverse))
+    | c :: rest, name, acc => inMacro rest (c :: name) acc
+    | [], name, acc => acc ++ macroValue tx (String.ofList name.reverse)
 
 def setCaptures (tx : Tx) (caps : Array (Option ByteArray)) : Tx :=
   let keep := tx.tx.filter fun m => !(m.key.length == 1 && m.key.toList.all Char.isDigit)

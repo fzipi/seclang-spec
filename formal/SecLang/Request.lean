@@ -215,7 +215,7 @@ namespace JsonRead
 def ws : List Char → List Char := List.dropWhile fun c => c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
 /-- The characters of a string token after its opening quote, escapes kept, and the rest. -/
-partial def strTok : List Char → List Char → Except String (List Char × List Char)
+def strTok : List Char → List Char → Except String (List Char × List Char)
   | [], _ => .error "unterminated string"
   | '\\' :: c :: rest, acc => strTok rest (c :: '\\' :: acc)
   | '"' :: rest, acc => .ok (acc.reverse, rest)
@@ -231,14 +231,17 @@ def isNumChar (c : Char) : Bool := c.isDigit || c == '-' || c == '+' || c == '.'
 abbrev Leaves := List (String × String)
 
 mutual
-partial def value (limit depth : Nat) (name : String) (cs : List Char) : Except String (Leaves × List Char) := do
+def value (fuel limit depth : Nat) (name : String) (cs : List Char) : Except String (Leaves × List Char) :=
+  match fuel with
+  | 0 => .error "document too deep"
+  | fuel + 1 => do
   match ws cs with
   | '{' :: rest =>
     if depth + 1 > limit then throw s!"depth limit ({limit}) exceeded"
-    members limit (depth + 1) name (ws rest) true
+    members fuel limit (depth + 1) name (ws rest) true
   | '[' :: rest =>
     if depth + 1 > limit then throw s!"depth limit ({limit}) exceeded"
-    elements limit (depth + 1) (if name.isEmpty then "array" else name) (ws rest) true
+    elements fuel limit (depth + 1) (if name.isEmpty then "array" else name) (ws rest) true
   | '"' :: rest =>
     let (tok, rest) ← strTok rest []
     return ([(name, ← decodeStr tok)], rest)
@@ -252,7 +255,10 @@ partial def value (limit depth : Nat) (name : String) (cs : List Char) : Except 
     | .ok (.num _) => return ([(name, String.ofList tok)], cs'.drop tok.length)
     | _ => throw s!"invalid number {String.ofList tok}"
 
-partial def members (limit depth : Nat) (prefix_ : String) (cs : List Char) (first : Bool) : Except String (Leaves × List Char) := do
+def members (fuel limit depth : Nat) (prefix_ : String) (cs : List Char) (first : Bool) : Except String (Leaves × List Char) :=
+  match fuel with
+  | 0 => .error "document too deep"
+  | fuel + 1 => do
   match cs with
   | '}' :: rest => if first then return ([], rest) else throw "trailing comma"
   | '"' :: rest =>
@@ -260,21 +266,24 @@ partial def members (limit depth : Nat) (prefix_ : String) (cs : List Char) (fir
     let k ← decodeStr tok
     match ws rest with
     | ':' :: rest =>
-      let (vs, rest) ← value limit depth (if prefix_.isEmpty then k else prefix_ ++ "." ++ k) rest
+      let (vs, rest) ← value fuel limit depth (if prefix_.isEmpty then k else prefix_ ++ "." ++ k) rest
       match ws rest with
-      | ',' :: rest => let (more, rest) ← members limit depth prefix_ (ws rest) false; return (vs ++ more, rest)
+      | ',' :: rest => let (more, rest) ← members fuel limit depth prefix_ (ws rest) false; return (vs ++ more, rest)
       | '}' :: rest => return (vs, rest)
       | _ => throw "expected , or }"
     | _ => throw "expected :"
   | _ => throw "expected a string key"
 
-partial def elements (limit depth : Nat) (name : String) (cs : List Char) (first : Bool) : Except String (Leaves × List Char) := do
+def elements (fuel limit depth : Nat) (name : String) (cs : List Char) (first : Bool) : Except String (Leaves × List Char) :=
+  match fuel with
+  | 0 => .error "document too deep"
+  | fuel + 1 => do
   match cs with
   | ']' :: rest => if first then return ([], rest) else throw "trailing comma"
   | _ =>
-    let (vs, rest) ← value limit depth name cs
+    let (vs, rest) ← value fuel limit depth name cs
     match ws rest with
-    | ',' :: rest => let (more, rest) ← elements limit depth name (ws rest) false; return (vs ++ more, rest)
+    | ',' :: rest => let (more, rest) ← elements fuel limit depth name (ws rest) false; return (vs ++ more, rest)
     | ']' :: rest => return (vs, rest)
     | _ => throw "expected , or ]"
 end
@@ -283,7 +292,7 @@ end JsonRead
 
 /-- `09#json`: the members, or the `REQBODY_ERROR_MSG` text. -/
 def parseJsonBody (depthLimit : Nat) (body : String) : Except String (List Member) :=
-  match JsonRead.value depthLimit 0 "" body.toList with
+  match JsonRead.value (4 * body.length + 16) depthLimit 0 "" body.toList with
   | .error e => .error s!"JSON parsing error: {e}"
   | .ok (leaves, rest) =>
     if (JsonRead.ws rest).isEmpty then .ok (leaves.map fun (k, v) => Member.mk (latin k) (text v))

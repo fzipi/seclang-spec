@@ -41,15 +41,18 @@ def containsBytes (hay needle : ByteArray) : Bool :=
   (List.range (h.length + 1)).any fun i => n.isPrefixOf (h.drop i)
 
 /-- `@pm` phrases: space-separated, `|hex|` runs decoded. -/
-partial def pmPhrases (param : ByteArray) : List ByteArray :=
+def pmPhrases (param : ByteArray) : List ByteArray :=
   ((ofBytes param).splitOn " ").filterMap fun p => if p.isEmpty then none else some (pmDecode p.toList .empty)
 where
   pmDecode : List Char → ByteArray → ByteArray
-    | '|' :: rest, acc =>
-      let hex := rest.takeWhile (· != '|')
-      pmDecode ((rest.dropWhile (· != '|')).drop 1) (acc ++ hexDecode (String.ofList hex).toUTF8)
+    | '|' :: rest, acc => hexRun rest [] acc
     | c :: rest, acc => pmDecode rest (acc.push c.toNat.toUInt8)
     | [], acc => acc
+  /-- Inside `|…|`: the hex digits so far (reversed); an unterminated run decodes to the end. -/
+  hexRun : List Char → List Char → ByteArray → ByteArray
+    | '|' :: rest, hex, acc => pmDecode rest (acc ++ hexDecode (String.ofList hex.reverse).toUTF8)
+    | c :: rest, hex, acc => hexRun rest (c :: hex) acc
+    | [], hex, acc => acc ++ hexDecode (String.ofList hex.reverse).toUTF8
 
 def ipv4 (s : String) : Option Nat :=
   match (s.splitOn ".").mapM natOf? with
