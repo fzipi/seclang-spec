@@ -12,7 +12,10 @@ EVAL = """tests/engine/body/xml-no-xxe.yaml: unsupported (variable XML)
 tests/engine/actions/setvar.yaml [five forms]: ok
 184 stages, 0 mismatches, 4 unsupported profiles
 """
-LEAN = '''/-- ADR-0017: a rule without `phase` runs in phase 2. -/
+LEAN = '''/-- A chain starter (`03#chains`). -/
+structure Chain where
+  id : Nat
+/-- ADR-0017: a rule without `phase` runs in phase 2. -/
 theorem phase_default (r : Rule) : chainPhase r = 2 := by
   simp
 #guard true

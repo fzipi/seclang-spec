@@ -71,7 +71,8 @@ def count_guards(text: str) -> int:
 
 def theorems(text: str) -> list[tuple[str, str]]:
     out = []
-    for m in re.finditer(r"/--\s*(.*?)\s*-/\s*theorem\s+(\w+)", text, re.S):
+    # the docstring may not contain `-/`, or the match would run from an earlier comment
+    for m in re.finditer(r"/--\s*((?:(?!-/).)*?)\s*-/\s*theorem\s+(\w+)", text, re.S):
         out.append((m[2], " ".join(m[1].split())))
     return out
 
