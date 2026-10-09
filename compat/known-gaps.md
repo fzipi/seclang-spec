@@ -27,6 +27,7 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 | `tests/engine/lexical/quoted-arguments.yaml` | libmodsecurity v3 | `\"` inside an operator argument keeps its backslash (`seclang-scanner.ll`) | `01-lexical.md#quoting-and-escapes` |
 | `tests/engine/directives/secargumentseparator.yaml` | Coraza | directive parsed and ignored | `04-directives.md#secargumentseparator`, ADR-0005 |
 | `tests/engine/directives/deprecated-directive-accepted.yaml` | none | `SecHashEngine Off` is accepted everywhere; see ADR-0005 for the Deprecated names v3 and Coraza reject | ADR-0005 |
+| `tests/engine/processing/skipafter-rule-id.yaml` | ModSecurity v2 | `skipAfter:4091` resumes after rule 4091 through a `RULE_PH_SKIPAFTER` placeholder (`apache2/apache2_config.c`) | ADR-0028 |
 | `tests/unit/operators/ipMatch.json` | Coraza | `::ffff:ffff:ffff` does not match `0:0::/80` (one case) | `06-operators.md#ipmatch` |
 | `tests/unit/transformations/uppercase-extra.json` | ModSecurity v2 | `t:uppercase` not implemented | ADR-0012 |
 | `tests/unit/transformations/cssDecode.json` | Coraza | escapes of three or more hex digits decode to the UTF-8 encoding of the code point instead of its low byte, and code points above U+FFFF become U+FFFD (two cases) | `07-transformations.md#cssdecode` |

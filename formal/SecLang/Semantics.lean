@@ -356,12 +356,8 @@ structure PhaseState where
 
 def skipOf (c : Chain) : Nat := ((actionValue c.starter.actions "skip").bind natOf?).getD 0
 def skipAfterOf (c : Chain) : Option String := actionValue c.starter.actions "skipAfter"
-/-- A chain satisfies a pending `skipAfter` label when its id is the label and it belongs to
-the current phase (ModSecurity v2 inserts the placeholder in the target's own phase). -/
-def labelMatches (c : Chain) (phase : Nat) (l : String) : Bool := c.phase == phase && toString c.id == l
-
 /-- The rules of one phase in order. A pending `skipAfter` passes everything until a marker
-or a rule id with that label; `skip` passes the next rules of the phase; chains of other
+with that label (a rule id is never a label, ADR-0028); `skip` passes the next rules of the phase; chains of other
 phases and removed chains are passed over; a match applies its actions and may end the
 phase. -/
 def runItems (o : Oracle) (phase : Nat) : List Item → PhaseState → Tx → Tx
@@ -372,7 +368,7 @@ def runItems (o : Oracle) (phase : Nat) : List Item → PhaseState → Tx → Tx
     | .marker l => runItems o phase rest (if ps.skipAfter == some l then { ps with skipAfter := none } else ps) tx
     | .chain c =>
       match ps.skipAfter with
-      | some l => runItems o phase rest (if labelMatches c phase l then { ps with skipAfter := none } else ps) tx
+      | some _ => runItems o phase rest ps tx
       | none =>
         if c.phase != phase || removed o tx c then runItems o phase rest ps tx
         else if ps.skip > 0 then runItems o phase rest { ps with skip := ps.skip - 1 } tx
@@ -428,16 +424,16 @@ theorem skipAfter_ends_with_phase (o : Oracle) (items : List Item) (prepare : Na
       (let tx' := startPhase (prepare p tx)
        if phaseRuns tx' p then runItems o p items ⟨0, none⟩ tx' else tx') := rfl
 
-/-- ADR-0016: a pending label that no later marker or same-phase rule id carries leaves the
-transaction untouched for the rest of its phase. -/
+/-- ADR-0016: a pending label that no later marker carries leaves the transaction untouched
+for the rest of its phase (chains never carry a label, ADR-0028). -/
 theorem skipAfter_missing (o : Oracle) (p k : Nat) (l : String) (items : List Item) (tx : Tx)
-    (h : ∀ i ∈ items, (match i with | .marker m => m ≠ l | .chain c => labelMatches c p l = false)) :
+    (h : ∀ i ∈ items, (match i with | .marker m => m ≠ l | .chain _ => True)) :
     runItems o p items ⟨k, some l⟩ tx = tx := by
   induction items generalizing tx with
   | nil => rfl
   | cons i rest ih =>
     have hi := h i (List.mem_cons_self ..)
-    have hr : ∀ j ∈ rest, (match j with | .marker m => m ≠ l | .chain c => labelMatches c p l = false) :=
+    have hr : ∀ j ∈ rest, (match j with | .marker m => m ≠ l | .chain _ => True) :=
       fun j hj => h j (List.mem_cons_of_mem _ hj)
     cases i with
     | marker m =>
@@ -454,14 +450,13 @@ theorem skipAfter_missing (o : Oracle) (p k : Nat) (l : String) (items : List It
       simp only [runItems]
       split
       · rfl
-      · simp [hi]
-        exact ih tx hr
+      · exact ih tx hr
 
 /-- ADR-0016, the consequence the ADR states: after a phase whose `skipAfter` label was never
 found, any later phase runs exactly as if that `skipAfter` had not fired. -/
 theorem later_phase_unaffected (o : Oracle) (p q k : Nat) (l : String) (items : List Item)
     (prepare : Nat → Tx → Tx) (tx : Tx)
-    (h : ∀ i ∈ items, (match i with | .marker m => m ≠ l | .chain c => labelMatches c p l = false)) :
+    (h : ∀ i ∈ items, (match i with | .marker m => m ≠ l | .chain _ => True)) :
     step o items prepare q (runItems o p items ⟨k, some l⟩ tx) = step o items prepare q tx := by
   rw [skipAfter_missing o p k l items tx h]
 
@@ -501,7 +496,7 @@ def demoStore (args : List (String × String)) : Store :=
 
 #guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass\"\nSecRule ARGS_GET:a \"@streq 2\" \"id:2,phase:1,pass\"" (demoStore [("a", "1")])) == [1]
 #guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,skip:1\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:1,pass,skipAfter:END\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:4,phase:1,pass\"\nSecMarker END\nSecRule ARGS_GET:a \"@streq 1\" \"id:5,phase:1,pass\"" (demoStore [("a", "1")])) == [1, 3, 5]
-#guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,skipAfter:3\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:1,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:4,phase:1,pass\"" (demoStore [("a", "1")])) == [1, 4]
+#guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,skipAfter:3\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:1,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:4,phase:1,pass\"" (demoStore [("a", "1")])) == [1]   -- a rule id is not a label (ADR-0028)
 #guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,skipAfter:NOWHERE\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:2,pass\"" (demoStore [("a", "1")])) == [1, 3]
 #guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,chain\"\n  SecRule ARGS_GET:b \"@streq 2\" \"t:none\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass,chain\"\n  SecRule ARGS_GET:b \"@streq 3\"" (demoStore [("a", "1"), ("b", "2")])) == [1]
 #guard tri (run "SecRule ARGS_GET:zz \"!@streq x\" \"id:1,phase:1,pass\"" (demoStore [("a", "1")])) == []

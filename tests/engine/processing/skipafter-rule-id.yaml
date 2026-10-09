@@ -1,0 +1,19 @@
+meta:
+  name: skipafter-rule-id
+  description: A skipAfter label equal to a rule id does not end the skip; only a SecMarker does (ADR-0028)
+spec: 03-processing-model.md#flow-control
+rules: |
+  SecRuleEngine On
+  SecRule ARGS_GET:a "@streq 1" "id:4090,phase:1,pass,skipAfter:4091"
+  SecRule ARGS_GET:a "@streq 1" "id:4091,phase:1,pass"
+  SecRule ARGS_GET:a "@streq 1" "id:4092,phase:1,pass"
+tests:
+  - test_title: the rule named by the label and every later rule of the phase are skipped
+    stages:
+      - stage:
+          input:
+            uri: /?a=1
+          output:
+            triggered_rules: [4090]
+            non_triggered_rules: [4091, 4092]
+            no_interruption: true

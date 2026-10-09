@@ -145,11 +145,12 @@ directive.
 
 **Semantics.** When a rule carrying `skip:N` matches, the next `N` rules *of the same
 phase* in configuration order are not evaluated (a chain counts as one rule). When a rule
-carrying `skipAfter:LABEL` matches, evaluation jumps to the first `SecMarker LABEL`, or
-rule with `id:LABEL`, that follows it in configuration order, and resumes with the rule
-after it. A `SecMarker` is a phase-less placeholder: it never evaluates anything and
-exists in every phase. If the marker is not found before the end of the current phase,
-the skip ends with the phase: rules of later phases MUST run normally (ADR-0016).
+carrying `skipAfter:LABEL` matches, evaluation jumps to the first `SecMarker LABEL` that
+follows it in configuration order, and resumes with the rule after it. A rule whose id
+equals `LABEL` MUST NOT end the skip (ADR-0028). A `SecMarker` is a phase-less placeholder:
+it never evaluates anything and exists in every phase. If the marker is not found before
+the end of the current phase, the skip ends with the phase: rules of later phases MUST run
+normally (ADR-0016).
 `skipAfter` and `skip` MUST NOT appear on chain members.
 
 **Divergence notes.** ModSecurity v2 (`apache2/re.c`, `skip_after` is local to the
@@ -160,19 +161,19 @@ when a marker of that name is evaluated. Because markers are phase-less and both
 evaluate every marker in every phase, a marker placed among later-phase rules is still
 reached in the current phase and the outcome matches this section (verified for Coraza
 by `adapters/coraza`). The behaviours differ only when **no** marker of that name exists:
-v3 and Coraza then skip every remaining rule of every later phase. See ADR-0016. The
-rule-id form of the label is implemented by ModSecurity v2 only, through a placeholder
-inserted in the target rule's own phase (`apache2/apache2_config.c`), so a target in
-another phase never ends the skip; libmodsecurity v3 (`src/rules_set.cc`, markers only)
-and Coraza (`internal/corazawaf/rulegroup.go`, `SecMark_`) ignore the id form and skip
-the rest of the phase and transaction. No profile uses it; whether it stays Core is for
-an ADR to decide. Under `skip:N`, Coraza counts a `SecMarker` as a rule and does not
+v3 and Coraza then skip every remaining rule of every later phase. See ADR-0016. ModSecurity
+v2 also ends the skip at a rule whose id equals the label, through a `RULE_PH_SKIPAFTER`
+placeholder inserted in the target rule's own phase (`apache2/apache2_config.c`);
+libmodsecurity v3 (`src/rules_set.cc`, markers only) and Coraza
+(`internal/corazawaf/rulegroup.go`, `SecMark_`) do not, and ADR-0028 keeps the id form out
+of Core. Under `skip:N`, Coraza counts a `SecMarker` as a rule and does not
 count a rule removed by `ctl`; v2 and v3 do the reverse. This section does not decide
 either and no profile depends on it.
 
 **Tests.** `tests/engine/processing/skip-and-skipafter.yaml`,
 `tests/engine/processing/skipafter-later-phase.yaml`,
-`tests/engine/processing/skipafter-missing-marker.yaml`
+`tests/engine/processing/skipafter-missing-marker.yaml`,
+`tests/engine/processing/skipafter-rule-id.yaml`
 
 ### Rule exceptions
 

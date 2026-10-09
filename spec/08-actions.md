@@ -376,10 +376,10 @@ smaller than its current value.
 
 **Syntax.** `skipAfter:LABEL`
 
-**Semantics.** On match, skip to the `SecMarker LABEL` (or rule id) in the current phase
-(`03-processing-model.md#flow-control`, ADR-0016).
+**Semantics.** On match, skip to the `SecMarker LABEL` in the current phase; a rule id is
+not a label (`03-processing-model.md#flow-control`, ADR-0016, ADR-0028).
 
-**Divergence notes.** See ADR-0016.
+**Divergence notes.** See ADR-0016 and ADR-0028.
 
 **Tests.** `tests/engine/actions/skipafter.yaml`
 
