@@ -22,7 +22,9 @@ low 8 bits), every other character becomes the bytes of its UTF-8 encoding, and 
 backslash sequence is decoded. Adapters MUST NOT unescape anything after JSON parsing. Cases imported from the corpus are converted on import.
 
 **Engine** profiles load `rules`, then run each stage's `input` as a transaction. Their
-`data` fields are ordinary UTF-8 text, unlike unit-tier strings (below). When a
+`data` fields are ordinary UTF-8 text, unlike unit-tier strings (below). Header values
+in `headers` are field values as a server delivers them to the engine: without the
+optional whitespace around the value (RFC 9110), which adapters pass on verbatim. When a
 stage has a `response`, the adapter must feed it as the backend response so phases 3–5
 run. `output` asserts on rule IDs and interruption only; log wording is never asserted
 beyond `log_contains`/`no_log_contains` substrings.

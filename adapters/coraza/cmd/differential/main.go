@@ -48,11 +48,40 @@ type stageBody struct {
 	Output   outputOut   `json:"output"`
 }
 type inputOut struct {
-	Method  string            `json:"method"`
-	URI     string            `json:"uri"`
-	Headers map[string]string `json:"headers"`
-	Data    string            `json:"data,omitempty"`
+	Method     string            `json:"method"`
+	URI        string            `json:"uri"`
+	Version    string            `json:"version,omitempty"`
+	Headers    map[string]string `json:"headers"`
+	Data       string            `json:"data,omitempty"`
+	RemoteAddr string            `json:"remote_addr,omitempty"`
 }
+
+// vocab says which request dimensions the profile's rules can observe, so the generator
+// varies them only there (every other dimension stays at its default).
+type vocab struct {
+	method, path, addr, proto, cookies bool
+	argSep                             string
+}
+
+func vocabOf(rules string) vocab {
+	v := vocab{argSep: "&"}
+	v.method = strings.Contains(rules, "REQUEST_METHOD") || strings.Contains(rules, "REQUEST_LINE")
+	v.path = regexp.MustCompile(`REQUEST_URI|REQUEST_FILENAME|REQUEST_BASENAME|PATH_INFO|REQUEST_LINE`).MatchString(rules)
+	v.addr = strings.Contains(rules, "REMOTE_ADDR") || strings.Contains(rules, "@ipMatch")
+	v.proto = strings.Contains(rules, "REQUEST_PROTOCOL") || strings.Contains(rules, "REQUEST_LINE")
+	v.cookies = strings.Contains(rules, "REQUEST_COOKIES")
+	if m := regexp.MustCompile(`SecArgumentSeparator (\S)`).FindStringSubmatch(rules); m != nil {
+		v.argSep = m[1]
+	}
+	return v
+}
+
+var paths = []string{"/", "/index.php", "/a/b", "/dir/file.php", "/x%20y", "/a/./b/../c.php", "/dir/file.php/extra",
+	"/%2e%2e/etc/passwd", "/a%2fb", "/x;y", "/index.php;jsessionid=1", "/a//b", "/UPPER/Case.PHP", "/\u00fc", "/a%00b", "/.hidden/", "/a/"}
+var methods = []string{"GET", "GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH", "TRACE", "WEIRD"}
+var addrs = []string{"127.0.0.1", "10.1.2.3", "192.168.0.1", "203.0.113.9", "::1", "2001:db8::1", "10.255.255.255", "11.0.0.1", "0.0.0.0"}
+var versions = []string{"HTTP/1.1", "HTTP/1.1", "HTTP/1.0", "HTTP/2"}
+
 type responseOut struct {
 	Status  int               `json:"status"`
 	Headers map[string]string `json:"headers"`
@@ -213,7 +242,7 @@ func main() {
 			if wantsBody && r.Intn(3) > 0 {
 				kind = pick(r, kinds)
 			}
-			in := genInput(r, args, headers, cookies, values, kind, reNumericOp.MatchString(p.Rules), filesOnly)
+			in := genInput(r, args, headers, cookies, values, kind, reNumericOp.MatchString(p.Rules), filesOnly, vocabOf(p.Rules))
 			if avoid[len(in.Data)] {
 				in.Data += " "
 			}
@@ -224,7 +253,7 @@ func main() {
 					resp.Data += " "
 				}
 			}
-			stage := adapter.Stage{Input: adapter.Input{Method: in.Method, URI: in.URI, Headers: in.Headers, Data: in.Data},
+			stage := adapter.Stage{Input: adapter.Input{Method: in.Method, URI: in.URI, Version: in.Version, Headers: in.Headers, Data: in.Data, RemoteAddr: in.RemoteAddr},
 				Response: &adapter.Response{Status: resp.Status, Headers: resp.Headers, Data: resp.Data}}
 			obs := adapter.RunStage(waf, log, stage)
 			if obs.Panic != "" {
@@ -292,8 +321,17 @@ func genResponse(r *rand.Rand, values []string, inspected []string) responseOut 
 
 func pickInt(r *rand.Rand, xs []int) int { return xs[r.Intn(len(xs))] }
 
-func genInput(r *rand.Rand, args, headers, cookies, values []string, kind string, numeric bool, filesOnly bool) inputOut {
+func genInput(r *rand.Rand, args, headers, cookies, values []string, kind string, numeric bool, filesOnly bool, vb vocab) inputOut {
 	in := inputOut{Method: "GET", Headers: map[string]string{}}
+	if vb.method {
+		in.Method = pick(r, methods)
+	}
+	if vb.addr {
+		in.RemoteAddr = pick(r, addrs)
+	}
+	if vb.proto {
+		in.Version = pick(r, versions)
+	}
 	value := func() string {
 		for {
 			v := mutate(r, pick(r, values))
@@ -304,21 +342,60 @@ func genInput(r *rand.Rand, args, headers, cookies, values []string, kind string
 	}
 	var q []string
 	for i := r.Intn(4); i > 0; i-- {
-		q = append(q, url.QueryEscape(pick(r, args))+"="+url.QueryEscape(value()))
+		name, val := url.QueryEscape(pick(r, args)), value()
+		switch r.Intn(10) {
+		case 0:
+			q = append(q, name) // no `=`
+		case 1:
+			q = append(q, "="+url.QueryEscape(val)) // empty name
+		case 2:
+			q = append(q, name+"="+url.QueryEscape(val)+"=x") // `=` inside the value
+		case 3:
+			q = append(q, name+"="+strings.ReplaceAll(url.QueryEscape(val), "+", "%20"))
+		case 4:
+			q = append(q, name+"="+url.QueryEscape(url.QueryEscape(val))) // double-encoded
+		default:
+			q = append(q, name+"="+url.QueryEscape(val))
+		}
 	}
 	path := "/"
-	if r.Intn(3) == 0 {
+	if vb.path {
+		path = pick(r, paths)
+	} else if r.Intn(3) == 0 {
 		path = "/" + pick(r, []string{"index.php", "a/b", "dir/file.php", "x%20y", ".."})
 	}
 	in.URI = path
 	if len(q) > 0 {
-		in.URI += "?" + strings.Join(q, "&")
+		in.URI += "?" + strings.Join(q, vb.argSep)
 	}
 	for i := r.Intn(3); i > 0; i-- {
-		in.Headers[pick(r, headers)] = value()
+		// a server strips the optional whitespace around a field value before the engine sees it
+		// (tests/README.md), so header values never carry surrounding spaces here
+		v := strings.TrimSpace(value())
+		switch r.Intn(6) {
+		case 0:
+			v = v + ", " + strings.TrimSpace(value())
+		case 1:
+			v = ""
+		}
+		in.Headers[pick(r, headers)] = v
 	}
-	if len(cookies) > 0 && r.Intn(2) == 0 {
-		in.Headers["Cookie"] = pick(r, cookies) + "=" + value()
+	if (len(cookies) > 0 || vb.cookies) && r.Intn(3) > 0 {
+		names := append(cookies, "sid", "a")
+		var cs []string
+		for i := 1 + r.Intn(3); i > 0; i-- {
+			name, val := pick(r, names), value()
+			switch r.Intn(6) {
+			case 0:
+				val = "\"" + val + "\""
+			case 1:
+				val = ""
+			case 2:
+				val = val + "=" + val
+			}
+			cs = append(cs, name+"="+val)
+		}
+		in.Headers["Cookie"] = strings.Join(cs, "; ")
 	}
 	switch kind {
 	case "urlencoded":

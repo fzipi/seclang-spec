@@ -60,8 +60,9 @@ def phase4_gap(rules: str, stage: dict) -> bool:
 
 def stage_of(d: dict) -> data.Stage:
     i = d["input"]
-    inp = data.Input(method=i.get("method", "GET"), uri=i.get("uri", "/"), headers=dict(i.get("headers") or {}),
-                     data=i.get("data", "") or "", remote_addr=i.get("remote_addr", "127.0.0.1"))
+    inp = data.Input(method=i.get("method", "GET"), uri=i.get("uri", "/"), version=i.get("version") or "HTTP/1.1",
+                     headers=dict(i.get("headers") or {}), data=i.get("data", "") or "",
+                     remote_addr=i.get("remote_addr") or "127.0.0.1")
     r = d.get("response")
     resp = data.Response(status=r.get("status", 200), headers=dict(r.get("headers") or {}), data=r.get("data", "")) if r else None
     return data.Stage(inp, resp, data.Output())
