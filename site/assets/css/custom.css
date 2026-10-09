@@ -4,3 +4,14 @@
 .hextra-card > [class~="hx:mt-auto"] {
   margin-top: 0;
 }
+
+/* Engine matrix (compat/matrix): rows where the engines differ are tinted amber, rows no
+   engine supports rose; the engine cells themselves are coloured. The tints are
+   translucent so they read on both the light and the dark theme. Classes come from
+   layouts/_markup/render-table.html. */
+tr.compat-partial { background: rgba(245, 158, 11, 0.14); }
+tr.compat-none { background: rgba(244, 63, 94, 0.10); }
+td.compat-yes { color: #15803d; font-weight: 500; }
+td.compat-no { color: #e11d48; font-weight: 500; }
+:root.dark td.compat-yes, .dark td.compat-yes { color: #4ade80; }
+:root.dark td.compat-no, .dark td.compat-no { color: #fb7185; }

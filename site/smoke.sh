@@ -17,6 +17,8 @@ check dir-ref      sh -c "grep -rhoE 'href=\"?https://github.com/fzipi/seclang-s
 check template     test ! -e "$P/adr/0000-template"
 check coraza-adr   sh -c "grep -q 'corazawaf/coraza/tree/main/docs/adr' '$P/adr/0008-collection-key-case/index.html' && ! grep -oE '<p>.*</p>' '$P/adr/0008-collection-key-case/index.html' | grep -q '/adr/0015-mandatory-rule-id/'"
 check gaps-table   grep -q '<th>Behaviour today</th>' "$P/compat/known-gaps/index.html"
+check matrix-rows  sh -c "grep -q 'class=compat-partial' '$P/compat/matrix/index.html' && grep -q 'class=compat-no' '$P/compat/matrix/index.html' && ! grep -q 'compat-partial' '$P/compat/known-gaps/index.html'"
+check matrix-css   sh -c "grep -q 'compat-partial{background' \"$P\"/css/compiled/*.css"
 check no-md-links  sh -c "! (grep -rhoE 'href=\"?[^\" >]*\.md([#\" >]|$)' '$P/spec' '$P/adr' '$P/compat' | grep -v 'https://github.com/' | grep -q .)"
 check adr-table    sh -c "grep -oE '<td[^>]*><a href=\"?[^\" >]*' '$P/adr/index.html' | grep -q '/adr/0023-reference-adapters/'"
 check formal       test -f "$P/formal/index.html" -a -f "$P/formal/results/index.html"

@@ -1,0 +1,57 @@
+{{- /* Default table rendering plus, for the engine matrix (header v2 | v3 | coraza), a class
+       on rows whose engine cells differ (`compat-partial`) or that no engine supports
+       (`compat-none`), and on each engine cell (`compat-yes` / `compat-no`); styled by
+       assets/css/custom.css. Any other table renders unchanged. */ -}}
+{{- $engines := false -}}
+{{- range .THead -}}
+  {{- if ge (len .) 4 -}}
+    {{- if and (eq (trim (string (index . 1).Text) " ") "v2") (eq (trim (string (index . 3).Text) " ") "coraza") -}}
+      {{- $engines = true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+<table
+  {{- range $k, $v := .Attributes }}
+    {{- if $v }}
+      {{- printf " %s=%q" $k $v | safeHTMLAttr }}
+    {{- end }}
+  {{- end }}>
+  <thead>
+    {{- range .THead }}
+      <tr>
+        {{- range . }}
+          <th {{- with .Alignment }} style="text-align: {{ . }}" {{- end }}>
+            {{- .Text -}}
+          </th>
+        {{- end }}
+      </tr>
+    {{- end }}
+  </thead>
+  <tbody>
+    {{- range .TBody }}
+      {{- $class := "" -}}
+      {{- if and $engines (ge (len .) 4) -}}
+        {{- $a := trim (string (index . 1).Text) " " -}}
+        {{- $b := trim (string (index . 2).Text) " " -}}
+        {{- $c := trim (string (index . 3).Text) " " -}}
+        {{- if and (eq $a "-") (eq $b "-") (eq $c "-") -}}
+          {{- $class = "compat-none" -}}
+        {{- else if or (ne $a $b) (ne $b $c) -}}
+          {{- $class = "compat-partial" -}}
+        {{- end -}}
+      {{- end -}}
+      <tr{{ with $class }} class="{{ . }}"{{ end }}>
+        {{- range $i, $cell := . }}
+          {{- $cc := "" -}}
+          {{- if and $engines (ge $i 1) (le $i 3) -}}
+            {{- $t := trim (string $cell.Text) " " -}}
+            {{- if eq $t "yes" }}{{ $cc = "compat-yes" }}{{ else if eq $t "-" }}{{ $cc = "compat-no" }}{{ end -}}
+          {{- end -}}
+          <td{{ with $cc }} class="{{ . }}"{{ end }} {{- with $cell.Alignment }} style="text-align: {{ . }}" {{- end }}>
+            {{- $cell.Text -}}
+          </td>
+        {{- end }}
+      </tr>
+    {{- end }}
+  </tbody>
+</table>
