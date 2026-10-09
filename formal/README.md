@@ -41,6 +41,12 @@ directive table of `spec/04-directives.md`, with the vocabulary of chapters 05â€
 A profile whose stages assert `expect_error` must be rejected, every other profile must be
 accepted; the runner prints the rule a rejected profile violates.
 
+`seclang-eval` also consumes the differential run: `adapters/coraza/cmd/differential`
+drives Coraza with seeded random requests against every Core profile's ruleset and records
+what the engine did in the same JSON shape, so the model is checked against the engine on
+inputs no profile anticipated (CI: seed 1, 30 requests per profile; see
+`adapters/coraza/README.md`).
+
 The same runner is the CRS acceptance run: `tools/crs_rules.py` packages an OWASP CRS
 checkout (`crs-setup.conf.example`, every `rules/*.conf`, the `.data` files, and all of them
 concatenated as `ALL`) and every profile must be accepted. CI runs it against CRS v4.25.2;

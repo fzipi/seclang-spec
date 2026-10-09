@@ -50,6 +50,26 @@ the operators and transformations listed in `conformance_test.go`, and the
   Engine-tier `data` is UTF-8 text and is sent as such; unit-tier strings are Latin-1 byte
   strings and are sent byte for byte.
 
+## Differential run against the Lean model
+
+`cmd/differential` drives Coraza with seeded random requests against every Core profile's
+ruleset and writes what the engine did, in the JSON shape `formal/EvalMain.lean` reads, so
+the Lean model can be checked on inputs no hand-written profile anticipated:
+
+```sh
+cd adapters/coraza && go run ./cmd/differential -n 30 -seed 1 > ../../formal/.lake/differential.json
+cd ../../formal && lake exe seclang-eval .lake/differential.json      # exit 1 on any mismatch
+```
+
+Profiles with `requires:`, with a Coraza row in `compat/known-gaps.md`, or with
+`expect_error` or log assertions are skipped, and the generator never produces a value the
+specification leaves unspecified for the profile's operators (digits followed by text for
+the numeric operators, a body of exactly `SecRequestBodyLimit` bytes). A mismatch is
+classified like any adapter disagreement: a spec or model defect is fixed, an engine
+divergence gets a Core profile and a known-gaps row (which then excludes the profile from
+the run). CI runs seed 1 with 30 requests per profile; the first run found ADR-0030, the
+`REQBODY_PROCESSOR` clarification and the body-limit boundary gap.
+
 ## Adding another engine
 
 Copy the shape: load the data (`profile.go` is engine-neutral), drive the engine, map

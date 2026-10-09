@@ -86,3 +86,10 @@ jobs:
       - run: lake exe seclang-parse .lake/crs.json
         working-directory: formal
       - run: uv run python tools/formal_results.py --crs crs --check
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - run: go run ./cmd/differential -n 30 -seed 1 > ../../formal/.lake/differential.json
+        working-directory: adapters/coraza
+      - run: lake exe seclang-eval .lake/differential.json
+        working-directory: formal
