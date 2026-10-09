@@ -52,6 +52,7 @@ hugo -s site --gc --minify --cleanDestinationDir && site/smoke.sh               
 uv run python tools/engine_rules.py > formal/.lake/engine-rules.json && (cd formal && lake exe seclang-parse .lake/engine-rules.json && lake exe seclang-eval .lake/engine-rules.json)   # when formal/, spec/01-09 or tests/engine changed
 uv run python tools/formal_results.py --crs /path/to/coreruleset   # same: regenerates formal/RESULTS.md (CRS v4.25.2 checkout); CI fails when it is stale
 (cd adapters/coraza && go run ./cmd/differential -n 30 -seed 1 > ../../formal/.lake/differential.json) && (cd formal && lake exe seclang-eval .lake/differential.json)   # model vs Coraza on generated requests
+MODSECURITY_LIB=… uv run python adapters/libmodsecurity/differential.py formal/.lake/differential.json --out formal/.lake/v3.json && (cd formal && lake exe seclang-eval .lake/v3.json)   # same requests through v3; engines compared too
 ```
 
 CI runs the first four and the Lean check on every push and pull request and builds the

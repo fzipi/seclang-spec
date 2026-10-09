@@ -33,6 +33,22 @@ On macOS with Homebrew add `--with-pcre2=/opt/homebrew/opt/pcre2
 --with-libxml=/opt/homebrew/opt/libxml2 --with-yajl=/opt/homebrew/opt/yajl` and point
 `MODSECURITY_LIB` at `lib/libmodsecurity.dylib`.
 
+## Differential run
+
+`differential.py` replays the requests `adapters/coraza/cmd/differential` generated (with
+what Coraza did) through libmodsecurity, writes what libmodsecurity did in the same JSON
+shape for `seclang-eval`, and prints every request on which the two engines disagree:
+
+```sh
+MODSECURITY_LIB=… uv run python adapters/libmodsecurity/differential.py formal/.lake/differential.json --out formal/.lake/v3.json
+cd formal && lake exe seclang-eval .lake/v3.json
+```
+
+Profiles with a libmodsecurity row in `compat/known-gaps.md` are skipped. An engine
+disagreement means at least one engine diverges from the specification on that request;
+`seclang-eval` on the two files says which, and the divergence then gets a Core profile and
+a known-gaps row like any other. CI runs it after the Lean job on the same generated file.
+
 ## How results are gated
 
 `compat/known-gaps.md` is the expected-failure list; rows whose Engine cell names
