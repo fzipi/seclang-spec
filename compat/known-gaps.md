@@ -12,6 +12,7 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 
 | Test | Engine | Behaviour today | Decided in |
 |---|---|---|---|
+| `tests/engine/directives/secrequestbodyjsondepthlimit.yaml` | ModSecurity v2 | top-level object not counted toward `SecRequestBodyJsonDepthLimit`; limit 2 accepts depth 3 | `04-directives.md#secrequestbodyjsondepthlimit` |
 | `tests/engine/lexical/case-insensitive-names.yaml` | Coraza | operator names matched case-sensitively | ADR-0002 |
 | `tests/engine/lexical/comment-with-trailing-backslash.yaml` | Coraza | continued comment parsed as a directive | ADR-0013 |
 | `tests/engine/grammar/directive-line-whitespace.yaml` | Coraza | tab between arguments is a load error | `02-grammar.md#directive-line` |

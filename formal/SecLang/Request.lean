@@ -54,8 +54,10 @@ structure Settings where
 /-- A body against its limit (`04#secrequestbodylimitaction`, `04#secresponsebodylimitaction`):
 the body to process, whether the `*_DATA_ERROR` flag is set, and the status of a `Reject`
 interruption (413 request, 500 response: the v2 and Coraza values; the spec leaves it open).
-`enforce` is false in `DetectionOnly`, where `Reject` neither interrupts nor truncates
-(v2 `apache2/mod_security2.c`, the `is_enabled != MODSEC_DETECTION_ONLY` test). -/
+`enforce` is false in `DetectionOnly`, where `Reject` neither interrupts nor truncates but
+still sets the flag (v2 `apache2/mod_security2.c`, the `is_enabled != MODSEC_DETECTION_ONLY`
+test and the `inbound_error = 1` branch; Coraza `internal/corazawaf/transaction.go` sets
+`inboundDataError` before choosing the action). -/
 def applyLimit (limit : Option Nat) (action : LimitAction) (enforce : Bool) (status : Nat) (body : String) :
     String × Bool × Option Nat :=
   match limit with
@@ -63,7 +65,7 @@ def applyLimit (limit : Option Nat) (action : LimitAction) (enforce : Bool) (sta
   | some n =>
     let bytes := text body
     if bytes.size ≤ n then (body, false, none)
-    else if action == .reject then (body, false, if enforce then some status else none)
+    else if action == .reject then (body, !enforce, if enforce then some status else none)
     else
       let cut := bytes.extract 0 n
       (if h : cut.IsValidUTF8 then String.fromUTF8 cut h else String.ofList (body.toList.take n), true, none)
@@ -334,7 +336,7 @@ def mpBody : String := "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r
 -- body limits (`04#secrequestbodylimitaction`, `04#secresponsebodylimitaction`)
 #guard applyLimit (some 10) .reject true 413 "p=1&filler=0123456789" == ("p=1&filler=0123456789", false, some 413)
 #guard applyLimit (some 10) .processPartial true 413 "p=1&filler=0123456789" == ("p=1&filler", true, none)
-#guard applyLimit (some 10) .reject false 413 "p=1&filler=0123456789" == ("p=1&filler=0123456789", false, none)
+#guard applyLimit (some 10) .reject false 413 "p=1&filler=0123456789" == ("p=1&filler=0123456789", true, none)   -- DetectionOnly: flag set, whole body
 #guard applyLimit (some 10) .reject true 413 "0123456789" == ("0123456789", false, none)
 #guard applyLimit (some 5) .processPartial true 500 "0123456789" == ("01234", true, none)
 #guard applyLimit none .reject true 413 "0123456789" == ("0123456789", false, none)

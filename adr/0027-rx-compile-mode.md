@@ -17,7 +17,8 @@ Each engine compiles the `@rx` pattern with options the rule author never writes
   boundary.
 - Coraza v3.8.1 (`internal/operators/rx.go`, `newRX`): the pattern is prefixed with
   `(?sm)` by default (`internal/operators/multilineregex_default.go`); the
-  `coraza.rule.multiline_regexes_disabled` build tag makes it `(?s)`.
+  `coraza.rule.no_regex_multiline` build tag (`internal/operators/multilineregex.go`)
+  makes it `(?s)`.
 
 Dot-all is shared. Multiline is not: against a value that contains a newline, `^b` on
 `a\nb` fails in v2 and matches in v3 and in a default Coraza build. OWASP CRS writes
@@ -47,7 +48,7 @@ is outside the Core syntax. Normative text: `spec/06-operators.md#rx`.
 ## Consequences
 
 - For ModSecurity: none.
-- For Coraza: none; a build with the multiline tag disabled stays conforming.
+- For Coraza: none; a build with `coraza.rule.no_regex_multiline` stays conforming.
 - For rule authors: write `(?m)` for line anchors; never write a pattern whose result
   depends on `$` matching before a trailing newline.
 - For this repository: `formal/SecLang/Regex.lean` compiles patterns with `dotAll` and

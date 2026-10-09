@@ -402,7 +402,10 @@ unset in libmodsecurity v3. Unspecified.
 interrupted with a `deny` before phase 2 rules run; the interruption carries no rule id
 (adapters report `rule_id: 0`). `ProcessPartial`: the first `SecRequestBodyLimit` bytes
 are buffered and processed, the rest is discarded, `INBOUND_DATA_ERROR` is set to `1`,
-and phase 2 rules run normally. In `DetectionOnly`, `Reject` MUST NOT interrupt.
+and phase 2 rules run normally. In `DetectionOnly`, `Reject` MUST NOT interrupt; the engines
+then process the whole body and still set `INBOUND_DATA_ERROR` to `1` (ModSecurity v2
+`apache2/mod_security2.c`, the `inbound_error = 1` branch for `DetectionOnly`; Coraza v3.8.1
+`internal/corazawaf/transaction.go`, which sets the flag before choosing the action).
 
 **Divergence notes.** Status code for `Reject` differs (see `#secrequestbodylimit`).
 
@@ -466,7 +469,13 @@ libmodsecurity v3 (`json.cc`, `json_depth_limit_default`); 1024 in Coraza (`waf.
 **Semantics.** The maximum nesting depth of a JSON request body processed by the `JSON`
 body processor. A body nested deeper MUST be treated as a body processing error:
 `REQBODY_ERROR` is set to `1` and `REQBODY_ERROR_MSG` describes the failure; rules then
-decide what to do, as OWASP CRS rule 200002 does.
+decide what to do, as OWASP CRS rule 200002 does. Depth counts every object or array
+entered, the top-level one included: `{"a":{"b":1}}` has depth 2.
+
+**Divergence notes.** ModSecurity v2 does not count a top-level object
+(`apache2/msc_json.c`, `yajl_start_map` returns before `current_depth++` when there is no
+current key), so with a limit of 2 it accepts `{"a":{"b":{"c":1}}}`; a top-level array is
+counted. libmodsecurity v3 and Coraza count the root. See `compat/known-gaps.md`.
 
 **Divergence notes.** Defaults differ as listed.
 
