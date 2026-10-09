@@ -67,7 +67,7 @@ def settingsOf (cfg : Config) : Settings × Mode :=
     | _ => (s, m)) ({}, .off)
 
 def unsupportedVariables : List String :=
-  ["XML", "REQBODY_ERROR", "REQBODY_ERROR_MSG", "IP", "GLOBAL", "SESSION", "USER", "RESOURCE"]
+  ["XML", "IP", "GLOBAL", "SESSION", "USER", "RESOURCE"]
 
 /-- The first feature outside the model that a profile needs, if any. -/
 def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
@@ -87,10 +87,10 @@ def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
   else if let some re := regexes.find? (fun re => match Regex.compile re with | .error _ => true | .ok _ => false) then some s!"regex outside the Core subset: {re}"
   else if let some v := vars.find? unsupportedVariables.contains then some s!"variable {v}"
   else if let some a := acts.find? (fun a => ["initcol", "expirevar", "setsid", "setuid", "setrsc"].contains a.name) then some s!"action {a.name}"
-  else if acts.any (fun a => a.name == "ctl" && (a.value.getD "").startsWith "requestBodyProcessor=" && !(a.value.getD "").toLower.endsWith "urlencoded") then some "body processor selected by ctl"
+  else if acts.any (fun a => a.name == "ctl" && (a.value.getD "").toLower.startsWith "requestbodyprocessor=xml") then some "body processor XML"
   else if stages.any (fun s => (s.output.getObjVal? "log_contains").toOption.isSome || (s.output.getObjVal? "no_log_contains").toOption.isSome) then some "log assertions"
   else if stages.any (fun s => s.input.body.isSome && (headerValue s.input.headers "Content-Type").any fun ct =>
-            let c := ct.toLower; c.startsWith "application/json" || c.endsWith "xml") then some "body processor"
+            ct.toLower.endsWith "xml") then some "body processor XML"
   else none
 
 def natList (j : Json) (k : String) : List Nat :=

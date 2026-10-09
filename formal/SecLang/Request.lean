@@ -1,5 +1,7 @@
+import Lean.Data.Json
 import SecLang.Syntax
 import SecLang.Transformations
+open Lean (Json)
 /-! The variable store of one transaction, populated from the request and response per
 `spec/05-variables.md` and `spec/09-body-processors.md` (URL-encoded and multipart bodies). -/
 namespace SecLang
@@ -200,6 +202,34 @@ def parseMultipart (boundary : String) (body : String) : List Part × Bool :=
         | _ => go rest 3 hdrs content parts (bad || !l.isEmpty)
   go (splitLines body) 0 [] [] [] false
 
+/-- JSON leaves as `(name, value)` with ModSecurity v2's names (`apache2/msc_json.c`): the key
+path joined by `.`, array elements under the containing key (`array` at the top level);
+`null` is the empty string. The names are not specified (ADR-0020, `09#json`); members come
+in key order, not document order. -/
+partial def jsonLeaves (j : Json) (prefix_ : String := "") : List (String × String) :=
+  match j with
+  | .obj kvs => kvs.toList.flatMap fun (k, v) => jsonLeaves v (if prefix_.isEmpty then k else prefix_ ++ "." ++ k)
+  | .arr xs => xs.toList.flatMap fun v => jsonLeaves v (if prefix_.isEmpty then "array" else prefix_)
+  | .num n => [(prefix_, toString n)]
+  | .str s => [(prefix_, s)]
+  | .bool b => [(prefix_, toString b)]
+  | .null => [(prefix_, "")]
+
+/-- Container nesting depth (`04#secrequestbodyjsondepthlimit`): v2 counts each object or
+array entered, so `{"a":{"b":1}}` is 2. -/
+partial def jsonDepth : Json → Nat
+  | .obj kvs => 1 + (kvs.toList.map fun (_, v) => jsonDepth v).foldl max 0
+  | .arr xs => 1 + (xs.toList.map jsonDepth).foldl max 0
+  | _ => 0
+
+/-- `09#json`: the members, or the `REQBODY_ERROR_MSG` text. -/
+def parseJsonBody (depthLimit : Nat) (body : String) : Except String (List Member) :=
+  match Json.parse body with
+  | .error e => .error s!"JSON parsing error: {e}"
+  | .ok j =>
+    if jsonDepth j > depthLimit then .error s!"JSON depth limit ({depthLimit}) exceeded"
+    else .ok ((jsonLeaves j).map fun (k, v) => Member.mk (latin k) (text v))
+
 /-- Phase 2 additions when the body is read (`09#urlencoded`, `05#request_body`, ADR-0022):
 `access` and `processor` come from the settings as overridden by phase 1 `ctl`s. -/
 def phase2Store (st : Settings) (r : Request) (access : Bool) (processor : Option String) (force : Bool) (store : Store) : Store :=
@@ -214,7 +244,11 @@ def phase2Store (st : Settings) (r : Request) (access : Bool) (processor : Optio
     let (parts, bad) := if proc != "MULTIPART" then ([], false) else
       match ct.bind (headerParam · "boundary") with | some b => parseMultipart b body | none => ([], true)
     let fileParts := parts.filter (·.filename.isSome)
+    -- JSON (`09#json`): leaves become arguments; a malformed or too deep document is a body error
+    let (jsonMembers, bodyError) : List Member × Option String := if proc != "JSON" then ([], none) else
+      match parseJsonBody st.jsonDepthLimit body with | .ok ms => (ms, none) | .error e => ([], some e)
     let post := if proc == "URLENCODED" then parseArgs st.argSep none body
+                else if proc == "JSON" then jsonMembers
                 else (parts.filter (·.filename.isNone)).map fun p => Member.mk (latin p.name) p.content
     let all := limitArgs st.argsLimit (get ++ post)
     let post := all.drop get.length
@@ -225,6 +259,8 @@ def phase2Store (st : Settings) (r : Request) (access : Bool) (processor : Optio
       |>.set "ARGS_COMBINED_SIZE" (natText (combinedSize all))
       |>.set "REQUEST_BODY" reqBody |>.set "REQUEST_BODY_LENGTH" (natText (text body).size)
       |>.set "REQBODY_PROCESSOR" (scalar (text proc))
+      |>.set "REQBODY_ERROR" (natText (if bodyError.isSome then 1 else 0))
+      |>.set "REQBODY_ERROR_MSG" (scalar (text (bodyError.getD "")))
     if proc != "MULTIPART" then store else
     store |>.set "FILES" files |>.set "FILES_NAMES" (namesOf files)
       |>.set "FILES_COMBINED_SIZE" (natText (fileParts.foldl (fun n p => n + p.content.size) 0))
@@ -302,5 +338,19 @@ def mpBody : String := "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r
 #guard applyLimit (some 10) .reject true 413 "0123456789" == ("0123456789", false, none)
 #guard applyLimit (some 5) .processPartial true 500 "0123456789" == ("01234", true, none)
 #guard applyLimit none .reject true 413 "0123456789" == ("0123456789", false, none)
+
+-- JSON (`09#json`): v2 key-path names, depth counted per container
+#guard jsonLeaves (Json.parse "{\"a\":1,\"b\":{\"c\":\"x\"},\"d\":[1,2]}").toOption.get! == [("a", "1"), ("b.c", "x"), ("d", "1"), ("d", "2")]
+#guard jsonLeaves (Json.parse "[true,null]").toOption.get! == [("array", "true"), ("array", "")]
+#guard jsonDepth (Json.parse "{\"a\":{\"b\":{\"c\":1}}}").toOption.get! == 3
+#guard jsonDepth (Json.parse "[1,[2]]").toOption.get! == 2
+#guard (let s := phase2Store { requestBodyAccess := true } { method := "POST", uri := "/", headers := [("Content-Type", "application/json")], body := some "{\"a\":" } true (some "JSON") false (phase1Store {} { uri := "/" })
+        ((s.get "REQBODY_ERROR").map (ofBytes ·.value), (s.get "REQBODY_ERROR_MSG").any (·.value.size > 0), (s.get "ARGS_POST").length, (s.get "REQBODY_PROCESSOR").map (ofBytes ·.value))) == (["1"], true, 0, ["JSON"])
+#guard (let s := phase2Store { requestBodyAccess := true, jsonDepthLimit := 2 } { method := "POST", uri := "/", headers := [], body := some "[1,[2,[3]]]" } true (some "JSON") false (phase1Store {} { uri := "/" })
+        ((s.get "REQBODY_ERROR").map (ofBytes ·.value), (s.get "ARGS_POST").length)) == (["1"], 0)
+#guard (let s := phase2Store { requestBodyAccess := true, jsonDepthLimit := 2 } { method := "POST", uri := "/", headers := [], body := some "[1,[2]]" } true (some "JSON") false (phase1Store {} { uri := "/" })
+        ((s.get "REQBODY_ERROR").map (ofBytes ·.value), (s.get "ARGS_POST").map (fun m => (m.key, ofBytes m.value)))) == (["0"], [("array", "1"), ("array", "2")])
+#guard (let s := phase2Store { requestBodyAccess := true } { uri := "/", headers := [("Content-Type", "application/x-www-form-urlencoded")], body := some "p=1" } true none false (phase1Store {} { uri := "/" })
+        ((s.get "REQBODY_ERROR").map (ofBytes ·.value), (s.get "REQBODY_ERROR_MSG").map (ofBytes ·.value))) == (["0"], [""])
 
 end SecLang
