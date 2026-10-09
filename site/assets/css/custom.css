@@ -1,0 +1,6 @@
+/* Hextra wraps a card's title and subtitle in a margin-top:auto block meant for image cards;
+   without an image that pushes short text to the bottom, so cards with less text looked
+   misaligned on the home page. Keep every card's content at the top. */
+.hextra-card > [class~="hx:mt-auto"] {
+  margin-top: 0;
+}
