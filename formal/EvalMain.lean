@@ -67,7 +67,7 @@ def settingsOf (cfg : Config) : Settings × Mode :=
     | _ => (s, m)) ({}, .off)
 
 def unsupportedVariables : List String :=
-  ["XML", "IP", "GLOBAL", "SESSION", "USER", "RESOURCE"]
+  ["XML"]
 
 /-- The first feature outside the model that a profile needs, if any. -/
 def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
@@ -86,7 +86,7 @@ def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
   if let some op := ops.find? (fun n => !implemented.contains n) then some s!"operator @{op}"
   else if let some re := regexes.find? (fun re => match Regex.compile re with | .error _ => true | .ok _ => false) then some s!"regex outside the Core subset: {re}"
   else if let some v := vars.find? unsupportedVariables.contains then some s!"variable {v}"
-  else if let some a := acts.find? (fun a => ["initcol", "expirevar", "setsid", "setuid", "setrsc"].contains a.name) then some s!"action {a.name}"
+  else if let some a := acts.find? (fun a => ["setsid", "setuid", "setrsc"].contains a.name) then some s!"action {a.name}"
   else if acts.any (fun a => a.name == "ctl" && (a.value.getD "").toLower.startsWith "requestbodyprocessor=xml") then some "body processor XML"
   else if stages.any (fun s => (s.output.getObjVal? "log_contains").toOption.isSome || (s.output.getObjVal? "no_log_contains").toOption.isSome) then some "log assertions"
   else if stages.any (fun s => s.input.body.isSome && (headerValue s.input.headers "Content-Type").any fun ct =>

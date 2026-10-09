@@ -59,8 +59,9 @@ ends (ADR-0027).
 Every stage of every profile the abstract transaction can carry is run and its
 `triggered_rules`, `non_triggered_rules`, `interruption` and `no_interruption` checked. A
 profile is reported `unsupported (<reason>)` when it needs the XML body processor,
-persistent collections, `@detectSQLi`/`@detectXSS` or log assertions; that list is the
-model's boundary, not a known gap.
+`setsid`/`setuid`/`setrsc`, `@detectSQLi`/`@detectXSS` or log assertions; that list is the
+model's boundary, not a known gap. Persistent collections exist within one transaction only
+(`initcol` creates them, `setvar` writes them, nothing survives the transaction).
 
 ## What a mismatch means
 

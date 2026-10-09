@@ -145,6 +145,9 @@ structure Tx where
   matchedVar : ByteArray := .empty
   matchedVarName : String := ""
   matchedVars : List Member := []
+  /-- Persistent collections initialised by `initcol` in this transaction (`IP`, `GLOBAL`, …),
+  by upper-case name. Persistence across transactions and expiry are not modelled. -/
+  colls : List (String × List Member) := []
 
 def keyEq (a b : String) : Bool := a.toLower == b.toLower
 
@@ -155,7 +158,7 @@ def collection (tx : Tx) (name : String) : List Member :=
   | "MATCHED_VAR" => scalar tx.matchedVar
   | "MATCHED_VAR_NAME" => scalar (bytesOf tx.matchedVarName)
   | "MATCHED_VARS" => tx.matchedVars
-  | _ => tx.store.get name
+  | _ => match tx.colls.lookup name with | some ms => ms | none => tx.store.get name
 
 def fullName (coll : String) (m : Member) : String := if m.key.isEmpty then coll else s!"{coll}:{m.key}"
 
@@ -215,27 +218,38 @@ def setCaptures (tx : Tx) (caps : Array (Option ByteArray)) : Tx :=
   let new := (List.range (min caps.size 10)).filterMap fun i => (caps[i]!).map fun v => Member.mk (toString i) v
   { tx with tx := new ++ keep }
 
-/-- `setvar` (`08#setvar`) on `TX`; other collections are not modelled. -/
+/-- `setvar` (`08#setvar`) on `TX` or on a persistent collection this transaction initialised
+with `initcol` (`05#persistent-collections`); a write to a collection that was not
+initialised is ignored (v2 logs "collection does not exist"). -/
 def applySetvar (tx : Tx) (v : String) : Tx :=
   let (del, v) := if v.startsWith "!" then (true, dropFirst v) else (false, v)
   let (target, value) := match v.splitOn "=" with
     | [t] => (t, none) | t :: rest => (t, some ("=".intercalate rest)) | [] => ("", none)
   let (coll, key) := match target.splitOn "." with
-    | c :: rest => (c, ".".intercalate rest) | [] => ("", "")
-  if coll.toLower != "tx" then tx else
-  let key := latin key
-  let others := tx.tx.filter fun m => !keyEq m.key key
-  let current := ((tx.tx.find? fun m => keyEq m.key key).map (·.value)).getD .empty
-  if del then { tx with tx := others } else
-  let newVal : ByteArray := match value with
-    | none => text "1"
-    | some s =>
-      let e := expandMacros tx s
-      let es := ofBytes e
-      if es.startsWith "+" then text (toString (atoi current + atoi (text (dropFirst es))))
-      else if es.startsWith "-" then text (toString (atoi current - atoi (text (dropFirst es))))
-      else e
-  { tx with tx := others ++ [⟨key, newVal⟩] }
+    | c :: rest => (c.toUpper, ".".intercalate rest) | [] => ("", "")
+  match (if coll == "TX" then some tx.tx else tx.colls.lookup coll) with
+  | none => tx
+  | some members =>
+    let key := latin key
+    let others := members.filter fun m => !keyEq m.key key
+    let current := ((members.find? fun m => keyEq m.key key).map (·.value)).getD .empty
+    let newVal : ByteArray := match value with
+      | none => text "1"
+      | some s =>
+        let e := expandMacros tx s
+        let es := ofBytes e
+        if es.startsWith "+" then text (toString (atoi current + atoi (text (dropFirst es))))
+        else if es.startsWith "-" then text (toString (atoi current - atoi (text (dropFirst es))))
+        else e
+    let updated := if del then others else others ++ [⟨key, newVal⟩]
+    if coll == "TX" then { tx with tx := updated }
+    else { tx with colls := tx.colls.map fun (n, ms) => if n == coll then (n, updated) else (n, ms) }
+
+/-- `initcol:NAME=KEY` (`08#initcol`): the collection exists for the rest of the transaction;
+the key is expanded and discarded since nothing persists. -/
+def applyInitcol (tx : Tx) (v : String) : Tx :=
+  let name := ((v.splitOn "=").headD "").toUpper
+  if name.isEmpty || (tx.colls.lookup name).isSome then tx else { tx with colls := tx.colls ++ [(name, [])] }
 
 /-- `ctl` (`03#ctl-timing`): rule edits are immediate; `ruleEngine` applies at once to the
 interruption decision (after `Off` or `DetectionOnly` no later rule of the phase interrupts)
@@ -271,8 +285,9 @@ def applyCtl (tx : Tx) (v : String) : Tx :=
 def applyActions (tx : Tx) (as : List Action) : Tx :=
   as.foldl (fun tx a => match a.name, a.value with
     | "setvar", some v => applySetvar tx v
+    | "initcol", some v => applyInitcol tx v
     | "ctl", some v => applyCtl tx v
-    | _, _ => tx) tx
+    | _, _ => tx) tx   -- `expirevar` has no effect within one transaction
 
 /-- Exclusions a chain inherits from `ctl:ruleRemoveTarget*` for this transaction; the tag
 form is a regular expression, as for the directive (`03#rule-exceptions`). -/
@@ -534,5 +549,10 @@ def runReq (cfg : String) (req : Request) : Tx :=
 #guard (match Regex.compile "\\Afoo" with | .error _ => true | .ok _ => false)
 #guard (match Regex.compile "(a)\\1" with | .error _ => true | .ok _ => false)
 #guard (match Regex.compile "\\p{L}" with | .error _ => true | .ok _ => false)
+
+-- persistent collections within one transaction (`05#persistent-collections`, `08#initcol`, `08#setvar`)
+#guard tri (run "SecAction \"id:1,phase:1,pass,nolog,initcol:ip=%{REMOTE_ADDR},setvar:ip.hits=+1\"\nSecRule IP:hits \"@ge 1\" \"id:2,phase:1,pass\"" (demoStore [])) == [1, 2]
+#guard tri (run "SecAction \"id:1,phase:1,pass,nolog,setvar:ip.hits=+1\"\nSecRule IP:hits \"@ge 1\" \"id:2,phase:1,pass\"\nSecRule &IP:hits \"@eq 0\" \"id:3,phase:1,pass\"" (demoStore [])) == [1, 3]
+#guard tri (run "SecAction \"id:1,phase:1,pass,nolog,initcol:ip=%{REMOTE_ADDR},setvar:ip.hits=+1,setvar:ip.hits=+1,expirevar:ip.hits=60\"\nSecRule IP:hits \"@eq 2\" \"id:2,phase:1,pass\"\nSecRule &TX:hits \"@eq 0\" \"id:3,phase:1,pass\"" (demoStore [])) == [1, 2, 3]
 
 end SecLang

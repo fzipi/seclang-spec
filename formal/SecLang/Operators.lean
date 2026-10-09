@@ -12,9 +12,11 @@ structure Oracle where
   /-- The text of an auxiliary file (`@pmFromFile`, `@ipMatchFromFile`); `none` when absent. -/
   readFile : String → Option String := fun _ => none
 
-/-- Phrases or entries of a file: one per line, empty lines and `#` lines ignored (`06#pmfromfile`). -/
+/-- Phrases or entries of a file: one per line, each trimmed, empty lines and `#` lines
+ignored (`06#pmfromfile`; v2 `re_operators.c` `msre_op_pmFromFile_param_init` trims before
+the `#` check). -/
 def fileLines (s : String) : List String :=
-  ((s.replace "\r" "").splitOn "\n").filter fun l => !l.isEmpty && !l.startsWith "#"
+  (((s.replace "\r" "").splitOn "\n").map trimBlanks).filter fun l => !l.isEmpty && !l.startsWith "#"
 
 /-- The lines of every file a space-separated parameter names. -/
 def fileLinesOf (o : Oracle) (param : ByteArray) : List String :=
@@ -165,7 +167,9 @@ def ssnValid (s : ByteArray) : Bool :=
 /-- `verify*` scan (v2): the pattern is compiled dot-all and multiline (v2 `re_operators.c`
 `msre_op_verifyCC_init`, v3 `VerifyCC::init`); matches are searched from offset 0 upward with
 anchors relative to the whole value, the whole match checked by `ok`; after a failing match the
-search resumes one past its start. An empty match does not count (PCRE `NOTEMPTY`). -/
+search resumes one past its start. An empty match is skipped and the search resumes, as in
+libmodsecurity v3; v2 compiles with PCRE `NOTEMPTY`, which instead backtracks to a non-empty
+match at the same offset, so `(?:|\d{16})` matches in v2 only. -/
 def verifyWith (o : Oracle) (ok : ByteArray → Bool) (re : String) (v : ByteArray) : Bool := go 0 (v.size + 1)
 where
   go (offset fuel : Nat) : Bool :=
@@ -255,5 +259,9 @@ def testOracle : Oracle := { rxAt := Regex.searchAt }
 #guard (evalOperator { testOracle with readFile := fun f => if f == "b.txt" then some "secret" else some "nothing" } "pmFromFile" "a.txt b.txt".toUTF8 "a SECRET".toUTF8).1
 #guard (evalOperator { testOracle with readFile := fun _ => some "10.0.0.0/8\n# x\n" } "ipMatchFromFile" "nets.txt".toUTF8 "10.1.2.3".toUTF8).1
 #guard !(evalOperator { testOracle with readFile := fun _ => none } "pmFromFile" "p.txt".toUTF8 "forbidden".toUTF8).1
+
+-- v2 trims each phrase line before the `#` check (`re_operators.c`, `msre_op_pmFromFile_param_init`)
+#guard fileLines "  # c\n forbidden \n\t\n" == ["forbidden"]
+#guard fileLines "a\r\nb\r\n" == ["a", "b"]   -- CRLF files
 
 end SecLang
