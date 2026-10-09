@@ -19,7 +19,7 @@ toolchain named in `lean-toolchain` is fetched on first build. No other dependen
 
 `lake exe seclang-check <dir>` runs any directory of unit-tier files. Operator files are
 run for `beginsWith`, `contains`, `containsWord`, `endsWith`, `eq`, `ge`, `gt`, `ipMatch`,
-`le`, `lt`, `noMatch`, `pm`, `rx`, `streq`, `strmatch`, `unconditionalMatch`,
+`ipMatchFromFile`, `le`, `lt`, `noMatch`, `pm`, `pmFromFile`, `rx`, `streq`, `strmatch`, `unconditionalMatch`,
 `validateByteRange`, `validateUrlEncoding`, `validateUtf8Encoding`, `verifyCC`,
 `verifyCPF`, `verifySSN` and `within`; `detectSQLi` and `detectXSS` (libinjection) are
 skipped by name, and a case whose regular expression lies outside the Core `@rx` subset
@@ -44,19 +44,23 @@ effective rules after exceptions and default actions, the five phases, chains, `
 `skipAfter`, disruptive actions and interruptions, `allow`, engine modes, `ctl`, `setvar`,
 `capture` and macros. It is parametric in a regular-expression oracle
 (`SecLang/Regex.lean`, the Core `@rx` subset) and in how the variable store is populated
-per phase (`SecLang/Request.lean`, chapters 05 and 09 for URL-encoded bodies). Seven theorems
-close the file: `phase_default` and `phase_not_inherited` (ADR-0017); `skipAfter_missing` and
-`later_phase_unaffected` (ADR-0016: an unsatisfied `skipAfter` leaves the transaction
-untouched, so every later phase runs as if it had not fired) with `skipAfter_ends_with_phase`
-restating the construction; `interrupted_phase_quiet` and `logging_phase_runs`.
+per phase through a phase-boundary hook (`SecLang/Request.lean`: chapters 05 and 09 for
+URL-encoded, multipart and JSON bodies, chapter 04 for the request and response body limits,
+which the hook applies at phases 2 and 4). Eight theorems close the file: `phase_default` and
+`phase_not_inherited` (ADR-0017); `skipAfter_missing` and `later_phase_unaffected` (ADR-0016:
+an unsatisfied `skipAfter` leaves the transaction untouched, so every later phase runs as if
+it had not fired) with `skipAfter_ends_with_phase` restating the construction;
+`interrupted_phase_quiet`, `body_limit_reject_quiet` (a `Reject` limit evaluates no rule of
+its phase) and `logging_phase_runs`. `@rx` is compiled dot-all with anchors at the subject
+ends (ADR-0027).
 
     cd formal && lake exe seclang-eval .lake/engine-rules.json    # exit 1 on any mismatch
 
 Every stage of every profile the abstract transaction can carry is run and its
 `triggered_rules`, `non_triggered_rules`, `interruption` and `no_interruption` checked. A
-profile is reported `unsupported (<reason>)` when it needs a body processor other than
-URL-encoded or multipart, body limits, persistent collections, `@detectSQLi`/`@detectXSS`,
-`@pmFromFile` or log assertions; that list is the model's boundary, not a known gap.
+profile is reported `unsupported (<reason>)` when it needs the XML body processor,
+persistent collections, `@detectSQLi`/`@detectXSS` or log assertions; that list is the
+model's boundary, not a known gap.
 
 ## What a mismatch means
 
