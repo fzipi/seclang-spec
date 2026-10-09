@@ -168,7 +168,7 @@ def main (args : List String) : IO UInt32 := do
         unsupported := unsupported + 1
       | none =>
         let (settings, mode) := settingsOf cfg
-        let items := effectiveItems o cfg
+        let items := effectiveItems cfg
         for st in p.stages do
           stages := stages + 1
           let ms := checkStage o items settings mode st

@@ -100,7 +100,7 @@ def Build.filterChains (b : Build) (p : Chain → Bool) : Build :=
 
 /-- One directive into the build (`03#rule-exceptions`: each applies to the rules already
 defined). -/
-def buildStep (o : Oracle) (b : Build) : Directive → Build
+def buildStep (b : Build) : Directive → Build
   | .rule r =>
     if r.chainMember then
       match b.cur with
@@ -122,8 +122,8 @@ def buildStep (o : Oracle) (b : Build) : Directive → Build
   | .setting .. => b
 
 /-- Effective chains and markers in configuration order. -/
-def effectiveItems (o : Oracle) (cfg : Config) : List Item :=
-  (cfg.directives.foldl (buildStep o) {}).flush.items.reverse
+def effectiveItems (cfg : Config) : List Item :=
+  (cfg.directives.foldl buildStep {}).flush.items.reverse
 
 /-- Transaction state. -/
 structure Tx where
@@ -292,7 +292,7 @@ def applyActions (tx : Tx) (as : List Action) : Tx :=
 
 /-- Exclusions a chain inherits from `ctl:ruleRemoveTarget*` for this transaction; the tag
 form compares exactly, as for the directive (`03#rule-exceptions`, ADR-0029). -/
-def targetExclusions (o : Oracle) (tx : Tx) (c : Chain) : List Variable :=
+def targetExclusions (tx : Tx) (c : Chain) : List Variable :=
   (tx.removedTargets.filter (·.1 == c.id)).map (·.2) ++
   (tx.removedTagTargets.filter fun (tag, _) => (tagsOf c).contains tag).map (·.2)
 
@@ -303,7 +303,7 @@ def runRule (o : Oracle) (c : Chain) (r : Rule) (tx : Tx) : Tx × Bool :=
   match r.operator with
   | none => (applyActions tx r.actions, true)
   | some op =>
-    let values := selectValues o tx r.variables (targetExclusions o tx c)
+    let values := selectValues o tx r.variables (targetExclusions tx c)
     let param := expandMacros tx op.param
     let tfns := tfnList r.actions
     let multi := hasAction r.actions "multiMatch"
@@ -328,7 +328,7 @@ def runChain (o : Oracle) (c : Chain) (tx : Tx) : Tx × Bool :=
   let tx := { tx with evaluated := tx.evaluated ++ [c.id] }
   (c.starter :: c.members).foldl (fun (tx, ok) r => if ok then runRule o c r tx else (tx, false)) (tx, true)
 
-def removed (o : Oracle) (tx : Tx) (c : Chain) : Bool :=
+def removed (tx : Tx) (c : Chain) : Bool :=
   tx.removedIds.contains c.id || tx.removedTags.any (tagsOf c).contains
 
 def allowScopeOf (c : Chain) : AllowScope :=
@@ -371,7 +371,7 @@ def runItems (o : Oracle) (phase : Nat) : List Item → PhaseState → Tx → Tx
       match ps.skipAfter with
       | some _ => runItems o phase rest ps tx
       | none =>
-        if c.phase != phase || removed o tx c then runItems o phase rest ps tx
+        if c.phase != phase || removed tx c then runItems o phase rest ps tx
         else if ps.skip > 0 then runItems o phase rest { ps with skip := ps.skip - 1 } tx
         else
           let (tx', matched) := runChain o c tx
@@ -489,7 +489,7 @@ theorem logging_phase_runs (tx : Tx) (h : tx.nextMode ≠ .off) : phaseRuns (sta
 
 def run (cfg : String) (store : Store) : Tx :=
   match parseConfig [] cfg with
-  | .ok c => runTransaction testOracle (effectiveItems testOracle c) (fun _ tx => if tx.store.isEmpty then { tx with store } else tx) {}
+  | .ok c => runTransaction testOracle (effectiveItems c) (fun _ tx => if tx.store.isEmpty then { tx with store } else tx) {}
   | .error _ => {}
 def tri (tx : Tx) : List Nat := tx.triggered
 def demoStore (args : List (String × String)) : Store :=
@@ -537,7 +537,7 @@ def demoStore (args : List (String × String)) : Store :=
 
 def runReq (cfg : String) (req : Request) : Tx :=
   match parseConfig [] cfg with
-  | .ok c => runTransaction testOracle (effectiveItems testOracle c) (fun p tx => if p == 1 then { tx with store := phase1Store {} req } else tx) {}
+  | .ok c => runTransaction testOracle (effectiveItems c) (fun p tx => if p == 1 then { tx with store := phase1Store {} req } else tx) {}
   | .error _ => {}
 -- non-ASCII names follow the byte-string convention everywhere
 #guard tri (runReq "SecRule ARGS_GET_NAMES \"@streq é\" \"id:1,phase:1,pass\"\nSecRule ARGS_COMBINED_SIZE \"@eq 3\" \"id:2,phase:1,pass\"\nSecRule ARGS_GET:é \"@streq 1\" \"id:3,phase:1,pass,chain\"\n  SecRule MATCHED_VAR_NAME \"@streq ARGS_GET:é\" \"t:none\"\nSecRule REQUEST_COOKIES:é \"@streq 1\" \"id:4,phase:1,pass\"" { uri := "/?%C3%A9=1", headers := [("Cookie", "é=1")] }) == [1, 2, 3, 4]
