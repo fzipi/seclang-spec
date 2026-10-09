@@ -263,6 +263,22 @@ def repM (fuel : Nat) (f : Flags) (s : Array Char) (r : Re) (mn : Nat) (mx : Opt
   else (match stop () with | some c => some c | none => more ())
 end
 
+/-! ## Theorems for ADR-0027 -/
+
+/-- ADR-0027: under the default flags `.` matches a newline like any other byte. -/
+theorem dot_matches_newline (fuel : Nat) (f : Flags) (s : Array Char) (i : Nat) (caps : Caps)
+    (k : Nat → Caps → Option Caps) (h : i < s.size) (hd : f.dotAll = true) :
+    m (fuel + 1) f s .any i caps k = k (i + 1) caps := by
+  simp [m, h, hd]
+
+/-- ADR-0027: without `(?m)`, `$` matches at the end of the subject only, never before an
+inner newline (the v2 `DOLLAR_ENDONLY` reading the model follows). -/
+theorem eol_only_at_end (fuel : Nat) (f : Flags) (s : Array Char) (i : Nat) (caps : Caps)
+    (k : Nat → Caps → Option Caps) (h : i < s.size) (hm : f.multi = false) :
+    m (fuel + 1) f s .eol i caps k = none := by
+  have hne : (i == s.size) = false := by simpa using Nat.ne_of_lt h
+  simp [m, hne, hm]
+
 /-- Leftmost match at or after `start`, as group positions; anchors see the whole subject. -/
 def searchAt (pat : String) (subject : ByteArray) (start : Nat) : Option (Array (Option (Nat × Nat))) :=
   match compile pat with

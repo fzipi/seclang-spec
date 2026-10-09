@@ -27,10 +27,13 @@ Reported as unsupported with the reason; the list is the model's boundary, not a
 
 ## Theorems
 
-Proved in `formal/SecLang/Semantics.lean` over the processing model.
+Proved over the model: `formal/SecLang/Regex.lean` (ADR-0027) and
+`formal/SecLang/Semantics.lean` (processing model, ADR-0016, ADR-0017, ADR-0028, ADR-0029, body limits).
 
 | Theorem | Statement |
 |---|---|
+| `dot_matches_newline` | ADR-0027: under the default flags `.` matches a newline like any other byte. |
+| `eol_only_at_end` | ADR-0027: without `(?m)`, `$` matches at the end of the subject only, never before an inner newline (the v2 `DOLLAR_ENDONLY` reading the model follows). |
 | `phase_default` | ADR-0017: a rule without `phase` runs in phase 2. |
 | `phase_not_inherited` | ADR-0017: the phase never comes from the default actions in force. |
 | `skipAfter_ends_with_phase` | ADR-0016, by construction: every phase starts with no pending `skipAfter` and no `skip` count (this restates `step`; the flow-control state is not part of `Tx`). |
@@ -38,6 +41,8 @@ Proved in `formal/SecLang/Semantics.lean` over the processing model.
 | `later_phase_unaffected` | ADR-0016, the consequence the ADR states: after a phase whose `skipAfter` label was never found, any later phase runs exactly as if that `skipAfter` had not fired. |
 | `interrupted_phase_quiet` | An interruption in an earlier phase: phases 2–4 evaluate nothing. |
 | `body_limit_reject_quiet` | A body limit with `Reject` (`04#secrequestbodylimitaction`): when the boundary hook sets the interruption at a phase other than 5, no rule of that phase is evaluated. |
+| `skipAfter_ignores_chain` | ADR-0028: while a `skipAfter` label is pending, a chain is passed over whatever its id; only a marker can end the skip. |
+| `removed_by_tag_exact` | ADR-0029: a `ctl:ruleRemoveByTag` parameter removes a chain exactly when it equals one of the chain's tags (no substring or regular-expression match). |
 | `logging_phase_runs` | Phase 5 runs whenever the engine is not off at its boundary, interrupted or not. |
 
 ## Compile-time checks

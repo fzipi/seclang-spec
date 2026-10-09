@@ -482,6 +482,19 @@ theorem body_limit_reject_quiet (o : Oracle) (items : List Item) (prepare : Nat 
     (step o items prepare p tx).evaluated = (prepare p tx).evaluated :=
   interrupted_phase_quiet o items p (prepare p tx) hp hi
 
+/-- ADR-0028: while a `skipAfter` label is pending, a chain is passed over whatever its id;
+only a marker can end the skip. -/
+theorem skipAfter_ignores_chain (o : Oracle) (p k : Nat) (l : String) (c : Chain) (rest : List Item)
+    (tx : Tx) (h : tx.ended = false) :
+    runItems o p (.chain c :: rest) ⟨k, some l⟩ tx = runItems o p rest ⟨k, some l⟩ tx := by
+  simp [runItems, h]
+
+/-- ADR-0029: a `ctl:ruleRemoveByTag` parameter removes a chain exactly when it equals one of
+the chain's tags (no substring or regular-expression match). -/
+theorem removed_by_tag_exact (tx : Tx) (c : Chain) (hid : c.id ∉ tx.removedIds) :
+    removed tx c = tx.removedTags.any (tagsOf c).contains := by
+  simp [removed, hid]
+
 /-- Phase 5 runs whenever the engine is not off at its boundary, interrupted or not. -/
 theorem logging_phase_runs (tx : Tx) (h : tx.nextMode ≠ .off) : phaseRuns (startPhase tx) 5 = true := by
   simp only [phaseRuns, startPhase]
