@@ -152,11 +152,11 @@ def main (args : List String) : IO UInt32 := do
   let some file := args.head? | IO.eprintln "usage: seclang-eval engine-rules.json"; return 2
   let txt ← IO.FS.readFile file
   let profiles ← IO.ofExcept (Json.parse txt >>= Json.getArr? >>= (·.mapM Profile.ofJson))
-  let o : Oracle := ⟨Regex.searchAt⟩
   let mut stages := 0
   let mut mismatches := 0
   let mut unsupported := 0
   for p in profiles do
+    let o : Oracle := { rxAt := Regex.searchAt, readFile := fun path => (resolveFile (p.files.map (·.1)) path).bind fun n => List.lookup n p.files }
     if p.expectError then
       IO.println s!"{p.path}: skipped (expect_error)"
       continue

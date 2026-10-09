@@ -9,6 +9,16 @@ namespace SecLang
 (`Regex.searchAt` instantiates it). -/
 structure Oracle where
   rxAt : String → ByteArray → Nat → Option (Array (Option (Nat × Nat)))
+  /-- The text of an auxiliary file (`@pmFromFile`, `@ipMatchFromFile`); `none` when absent. -/
+  readFile : String → Option String := fun _ => none
+
+/-- Phrases or entries of a file: one per line, empty lines and `#` lines ignored (`06#pmfromfile`). -/
+def fileLines (s : String) : List String :=
+  ((s.replace "\r" "").splitOn "\n").filter fun l => !l.isEmpty && !l.startsWith "#"
+
+/-- The lines of every file a space-separated parameter names. -/
+def fileLinesOf (o : Oracle) (param : ByteArray) : List String :=
+  (((ofBytes param).splitOn " ").filter (!·.isEmpty)).flatMap fun p => ((o.readFile p).map fileLines).getD []
 
 /-- Groups as byte slices from offset 0. -/
 def Oracle.rx (o : Oracle) (re : String) (v : ByteArray) : Option (Array (Option ByteArray)) :=
@@ -184,6 +194,8 @@ def evalOperator (o : Oracle) (name : String) (param : ByteArray) (v : ByteArray
   | "le" => (decide (atoi v ≤ atoi param), none)
   | "lt" => (decide (atoi v < atoi param), none)
   | "pm" => ((pmPhrases param).any fun p => containsBytes (lowercase v) (lowercase p), none)
+  | "pmFromFile" => ((fileLinesOf o param).any fun p => containsBytes (lowercase v) (lowercase p.toUTF8), none)
+  | "ipMatchFromFile" => (ipMatch (",".intercalate (fileLinesOf o param)).toUTF8 v, none)
   | "unconditionalMatch" => (true, none)
   | "validateByteRange" =>
     let ranges := ((ofBytes param).splitOn ",").filterMap fun r => match r.splitOn "-" with
@@ -204,11 +216,11 @@ def evalOperator (o : Oracle) (name : String) (param : ByteArray) (v : ByteArray
 
 /-- Operators the model defines (`06`); the runner skips the others by name. -/
 def implemented : List String :=
-  ["beginsWith", "contains", "containsWord", "endsWith", "eq", "ge", "gt", "ipMatch", "le", "lt", "noMatch",
-   "pm", "rx", "streq", "strmatch", "unconditionalMatch", "validateByteRange", "validateUrlEncoding",
+  ["beginsWith", "contains", "containsWord", "endsWith", "eq", "ge", "gt", "ipMatch", "ipMatchFromFile", "le", "lt", "noMatch",
+   "pm", "pmFromFile", "rx", "streq", "strmatch", "unconditionalMatch", "validateByteRange", "validateUrlEncoding",
    "validateUtf8Encoding", "verifyCC", "verifyCPF", "verifySSN", "within"]
 
-def testOracle : Oracle := ⟨Regex.searchAt⟩
+def testOracle : Oracle := { rxAt := Regex.searchAt }
 
 
 #guard (evalOperator testOracle "containsWord" "abc".toUTF8 "abc def".toUTF8).1
@@ -235,5 +247,13 @@ def testOracle : Oracle := ⟨Regex.searchAt⟩
 -- verify* compile with DOTALL|MULTILINE (v2 `re_operators.c`, v3 `VerifyCC::init`)
 #guard (evalOperator testOracle "verifyCC" "^\\d{16}$".toUTF8 "x\n4111111111111111".toUTF8).1
 #guard (evalOperator testOracle "verifyCC" "\\d{4}.\\d{4}.\\d{4}.\\d{4}".toUTF8 "4111\n1111\n1111\n1111".toUTF8).1
+
+-- file operators (`06#pmfromfile`, `06#ipmatchfromfile`): phrases one per line, `#` and empty lines skipped
+#guard fileLines "# c\nforbidden\n\nsecret word\n" == ["forbidden", "secret word"]
+#guard (evalOperator { testOracle with readFile := fun _ => some "# c\nforbidden\nsecret word\n" } "pmFromFile" "p.txt".toUTF8 "this is FORBIDDEN here".toUTF8).1
+#guard !(evalOperator { testOracle with readFile := fun _ => some "# comment line\nforbidden\n" } "pmFromFile" "p.txt".toUTF8 "# comment line".toUTF8).1
+#guard (evalOperator { testOracle with readFile := fun f => if f == "b.txt" then some "secret" else some "nothing" } "pmFromFile" "a.txt b.txt".toUTF8 "a SECRET".toUTF8).1
+#guard (evalOperator { testOracle with readFile := fun _ => some "10.0.0.0/8\n# x\n" } "ipMatchFromFile" "nets.txt".toUTF8 "10.1.2.3".toUTF8).1
+#guard !(evalOperator { testOracle with readFile := fun _ => none } "pmFromFile" "p.txt".toUTF8 "forbidden".toUTF8).1
 
 end SecLang

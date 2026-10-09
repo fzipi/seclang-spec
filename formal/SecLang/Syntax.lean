@@ -471,6 +471,14 @@ def resolveInclude (files : List String) (path : String) : List String :=
     (files.filter matchesGlob).mergeSort (· < ·)
   | _ => []
 
+/-- A file named by a file operator or `Include`, by exact name or by its basename against the
+configuration's auxiliary files (`06#pmfromfile`: relative paths resolve against the
+configuration file's directory). -/
+def resolveFile (names : List String) (path : String) : Option String :=
+  names.find? fun n => n == path || n.endsWith ("/" ++ path) || path.endsWith ("/" ++ n)
+
+def fileOperators : List String := ["pmFromFile", "ipMatchFromFile"]
+
 mutual
 /-- One logical line into directives; an `Include` yields the included file's directives.
 `depth` is the remaining nesting budget (the cap of 100 of `01#include`). -/
@@ -490,6 +498,9 @@ partial def parseLine (files : List (String × String)) (depth : Nat) (st : St) 
     arity 2 3
     let vars ← parseVariables line (a 0)
     let op ← parseOperator line (a 1)
+    if fileOperators.contains op.name then
+      if let some missing := ((op.param.splitOn " ").filter (!·.isEmpty)).find? fun p => (resolveFile (files.map (·.1)) p).isNone then
+        err line s!"@{op.name}: file '{missing}' not found"
     let acts ← if rest.length == 3 then parseActions line (a 2) else pure []
     let st' ← checkRule line acts st
     return ([.rule ⟨line, vars, some op, acts, st.pendingChain⟩], st')
@@ -601,5 +612,10 @@ def parseConfig (files : List (String × String)) (text : String) : Parse Config
 #guard (parseConfig [] "SecRule ARGS \"@streq 1\" \"id:1,phase:1,deny,drop\"") matches .error ⟨1, _, ""⟩
 #guard resolveInclude ["rules/a.conf", "rules/sub/b.conf"] "rules/*.conf" == ["rules/a.conf"]
 #guard (parseOperator 1 "@validateByteRange 1-255, 0") matches .error _
+
+-- a file operator naming a file absent from the configuration is a configuration error (`06#pmfromfile`)
+#guard (parseConfig [("a.txt", "x")] "SecRule ARGS \"@pmFromFile a.txt b.txt\" \"id:1,phase:1,pass\"") matches .error ⟨1, _, _⟩
+#guard (parseConfig [("a.txt", "x")] "SecRule ARGS \"@pmFromFile a.txt\" \"id:1,phase:1,pass\"") matches .ok _
+#guard (parseConfig [("dir/nets.txt", "x")] "SecRule ARGS \"@ipMatchF nets.txt\" \"id:1,phase:1,pass\"") matches .ok _
 
 end SecLang
