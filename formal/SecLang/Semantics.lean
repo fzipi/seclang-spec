@@ -381,14 +381,19 @@ def startPhase (tx : Tx) : Tx :=
             allow := if tx.allow == some .phase then none else tx.allow,
             matchedVar := .empty, matchedVarName := "", matchedVars := [] }
 
-/-- One phase: populate the store, cross the boundary, run the rules with fresh flow-control
-state. -/
-def step (o : Oracle) (items : List Item) (prepare : Nat → Tx → Store) (p : Nat) (tx : Tx) : Tx :=
-  let tx := startPhase { tx with store := prepare p tx }
+/-- The rules of one phase: cross the boundary, run the rules with fresh flow-control state. -/
+def phaseBody (o : Oracle) (items : List Item) (p : Nat) (tx : Tx) : Tx :=
+  let tx := startPhase tx
   if phaseRuns tx p then runItems o p items {} tx else tx
 
+/-- One phase. `prepare` is the phase-boundary hook: it populates the store from the request
+or response (`05`, `09`) and, at phases 2 and 4, applies the body limits (`04`), which may
+set the interruption before any rule of the phase runs. -/
+def step (o : Oracle) (items : List Item) (prepare : Nat → Tx → Tx) (p : Nat) (tx : Tx) : Tx :=
+  phaseBody o items p (prepare p tx)
+
 /-- A transaction: the five phases in order. -/
-def runTransaction (o : Oracle) (items : List Item) (prepare : Nat → Tx → Store) (tx : Tx) : Tx :=
+def runTransaction (o : Oracle) (items : List Item) (prepare : Nat → Tx → Tx) (tx : Tx) : Tx :=
   [1, 2, 3, 4, 5].foldl (fun tx p => step o items prepare p tx) tx
 
 /-! ## Theorems for the Divergence ADRs -/
@@ -403,9 +408,9 @@ theorem phase_not_inherited (d₁ d₂ : List (Nat × List Action)) (r : Rule) :
 
 /-- ADR-0016, by construction: every phase starts with no pending `skipAfter` and no `skip`
 count (this restates `step`; the flow-control state is not part of `Tx`). -/
-theorem skipAfter_ends_with_phase (o : Oracle) (items : List Item) (prepare : Nat → Tx → Store) (p : Nat) (tx : Tx) :
+theorem skipAfter_ends_with_phase (o : Oracle) (items : List Item) (prepare : Nat → Tx → Tx) (p : Nat) (tx : Tx) :
     step o items prepare p tx =
-      (let tx' := startPhase { tx with store := prepare p tx }
+      (let tx' := startPhase (prepare p tx)
        if phaseRuns tx' p then runItems o p items ⟨0, none⟩ tx' else tx') := rfl
 
 /-- ADR-0016: a pending label that no later marker or same-phase rule id carries leaves the
@@ -440,21 +445,28 @@ theorem skipAfter_missing (o : Oracle) (p k : Nat) (l : String) (items : List It
 /-- ADR-0016, the consequence the ADR states: after a phase whose `skipAfter` label was never
 found, any later phase runs exactly as if that `skipAfter` had not fired. -/
 theorem later_phase_unaffected (o : Oracle) (p q k : Nat) (l : String) (items : List Item)
-    (prepare : Nat → Tx → Store) (tx : Tx)
+    (prepare : Nat → Tx → Tx) (tx : Tx)
     (h : ∀ i ∈ items, (match i with | .marker m => m ≠ l | .chain c => labelMatches c p l = false)) :
     step o items prepare q (runItems o p items ⟨k, some l⟩ tx) = step o items prepare q tx := by
   rw [skipAfter_missing o p k l items tx h]
 
 /-- An interruption in an earlier phase: phases 2–4 evaluate nothing. -/
-theorem interrupted_phase_quiet (o : Oracle) (items : List Item) (prepare : Nat → Tx → Store) (p : Nat) (tx : Tx)
+theorem interrupted_phase_quiet (o : Oracle) (items : List Item) (p : Nat) (tx : Tx)
     (hp : p ≠ 5) (hi : tx.interruption.isSome) :
-    (step o items prepare p tx).evaluated = tx.evaluated := by
+    (phaseBody o items p tx).evaluated = tx.evaluated := by
   have hp' : (p == 5) = false := by simpa using hp
   have hn : tx.interruption ≠ none := by
     intro e
     rw [e] at hi
     simp at hi
-  simp [step, startPhase, phaseRuns, hp', hn]
+  simp [phaseBody, startPhase, phaseRuns, hp', hn]
+
+/-- A body limit with `Reject` (`04#secrequestbodylimitaction`): when the boundary hook sets
+the interruption at a phase other than 5, no rule of that phase is evaluated. -/
+theorem body_limit_reject_quiet (o : Oracle) (items : List Item) (prepare : Nat → Tx → Tx) (p : Nat) (tx : Tx)
+    (hp : p ≠ 5) (hi : (prepare p tx).interruption.isSome) :
+    (step o items prepare p tx).evaluated = (prepare p tx).evaluated :=
+  interrupted_phase_quiet o items p (prepare p tx) hp hi
 
 /-- Phase 5 runs whenever the engine is not off at its boundary, interrupted or not. -/
 theorem logging_phase_runs (tx : Tx) (h : tx.nextMode ≠ .off) : phaseRuns (startPhase tx) 5 = true := by
@@ -466,7 +478,7 @@ theorem logging_phase_runs (tx : Tx) (h : tx.nextMode ≠ .off) : phaseRuns (sta
 
 def run (cfg : String) (store : Store) : Tx :=
   match parseConfig [] cfg with
-  | .ok c => runTransaction testOracle (effectiveItems testOracle c) (fun _ tx => if tx.store.isEmpty then store else tx.store) {}
+  | .ok c => runTransaction testOracle (effectiveItems testOracle c) (fun _ tx => if tx.store.isEmpty then { tx with store } else tx) {}
   | .error _ => {}
 def tri (tx : Tx) : List Nat := tx.triggered
 def demoStore (args : List (String × String)) : Store :=
@@ -514,7 +526,7 @@ def demoStore (args : List (String × String)) : Store :=
 
 def runReq (cfg : String) (req : Request) : Tx :=
   match parseConfig [] cfg with
-  | .ok c => runTransaction testOracle (effectiveItems testOracle c) (fun p tx => if p == 1 then phase1Store {} req else tx.store) {}
+  | .ok c => runTransaction testOracle (effectiveItems testOracle c) (fun p tx => if p == 1 then { tx with store := phase1Store {} req } else tx) {}
   | .error _ => {}
 -- non-ASCII names follow the byte-string convention everywhere
 #guard tri (runReq "SecRule ARGS_GET_NAMES \"@streq é\" \"id:1,phase:1,pass\"\nSecRule ARGS_COMBINED_SIZE \"@eq 3\" \"id:2,phase:1,pass\"\nSecRule ARGS_GET:é \"@streq 1\" \"id:3,phase:1,pass,chain\"\n  SecRule MATCHED_VAR_NAME \"@streq ARGS_GET:é\" \"t:none\"\nSecRule REQUEST_COOKIES:é \"@streq 1\" \"id:4,phase:1,pass\"" { uri := "/?%C3%A9=1", headers := [("Cookie", "é=1")] }) == [1, 2, 3, 4]

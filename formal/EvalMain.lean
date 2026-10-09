@@ -46,6 +46,9 @@ def Profile.ofJson (j : Json) : Except String Profile := do
   return { path := ← j.getObjVal? "path" >>= Json.getStr?, rules := ← j.getObjVal? "rules" >>= Json.getStr?,
            files := kvs j "files", expectError := ← j.getObjVal? "expect_error" >>= Json.getBool?, stages }
 
+def limitActionOf (v : String) : LimitAction :=
+  if v.toLower == "processpartial" then .processPartial else .reject
+
 /-- `SecRuleEngine` and the store settings from the configuration. -/
 def settingsOf (cfg : Config) : Settings × Mode :=
   cfg.directives.foldl (fun (s, m) d => match d with
@@ -56,11 +59,15 @@ def settingsOf (cfg : Config) : Settings × Mode :=
     | .setting _ "SecResponseBodyAccess" [v] => ({ s with responseBodyAccess := v.toLower == "on" }, m)
     | .setting _ "SecResponseBodyMimeType" vs => ({ s with mimeTypes := s.mimeTypes ++ vs }, m)
     | .setting _ "SecResponseBodyMimeTypesClear" _ => ({ s with mimeTypes := [] }, m)
+    | .setting _ "SecRequestBodyLimit" [v] => ({ s with requestBodyLimit := natOf? v }, m)
+    | .setting _ "SecResponseBodyLimit" [v] => ({ s with responseBodyLimit := natOf? v }, m)
+    | .setting _ "SecRequestBodyLimitAction" [v] => ({ s with requestBodyLimitAction := limitActionOf v }, m)
+    | .setting _ "SecResponseBodyLimitAction" [v] => ({ s with responseBodyLimitAction := limitActionOf v }, m)
+    | .setting _ "SecRequestBodyJsonDepthLimit" [v] => ({ s with jsonDepthLimit := (natOf? v).getD s.jsonDepthLimit }, m)
     | _ => (s, m)) ({}, .off)
 
 def unsupportedVariables : List String :=
-  ["XML", "REQBODY_ERROR", "REQBODY_ERROR_MSG", "INBOUND_DATA_ERROR", "OUTBOUND_DATA_ERROR", "IP", "GLOBAL", "SESSION", "USER", "RESOURCE"]
-def limitDirectives : List String := ["SecRequestBodyLimit", "SecResponseBodyLimit", "SecRequestBodyNoFilesLimit"]
+  ["XML", "REQBODY_ERROR", "REQBODY_ERROR_MSG", "IP", "GLOBAL", "SESSION", "USER", "RESOURCE"]
 
 /-- The first feature outside the model that a profile needs, if any. -/
 def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
@@ -71,7 +78,6 @@ def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
   let allVars := rules.flatMap (·.variables) ++ targets
   let vars := allVars.map (·.collection)
   let acts := rules.flatMap (·.actions)
-  let dirs := cfg.directives.filterMap fun | .setting _ n _ => some n | _ => none
   let regexes := (rules.filterMap fun r => r.operator.bind fun op => if op.name == "rx" then some op.param else none) ++
     (allVars.filterMap fun v => match v.selector with | some (.regex re) => some re | _ => none) ++
     (cfg.directives.filterMap fun
@@ -82,7 +88,6 @@ def unsupportedReason (cfg : Config) (stages : List Stage) : Option String :=
   else if let some v := vars.find? unsupportedVariables.contains then some s!"variable {v}"
   else if let some a := acts.find? (fun a => ["initcol", "expirevar", "setsid", "setuid", "setrsc"].contains a.name) then some s!"action {a.name}"
   else if acts.any (fun a => a.name == "ctl" && (a.value.getD "").startsWith "requestBodyProcessor=" && !(a.value.getD "").toLower.endsWith "urlencoded") then some "body processor selected by ctl"
-  else if let some d := dirs.find? limitDirectives.contains then some s!"directive {d}"
   else if stages.any (fun s => (s.output.getObjVal? "log_contains").toOption.isSome || (s.output.getObjVal? "no_log_contains").toOption.isSome) then some "log assertions"
   else if stages.any (fun s => s.input.body.isSome && (headerValue s.input.headers "Content-Type").any fun ct =>
             let c := ct.toLower; c.startsWith "application/json" || c.endsWith "xml") then some "body processor"
@@ -95,12 +100,31 @@ def natList (j : Json) (k : String) : List Nat :=
 
 /-- Mismatches of one stage, in the adapters' wording. -/
 def checkStage (o : Oracle) (items : List Item) (settings : Settings) (mode : Mode) (st : Stage) : List String :=
-  let prepare : Nat → Tx → Store := fun p tx => match p with
-    | 1 => phase1Store settings st.input
-    | 2 => phase2Store settings st.input (tx.bodyAccess.getD settings.requestBodyAccess) tx.bodyProcessor tx.forceBody tx.store
-    | 3 => phase3Store st.response tx.store
-    | 4 => phase4Store settings st.response tx.store
-    | _ => tx.store
+  let flag (b : Bool) : List Member := natText (if b then 1 else 0)
+  let interrupt (tx : Tx) (status : Option Nat) : Option Interruption :=
+    tx.interruption <|> status.map fun s => ⟨0, "deny", s⟩
+  -- the phase-boundary hook: store population (`05`, `09`) and body limits (`04`)
+  let prepare : Nat → Tx → Tx := fun p tx => match p with
+    | 1 => { tx with store := phase1Store settings st.input }
+    | 2 =>
+      let access := tx.bodyAccess.getD settings.requestBodyAccess
+      let (body, err, status) := match st.input.body with
+        | some b => if access then applyLimit settings.requestBodyLimit settings.requestBodyLimitAction (tx.nextMode == .on) 413 b else (b, false, none)
+        | none => ("", false, none)
+      let req := { st.input with body := st.input.body.map fun _ => body }
+      { tx with store := (phase2Store settings req access tx.bodyProcessor tx.forceBody tx.store).set "INBOUND_DATA_ERROR" (flag err),
+                interruption := interrupt tx status }
+    | 3 => { tx with store := phase3Store st.response tx.store }
+    | 4 =>
+      let (resp, err, status) := match st.response with
+        | some rs => if responseBuffered settings rs then
+            let (b, e, s) := applyLimit settings.responseBodyLimit settings.responseBodyLimitAction (tx.nextMode == .on) 500 rs.body
+            (some { rs with body := b }, e, s)
+          else (some rs, false, none)
+        | none => (none, false, none)
+      { tx with store := (phase4Store settings resp tx.store).set "OUTBOUND_DATA_ERROR" (flag err),
+                interruption := interrupt tx status }
+    | _ => tx
   let tx := runTransaction o items prepare { mode, nextMode := mode }
   let out := st.output
   let want := natList out "triggered_rules"

@@ -34,15 +34,45 @@ structure Response where
 
 /-- Configuration-level settings the store depends on (`04`). The response MIME set has no
 specified default (`04#secresponsebodymimetype`): none until set. -/
+inductive LimitAction | reject | processPartial
+  deriving Repr, BEq, DecidableEq
+
 structure Settings where
   argSep : Char := '&'
   argsLimit : Option Nat := none
   requestBodyAccess : Bool := false
   responseBodyAccess : Bool := false
   mimeTypes : List String := []
+  requestBodyLimit : Option Nat := none
+  requestBodyLimitAction : LimitAction := .reject
+  responseBodyLimit : Option Nat := none
+  responseBodyLimitAction : LimitAction := .reject   -- unspecified default (`04`); v2's
+  jsonDepthLimit : Nat := 10000
+
+/-- A body against its limit (`04#secrequestbodylimitaction`, `04#secresponsebodylimitaction`):
+the body to process, whether the `*_DATA_ERROR` flag is set, and the status of a `Reject`
+interruption (413 request, 500 response: the v2 and Coraza values; the spec leaves it open).
+`enforce` is false in `DetectionOnly`, where `Reject` neither interrupts nor truncates
+(v2 `apache2/mod_security2.c`, the `is_enabled != MODSEC_DETECTION_ONLY` test). -/
+def applyLimit (limit : Option Nat) (action : LimitAction) (enforce : Bool) (status : Nat) (body : String) :
+    String × Bool × Option Nat :=
+  match limit with
+  | none => (body, false, none)
+  | some n =>
+    let bytes := text body
+    if bytes.size ≤ n then (body, false, none)
+    else if action == .reject then (body, false, if enforce then some status else none)
+    else
+      let cut := bytes.extract 0 n
+      (if h : cut.IsValidUTF8 then String.fromUTF8 cut h else String.ofList (body.toList.take n), true, none)
 
 def headerValue (hs : List (String × String)) (name : String) : Option String :=
   (hs.find? fun (k, _) => k.toLower == name.toLower).map (·.2)
+
+/-- Whether the response body is buffered (`04#secresponsebodyaccess`, `04#secresponsebodymimetype`). -/
+def responseBuffered (st : Settings) (rs : Response) : Bool :=
+  let ct := (headerValue rs.headers "Content-Type").map fun c => trimBlanks ((c.splitOn ";").headD "")
+  st.responseBodyAccess && ct.any st.mimeTypes.contains
 
 def limitArgs (lim : Option Nat) (ms : List Member) : List Member :=
   match lim with | some n => ms.take n | none => ms
@@ -214,9 +244,7 @@ is on and the MIME type (parameters stripped) is listed. -/
 def phase4Store (st : Settings) (resp : Option Response) (store : Store) : Store :=
   match resp with
   | none => store
-  | some rs =>
-    let ct := (headerValue rs.headers "Content-Type").map fun c => trimBlanks ((c.splitOn ";").headD "")
-    if st.responseBodyAccess && ct.any st.mimeTypes.contains then store.set "RESPONSE_BODY" (scalar (text rs.body)) else store
+  | some rs => if responseBuffered st rs then store.set "RESPONSE_BODY" (scalar (text rs.body)) else store
 
 #guard (parseArgs '&' none "a=1&a=2&b=3").map (fun m => (m.key, ofBytes m.value)) == [("a", "1"), ("a", "2"), ("b", "3")]
 #guard (parseArgs '&' none "a=1&b&c=x+y%20z&d=%zz").map (fun m => (m.key, ofBytes m.value)) == [("a", "1"), ("b", ""), ("c", "x y z"), ("d", "%zz")]
@@ -266,5 +294,13 @@ def mpBody : String := "--XX\r\nContent-Disposition: form-data; name=\"t\"\r\n\r
 -- quoted parameter values may hold `;`
 #guard headerParam "form-data; name=\"f\"; filename=\"shell;.php\"" "filename" == some "shell;.php"
 #guard headerParam "form-data; name=\"a;b\"" "name" == some "a;b"
+
+-- body limits (`04#secrequestbodylimitaction`, `04#secresponsebodylimitaction`)
+#guard applyLimit (some 10) .reject true 413 "p=1&filler=0123456789" == ("p=1&filler=0123456789", false, some 413)
+#guard applyLimit (some 10) .processPartial true 413 "p=1&filler=0123456789" == ("p=1&filler", true, none)
+#guard applyLimit (some 10) .reject false 413 "p=1&filler=0123456789" == ("p=1&filler=0123456789", false, none)
+#guard applyLimit (some 10) .reject true 413 "0123456789" == ("0123456789", false, none)
+#guard applyLimit (some 5) .processPartial true 500 "0123456789" == ("01234", true, none)
+#guard applyLimit none .reject true 413 "0123456789" == ("0123456789", false, none)
 
 end SecLang
