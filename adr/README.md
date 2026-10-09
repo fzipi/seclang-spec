@@ -50,3 +50,4 @@ promoted into the spec (Extension).
 | [0027](0027-rx-compile-mode.md) | `@rx` is compiled dot-all; line anchors need `(?m)` | Divergence | proposed |
 | [0028](0028-skipafter-label-is-a-marker.md) | `skipAfter` resolves to a `SecMarker`, never to a rule id | Divergence | proposed |
 | [0029](0029-tag-exceptions-exact.md) | Tag and message rule exceptions select by exact string | Divergence | proposed |
+| [0030](0030-negation-per-value.md) | A negated operator applies per value | Clarification | proposed |

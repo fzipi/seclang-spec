@@ -393,9 +393,11 @@ does ModSecurity v2 (`apache2_config.c`, "Invalid value for SecRequestBodyLimit"
 (`transaction.cc`, `m_it.status = 403`). The tests therefore assert only that the
 transaction is denied. Coraza also caps the value at 1 GiB, and treats a body of exactly
 `BYTES` as over the limit (`transaction.go`, `>= tx.RequestBodyLimit`) where ModSecurity v2
-uses `>`; no test uses a body at the limit.
+uses `>`, as does libmodsecurity v3 (`transaction.cc`, `m_requestBodyLimit.m_value < len + current_size`);
+`secrequestbodylimit-boundary.yaml` pins the boundary and Coraza fails it (`compat/known-gaps.md`).
 
 **Tests.** `tests/engine/directives/secrequestbodylimit-reject.yaml`,
+`tests/engine/directives/secrequestbodylimit-boundary.yaml`,
 `tests/engine/directives/body-limit-directives-load.yaml`
 
 ### SecRequestBodyLimitAction

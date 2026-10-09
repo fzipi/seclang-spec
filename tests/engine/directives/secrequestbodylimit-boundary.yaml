@@ -1,0 +1,23 @@
+meta:
+  name: secrequestbodylimit-boundary
+  description: A body of exactly SecRequestBodyLimit bytes does not exceed the limit
+spec: 04-directives.md#secrequestbodylimit
+rules: |
+  SecRuleEngine On
+  SecRequestBodyAccess On
+  SecRequestBodyLimit 10
+  SecRequestBodyLimitAction Reject
+  SecRule ARGS_POST:p "@streq 1" "id:5104,phase:2,pass"
+tests:
+  - test_title: ten-byte body with a ten-byte limit is processed
+    stages:
+      - stage:
+          input:
+            method: POST
+            uri: /
+            headers:
+              Content-Type: application/x-www-form-urlencoded
+            data: p=1&q=0123
+          output:
+            triggered_rules: [5104]
+            no_interruption: true

@@ -281,7 +281,7 @@ def applyCtl (tx : Tx) (v : String) : Tx :=
       | none => tx
     | _ => tx
   | "requestBodyAccess" => { tx with bodyAccess := some (val.toLower == "on") }
-  | "requestBodyProcessor" => { tx with bodyProcessor := some val }
+  | "requestBodyProcessor" => { tx with bodyProcessor := some val, store := tx.store.set "REQBODY_PROCESSOR" (scalar (text val.toUpper)) }   -- set at once, body or not (05#reqbody_processor)
   | "forceRequestBodyVariable" => { tx with forceBody := val.toLower == "on" }
   | _ => tx
 
@@ -300,7 +300,7 @@ def targetExclusions (tx : Tx) (c : Chain) : List Variable :=
   (tx.removedTagTargets.filter fun (tag, _) => (tagsOf c).contains tag).map (·.2)
 
 /-- One rule of a chain (`02#secrule-structure`, `02#operator`, `08#multimatch`,
-`06#unconditionalmatch`): the rule matches when some value matches, or, negated, when the
+`06#unconditionalmatch`): the rule matches when some value matches (negation per value, ADR-0030); the
 operator fails for every value and at least one value was selected. -/
 def runRule (o : Oracle) (c : Chain) (r : Rule) (tx : Tx) : Tx × Bool :=
   match r.operator with
@@ -315,7 +315,8 @@ def runRule (o : Oracle) (c : Chain) (r : Rule) (tx : Tx) : Tx × Bool :=
                     else [tfns.foldl (fun w t => applyTfn t w) v]
       let hits := stages.filterMap fun w => let (ok, caps) := evalOperator o op.name param w; if ok then some (w, caps) else none
       (name, hits.getLast?, stages.getLastD v)
-    let matched := if op.negate then !values.isEmpty && results.all (·.2.1.isNone) else results.any (·.2.1.isSome)
+    -- negation applies per value (ADR-0030): the rule matches when some value fails the operator
+    let matched := if op.negate then results.any (·.2.1.isNone) else results.any (·.2.1.isSome)
     if !matched then (tx, false) else
     let hits := results.filterMap fun (n, h, _) => h.map fun (w, caps) => (n, w, caps)
     let (name, value, caps) := match hits.getLast? with
@@ -569,5 +570,12 @@ def runReq (cfg : String) (req : Request) : Tx :=
 
 -- tag exceptions are exact (ADR-0029): a tag that merely contains the parameter is not selected
 #guard tri (run "SecRule ARGS_GET:a \"@streq 1\" \"id:1,phase:1,pass,tag:'app/foo'\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:2,phase:1,pass,tag:'app/foobar'\"\nSecRuleRemoveByTag app/foo\nSecRule ARGS_GET:a \"@streq 1\" \"id:3,phase:1,pass,nolog,ctl:ruleRemoveByTag=app/bar\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:4,phase:1,pass,tag:'app/bar'\"\nSecRule ARGS_GET:a \"@streq 1\" \"id:5,phase:1,pass,tag:'app/barbaz'\"" (demoStore [("a", "1")])) == [2, 3, 5]
+
+-- negation applies per value (ADR-0030): one value failing the operator matches the rule
+#guard tri (run "SecRule ARGS_GET:a \"!@streq abc\" \"id:1,phase:1,pass\"\nSecRule ARGS_GET:a \"!abc\" \"id:2,phase:1,pass\"" (demoStore [("a", "abc"), ("a", "zzz")])) == [1, 2]
+#guard tri (run "SecRule ARGS_GET:a \"!@streq abc\" \"id:1,phase:1,pass\"" (demoStore [("a", "abc"), ("a", "ABC")])) == [1]
+#guard tri (run "SecRule ARGS_GET:a \"!@streq abc\" \"id:1,phase:1,pass\"" (demoStore [("a", "abc")])) == []
+-- ctl:requestBodyProcessor sets REQBODY_PROCESSOR at once, body or not (05#reqbody_processor)
+#guard tri (runReq "SecRule REQUEST_HEADERS:Content-Type \"@beginsWith application/json\" \"id:1,phase:1,pass,nolog,ctl:requestBodyProcessor=JSON\"\nSecRule REQBODY_PROCESSOR \"@streq JSON\" \"id:2,phase:2,pass\"" { uri := "/", headers := [("Content-Type", "application/json")] }) == [1, 2]
 
 end SecLang

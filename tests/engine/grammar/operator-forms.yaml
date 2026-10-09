@@ -26,3 +26,11 @@ tests:
             triggered_rules: [3007, 3008]
             non_triggered_rules: [3006]
             no_interruption: true
+  - test_title: two values, one failing the operator; negation applies per value (ADR-0030)
+    stages:
+      - stage:
+          input:
+            uri: /?a=abc&a=zzz
+          output:
+            triggered_rules: [3006, 3007, 3008]
+            no_interruption: true

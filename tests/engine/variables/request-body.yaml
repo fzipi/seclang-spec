@@ -49,3 +49,16 @@ tests:
           output:
             triggered_rules: [6044, 6043]
             non_triggered_rules: [6042]
+  - test_title: ctl selects the processor for a request without a body
+    spec: 05-variables.md#reqbody_processor
+    stages:
+      - stage:
+          input:
+            method: GET
+            uri: /
+            headers:
+              Content-Type: application/json
+          output:
+            triggered_rules: [6044, 6043]
+            non_triggered_rules: [6040, 6041, 6042]
+            no_interruption: true

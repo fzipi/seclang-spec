@@ -549,10 +549,15 @@ empty when there was none. Wording is engine-specific.
 **Status:** Core
 
 **Semantics.** Scalar: the name of the body processor used, one of `URLENCODED`,
-`MULTIPART`, `XML`, `JSON`; empty when no body was processed. Selected from the
-`Content-Type` header or by `ctl:requestBodyProcessor`.
+`MULTIPART`, `XML`, `JSON`. `ctl:requestBodyProcessor` sets it at once, whether or not
+the request has a body (ModSecurity v2 `apache2/re_actions.c`, libmodsecurity v3
+`src/actions/ctl/request_body_processor_json.cc`, Coraza `internal/actions/ctl.go`);
+selection from the `Content-Type` header sets it only when a body was processed, so it
+is empty for a bodiless request without the `ctl`.
 
 **Divergence notes.** None known.
+
+**Tests.** `tests/engine/variables/request-body.yaml`
 
 **Tests.** `tests/engine/variables/request-body.yaml`
 
