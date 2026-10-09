@@ -271,7 +271,7 @@ the configuration file containing the rule. A missing file MUST be a configurati
 
 **Semantics.** Matches when `REGEX` matches anywhere in the value (unanchored). The
 Core syntax is the subset shared by PCRE, PCRE2 and RE2: literals, `.`, character
-classes and `\d \w \s` with negations, `\b`, anchors, alternation, grouping with `(...)`
+classes and `\d \w \s` with negations, `\b`, byte escapes `\xhh` and `\x{hh}`, the anchors `^ $ \A \z` (not `\Z`, which RE2 lacks), alternation, grouping with `(...)`
 and `(?:...)`, greedy and lazy quantifiers `* + ? {m,n}`, inline flags `(?i)`, `(?s)`,
 `(?m)` (not `(?x)`, which RE2 rejects). Named groups MUST use `(?P<name>...)`, which all three accept. Anything
 in `#rx-pcre-extensions` is not Core (ADR-0018). The pattern is matched in dot-all mode:

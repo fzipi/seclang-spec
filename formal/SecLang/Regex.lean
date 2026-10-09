@@ -74,19 +74,56 @@ def parseBraces (cs : List Char) : Option (Nat × Option Nat × List Char) :=
     | _ => none
   | [] => none
 
-/-- A `[...]` class after the opening bracket (and `^`). -/
-def parseClass (cs : List Char) (acc : List ClassItem) (first : Bool) : Except String (List ClassItem × List Char) :=
-  match cs with
+/-- Hex digits to a number (for `\x{hh}`). -/
+def hexGroupValue' (cs : List Char) : Nat :=
+  cs.foldl (fun acc c => acc * 16 + (if c.isDigit then c.toNat - '0'.toNat else (c.toLower.toNat - 'a'.toNat + 10))) 0
+
+/-- `\x{hh}` after the backslash and `x`: one byte, braced (shared by PCRE, PCRE2 and RE2). -/
+def bracedHex : List Char → Except String (Char × List Char)
+  | '{' :: rest =>
+    let hex := rest.takeWhile (· != '}')
+    match rest.drop hex.length with
+    | '}' :: rest' =>
+      if hex.isEmpty || hex.length > 2 || !hex.all (fun c => c.isDigit || "abcdefABCDEF".contains c) then .error "bad \\x{} escape (one byte)"
+      else .ok (Char.ofNat (hexGroupValue' hex), rest')
+    | _ => .error "bad \\x{} escape"
+  | _ => .error "bad \\x{} escape"
+
+/-- One atom of a `[...]` class: a literal (possibly `\xhh`, `\x{hh}` or an escaped character)
+or a class escape such as `\d`. -/
+def classAtom : List Char → Except String (Sum Char ClassItem × List Char)
   | [] => .error "unterminated class"
-  | ']' :: rest => if first then parseClass rest (.ch ']' :: acc) false else .ok (acc.reverse, rest)
+  | '\\' :: 'x' :: '{' :: rest => (bracedHex ('{' :: rest)).map fun (c, r) => (.inl c, r)
+  | '\\' :: 'x' :: a :: b :: rest =>
+    match hexChar a b with
+    | some c => .ok (.inl c, rest)
+    | none => .error "bad \\x escape"
   | '\\' :: c :: rest =>
     match escapeItem c with
-    | some it => parseClass rest (it :: acc) false
-    | none => parseClass rest (.ch (escapeChar c) :: acc) false
-  | a :: '-' :: b :: rest =>
-    if b == ']' then .ok ((.ch '-' :: .ch a :: acc).reverse, rest)   -- a trailing `-` is literal
-    else parseClass rest (.range a b :: acc) false
-  | c :: rest => parseClass rest (.ch c :: acc) false
+    | some it => .ok (.inr it, rest)
+    | none => .ok (.inl (escapeChar c), rest)
+  | c :: rest => .ok (.inl c, rest)
+
+/-- A `[...]` class after the opening bracket (and `^`); `fuel` bounds the items. -/
+def parseClass (fuel : Nat) (cs : List Char) (acc : List ClassItem) (first : Bool) : Except String (List ClassItem × List Char) :=
+  match fuel with
+  | 0 => .error "class too long"
+  | fuel + 1 =>
+    match cs with
+    | [] => .error "unterminated class"
+    | ']' :: rest => if first then parseClass fuel rest (.ch ']' :: acc) false else .ok (acc.reverse, rest)
+    | _ => do
+      let (a, rest) ← classAtom cs
+      match a with
+      | .inr it => parseClass fuel rest (it :: acc) false
+      | .inl a =>
+        match rest with
+        | '-' :: ']' :: rest' => .ok ((.ch '-' :: .ch a :: acc).reverse, rest')   -- a trailing `-` is literal
+        | '-' :: rest' =>
+          match classAtom rest' with
+          | .ok (.inl b, rest'') => parseClass fuel rest'' (.range a b :: acc) false
+          | _ => parseClass fuel rest' (.ch '-' :: .ch a :: acc) false   -- `a-\d`: the dash is literal
+        | _ => parseClass fuel rest (.ch a :: acc) false
 
 mutual
 def parseAlt (fuel : Nat) (p : P) : Except String (Re × P) :=
@@ -152,18 +189,21 @@ def parseAtom (fuel : Nat) (p : P) : Except String (Re × P) :=
     | _ => .error "group syntax outside the Core subset"
   | '(' :: rest => parseGroup fuel (some p.next) { rest, next := p.next + 1 }
   | '[' :: '^' :: rest =>
-    let (items, rest) ← parseClass rest [] true
+    let (items, rest) ← parseClass (rest.length + 1) rest [] true
     return (.cls true items, { p with rest })
   | '[' :: rest =>
-    let (items, rest) ← parseClass rest [] true
+    let (items, rest) ← parseClass (rest.length + 1) rest [] true
     return (.cls false items, { p with rest })
   | '.' :: rest => return (.any, { p with rest })
   | '^' :: rest => return (.bol, { p with rest })
   | '$' :: rest => return (.eol, { p with rest })
   | '\\' :: 'b' :: rest => return (.wordB false, { p with rest })
   | '\\' :: 'B' :: rest => return (.wordB true, { p with rest })
+  -- `\A` and `\z` are the absolute anchors every engine shares (`\Z` is PCRE-only): `^`/`$` without multiline
+  | '\\' :: 'A' :: rest => return (.flagged { p.flags with multi := false } .bol, { p with rest })
+  | '\\' :: 'z' :: rest => return (.flagged { p.flags with multi := false } .eol, { p with rest })
   | '\\' :: c :: _ =>
-    if c.isDigit || "AzZQEpPGKkR".contains c then .error "escape outside the Core subset" else parseEscape fuel p
+    if c.isDigit || "ZQEpPGKkR".contains c then .error "escape outside the Core subset" else parseEscape fuel p
   | [] => .error "unexpected end of pattern"
   | c :: rest =>
     if c == '*' || c == '+' || c == '?' then .error "nothing to repeat" else return (.lit c, { p with rest })
@@ -174,6 +214,9 @@ def parseEscape (fuel : Nat) (p : P) : Except String (Re × P) :=
   | 0 => .error "pattern too complex"
   | _ + 1 => do
   match p.rest with
+  | '\\' :: 'x' :: '{' :: rest =>   -- `\x{hh}`: braced form, shared by PCRE, PCRE2 and RE2; bytes only
+    let (c, rest') ← bracedHex ('{' :: rest)
+    return (.lit c, { p with rest := rest' })
   | '\\' :: 'x' :: a :: b :: rest =>
     match hexChar a b with
     | some c => return (.lit c, { p with rest })
@@ -339,5 +382,20 @@ def searchStr (pat subject : String) : Option (List (Option String)) :=
 #guard (searchStr "(?m)^b" "a\nb").isSome
 #guard (searchStr "(?i:x).y" "X\ny").isSome
 #guard (searchStr "^b" "a\nb").isNone
+
+-- `\x{hh}` (CRS writes bytes this way); more than one byte is outside the byte-string model
+#guard searchStr "a\\x{41}b" "aAb" == some [some "aAb"]
+#guard (searchStr "[\\x{80}-\\x{bf}]" "\u00a0").isSome
+#guard (Regex.compile "\\x{e3}\\x80\\x82") matches .ok _
+#guard (Regex.compile "\\x{100}") matches .error _
+
+-- `\A` and `\z` anchor to the subject ends whatever the multiline flag
+#guard (searchStr "a\\z" "a\n").isNone
+#guard (searchStr "(?m)a\\z" "a\nb").isNone
+#guard (searchStr "(?m)a$" "a\nb").isSome
+#guard (searchStr "\\Aa" "ba").isNone
+#guard (searchStr "(?m)\\Ab" "a\nb").isNone
+#guard searchStr "\\Aab\\z" "ab" == some [some "ab"]
+#guard (Regex.compile "a\\Z") matches .error _
 
 end SecLang.Regex

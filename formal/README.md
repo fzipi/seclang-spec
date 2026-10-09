@@ -45,7 +45,8 @@ accepted; the runner prints the rule a rejected profile violates.
 drives Coraza with seeded random requests against every Core profile's ruleset and records
 what the engine did in the same JSON shape, so the model is checked against the engine on
 inputs no profile anticipated (CI: seed 1, 30 requests per profile; see
-`adapters/coraza/README.md`).
+`adapters/coraza/README.md`), and the same for OWASP CRS assembled by `tools/crs_profile.py`
+(seed 1, 20 requests, about seven hundred rules).
 
 The same runner is the CRS acceptance run: `tools/crs_rules.py` packages an OWASP CRS
 checkout (`crs-setup.conf.example`, every `rules/*.conf`, the `.data` files, and all of them

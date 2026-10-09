@@ -68,7 +68,10 @@ the numeric operators, a body of exactly `SecRequestBodyLimit` bytes). A mismatc
 classified like any adapter disagreement: a spec or model defect is fixed, an engine
 divergence gets a Core profile and a known-gaps row (which then excludes the profile from
 the run). CI runs seed 1 with 30 requests per profile; the first run found ADR-0030, the
-`REQBODY_PROCESSOR` clarification and the body-limit boundary gap.
+`REQBODY_PROCESSOR` clarification and the body-limit boundary gap. With `-profile FILE` the
+generator runs one external profile instead: CI feeds it OWASP CRS as assembled by
+`tools/crs_profile.py` (20 requests, seed 1), so the model is checked against Coraza on
+some seven hundred real rules.
 
 ## Adding another engine
 

@@ -64,6 +64,10 @@ jobs:
         env:
           MODSECURITY_LIB: /home/runner/modsecurity/lib/libmodsecurity.so
       - run: chmod +x differential/build/bin/seclang-eval && differential/build/bin/seclang-eval differential/v3.json
+      - run: uv run python adapters/libmodsecurity/differential.py differential/crs-diff.json --out differential/crs-v3.json
+        env:
+          MODSECURITY_LIB: /home/runner/modsecurity/lib/libmodsecurity.so
+      - run: differential/build/bin/seclang-eval differential/crs-v3.json
   lean:
     runs-on: ubuntu-latest
     steps:
@@ -101,10 +105,16 @@ jobs:
         working-directory: adapters/coraza
       - run: lake exe seclang-eval .lake/differential.json
         working-directory: formal
-      - run: uv run python tools/formal_results.py --crs crs --differential formal/.lake/differential.json --check
+      - run: uv run python tools/crs_profile.py crs > formal/.lake/crs-profile.yaml
+      - run: go run ./cmd/differential -profile ../../formal/.lake/crs-profile.yaml -n 20 -seed 1 > ../../formal/.lake/crs-diff.json
+        working-directory: adapters/coraza
+      - run: lake exe seclang-eval .lake/crs-diff.json
+        working-directory: formal
+      - run: uv run python tools/formal_results.py --crs crs --differential formal/.lake/differential.json --crs-differential formal/.lake/crs-diff.json --check
       - uses: actions/upload-artifact@v4
         with:
           name: differential
           path: |
             formal/.lake/differential.json
+            formal/.lake/crs-diff.json
             formal/.lake/build/bin/seclang-eval

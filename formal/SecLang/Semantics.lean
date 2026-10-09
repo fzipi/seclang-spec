@@ -159,7 +159,10 @@ def collection (tx : Tx) (name : String) : List Member :=
   | "MATCHED_VAR" => scalar tx.matchedVar
   | "MATCHED_VAR_NAME" => scalar (bytesOf tx.matchedVarName)
   | "MATCHED_VARS" => tx.matchedVars
-  | _ => match tx.colls.lookup name with | some ms => ms | none => tx.store.get name
+  | _ =>
+    let ms := match tx.colls.lookup name with | some ms => ms | none => tx.store.get name
+    -- a scalar always has exactly one value (`05`): the empty string until it is set
+    if ms.isEmpty then (match findVariable name with | some (_, .scalar) => scalar .empty | _ => ms) else ms
 
 def fullName (coll : String) (m : Member) : String := if m.key.isEmpty then coll else s!"{coll}:{m.key}"
 
@@ -559,7 +562,7 @@ def runReq (cfg : String) (req : Request) : Tx :=
 -- non-ASCII names follow the byte-string convention everywhere
 #guard tri (runReq "SecRule ARGS_GET_NAMES \"@streq é\" \"id:1,phase:1,pass\"\nSecRule ARGS_COMBINED_SIZE \"@eq 3\" \"id:2,phase:1,pass\"\nSecRule ARGS_GET:é \"@streq 1\" \"id:3,phase:1,pass,chain\"\n  SecRule MATCHED_VAR_NAME \"@streq ARGS_GET:é\" \"t:none\"\nSecRule REQUEST_COOKIES:é \"@streq 1\" \"id:4,phase:1,pass\"" { uri := "/?%C3%A9=1", headers := [("Cookie", "é=1")] }) == [1, 2, 3, 4]
 -- escapes outside the Core subset do not compile
-#guard (match Regex.compile "\\Afoo" with | .error _ => true | .ok _ => false)
+#guard (match Regex.compile "\\Zfoo" with | .error _ => true | .ok _ => false)   -- `\Z` is PCRE-only; `\A` is Core
 #guard (match Regex.compile "(a)\\1" with | .error _ => true | .ok _ => false)
 #guard (match Regex.compile "\\p{L}" with | .error _ => true | .ok _ => false)
 
@@ -577,5 +580,8 @@ def runReq (cfg : String) (req : Request) : Tx :=
 #guard tri (run "SecRule ARGS_GET:a \"!@streq abc\" \"id:1,phase:1,pass\"" (demoStore [("a", "abc")])) == []
 -- ctl:requestBodyProcessor sets REQBODY_PROCESSOR at once, body or not (05#reqbody_processor)
 #guard tri (runReq "SecRule REQUEST_HEADERS:Content-Type \"@beginsWith application/json\" \"id:1,phase:1,pass,nolog,ctl:requestBodyProcessor=JSON\"\nSecRule REQBODY_PROCESSOR \"@streq JSON\" \"id:2,phase:2,pass\"" { uri := "/", headers := [("Content-Type", "application/json")] }) == [1, 2]
+
+-- an unset scalar yields one empty value (`05`): a negated operator matches and `&` counts 1
+#guard tri (runReq "SecRule REQBODY_PROCESSOR \"!@streq JSON\" \"id:1,phase:2,pass\"\nSecRule &REQBODY_PROCESSOR \"@eq 1\" \"id:2,phase:2,pass\"\nSecRule &ARGS_GET \"@eq 0\" \"id:3,phase:1,pass\"" { uri := "/" }) == [3, 1, 2]
 
 end SecLang

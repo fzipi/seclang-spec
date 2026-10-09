@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	adapter "github.com/OWASP/seclang-spec/adapters/coraza"
+	"gopkg.in/yaml.v3"
 )
 
 type profileOut struct {
@@ -156,9 +157,16 @@ func mutate(r *rand.Rand, v string) string {
 func main() {
 	n := flag.Int("n", 30, "requests per profile")
 	seed := flag.Int64("seed", 1, "random seed")
+	single := flag.String("profile", "", "run this one profile file (engine-profile YAML) instead of tests/engine")
 	flag.Parse()
 	root := adapter.RepoRoot()
-	profiles, err := adapter.LoadProfiles(root)
+	var profiles []adapter.Profile
+	var err error
+	if *single != "" {
+		profiles, err = loadOne(*single)
+	} else {
+		profiles, err = adapter.LoadProfiles(root)
+	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
@@ -178,6 +186,7 @@ func main() {
 		dir, _ := os.MkdirTemp("", "diff")
 		waf, log, err := adapter.BuildWAF(p, dir)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s: cannot load: %v\n", p.Path, err)
 			os.RemoveAll(dir)
 			skipped++
 			continue
@@ -287,6 +296,20 @@ func main() {
 	}
 }
 
+// loadOne reads one engine-profile YAML file; its path is the file's base name.
+func loadOne(path string) ([]adapter.Profile, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var p adapter.Profile
+	if err := yaml.Unmarshal(raw, &p); err != nil {
+		return nil, err
+	}
+	p.Path = filepath.Base(path)
+	return []adapter.Profile{p}, nil
+}
+
 // unsuited: expect_error profiles and log assertions, which the model does not carry.
 func unsuited(p adapter.Profile) bool {
 	for _, t := range p.Tests {
@@ -379,6 +402,10 @@ func genInput(r *rand.Rand, args, headers, cookies, values []string, kind string
 			v = ""
 		}
 		in.Headers[pick(r, headers)] = v
+	}
+	// every HTTP/1.1 request carries a Host header; the adapters add one when it is missing
+	if _, ok := in.Headers["Host"]; !ok {
+		in.Headers["Host"] = "localhost"
 	}
 	if (len(cookies) > 0 || vb.cookies) && r.Intn(3) > 0 {
 		names := append(cookies, "sid", "a")

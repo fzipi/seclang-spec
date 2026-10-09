@@ -165,7 +165,10 @@ any surveyed engine with its status (`00-conventions.md`).
 (`02-grammar.md#variable-list`).
 
 **Semantics.** A *collection* holds zero or more members, each with a name and a value; a
-*scalar* variable holds one value and takes no selector. Member names are matched against a
+*scalar* variable holds exactly one value and takes no selector: the empty string until the
+engine sets it (`REQBODY_PROCESSOR` before a body is processed, `RESPONSE_BODY` when the
+response is not inspected), so a negated operator on an unset scalar matches and `&` counts
+1. Member names are matched against a
 `key` selector **case-insensitively** (ADR-0008); a regex selector is applied to the name
 unanchored and case-sensitively unless the expression says otherwise. Members keep the
 order in which the engine parsed them; a repeated name yields repeated members, so
@@ -176,9 +179,14 @@ libmodsecurity v3 (`headers/modsecurity/anchored_set_variable.h`, `MyEqual`/`MyH
 case) match keys case-insensitively. Coraza 3.8.1 does too by default
 (`internal/collections/map.go`, `strings.ToLower`) but a build with
 `coraza.rule.case_sensitive_args_keys` (Coraza ADR-0016) is case-sensitive and therefore
-non-conforming. See ADR-0008.
+non-conforming. See ADR-0008. ModSecurity v2 yields **no** value for an unset scalar
+(`apache2/re_variables.c`, the generators `return 0` when the datum is `NULL`), so a
+negated operator does not match and `&` counts 0 there; libmodsecurity v3
+(`src/anchored_variable.cc`, `AnchoredVariable::evaluate` always pushes its value) and
+Coraza (`collections.Single`) yield the empty string. `scalar-unset.yaml` fails on v2
+(`compat/known-gaps.md`).
 
-**Tests.** `tests/engine/variables/key-case.yaml`
+**Tests.** `tests/engine/variables/key-case.yaml`, `tests/engine/variables/scalar-unset.yaml`
 
 ### Persistent collections
 
