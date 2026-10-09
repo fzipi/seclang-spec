@@ -6,7 +6,7 @@ section that decides the behaviour. The engines are ModSecurity v2 (`v2/master`,
 and 2026-10-07. Rows naming Coraza or libmodsecurity v3 are **verified**: `adapters/coraza` and
 `adapters/libmodsecurity` run every test in CI and fail when a listed file passes or an
 unlisted one fails. Rows naming only ModSecurity v2 remain predictions from source until
-an adapter exists for it. An entry here is a bug for the engine, not a
+an adapter exists for it (on the published site those rows are tinted blue). An entry here is a bug for the engine, not a
 weakness of the test. Entries are removed when the engine is fixed; new ones are added
 whenever a Divergence ADR or a divergence note picks against an engine.
 

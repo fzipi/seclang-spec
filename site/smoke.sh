@@ -19,6 +19,8 @@ check coraza-adr   sh -c "grep -q 'corazawaf/coraza/tree/main/docs/adr' '$P/adr/
 check gaps-table   grep -q '<th>Behaviour today</th>' "$P/compat/known-gaps/index.html"
 check matrix-rows  sh -c "grep -q 'class=compat-partial' '$P/compat/matrix/index.html' && grep -q 'class=compat-no' '$P/compat/matrix/index.html' && ! grep -q 'compat-partial' '$P/compat/known-gaps/index.html'"
 check matrix-css   sh -c "grep -q 'compat-partial{background' \"$P\"/css/compiled/*.css"
+check matrix-link  grep -qE 'href="?[^" >]*/spec/04-directives/#secauditlog2' "$P/compat/matrix/index.html"
+check gaps-rows    sh -c "grep -q 'class=gap-predicted' '$P/compat/known-gaps/index.html' && grep -q 'class=gap-verified' '$P/compat/known-gaps/index.html'"
 check no-md-links  sh -c "! (grep -rhoE 'href=\"?[^\" >]*\.md([#\" >]|$)' '$P/spec' '$P/adr' '$P/compat' | grep -v 'https://github.com/' | grep -q .)"
 check adr-table    sh -c "grep -oE '<td[^>]*><a href=\"?[^\" >]*' '$P/adr/index.html' | grep -q '/adr/0023-reference-adapters/'"
 check formal       test -f "$P/formal/index.html" -a -f "$P/formal/results/index.html"

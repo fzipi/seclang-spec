@@ -59,5 +59,10 @@ class StatusColumnTests(unittest.TestCase):
         self.assertIn("| `rx` | yes | yes | yes | Core |", md)
         self.assertIn("| `restpath` | - | - | yes | - |", md)
 
+    def test_links_names_with_a_spec_entry(self):
+        md = matrix.render(SAMPLE, anchors={"06-operators.md#rx"})
+        self.assertIn("| [`rx`](../spec/06-operators.md#rx) | yes | yes | yes |", md)
+        self.assertIn("| `restpath` | - | - | yes |", md)
+
     def test_no_status_column_when_absent(self):
         self.assertNotIn("| status |", matrix.render(SAMPLE))

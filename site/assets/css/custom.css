@@ -15,3 +15,7 @@ td.compat-yes { color: #15803d; font-weight: 500; }
 td.compat-no { color: #e11d48; font-weight: 500; }
 :root.dark td.compat-yes, .dark td.compat-yes { color: #4ade80; }
 :root.dark td.compat-no, .dark td.compat-no { color: #fb7185; }
+
+/* Known gaps (compat/known-gaps): rows naming only ModSecurity v2 are predictions from
+   source reading, not verified by an adapter; they are tinted blue. */
+tr.gap-predicted { background: rgba(59, 130, 246, 0.12); }

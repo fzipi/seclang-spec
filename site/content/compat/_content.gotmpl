@@ -8,7 +8,8 @@
     {{ $raw := .Content }}
     {{ $title := $name }}
     {{ with findRESubmatch `(?m)^# (.+)$` $raw 1 }}{{ $title = index (index . 0) 1 }}{{ end }}
-    {{ $body := partial "rewrite-refs.html" (replaceRE `(?m)^# .+\n` "" $raw 1) }}
+    {{/* the matrix links names relatively (`../spec/04-directives.md#x`, valid on GitHub); a page has no file directory, so make them absolute for the link hook */}}
+    {{ $body := partial "rewrite-refs.html" (replaceRE `\]\(\.\./spec/` "](/spec/" (replaceRE `(?m)^# .+\n` "" $raw 1)) }}
     {{ $weight := 999 }}
     {{ with findRE `^\d+` $name 1 }}{{ $weight = add 1 (int (strings.TrimLeft "0" (index . 0) | default "0")) }}{{ end }}
     {{ $.AddPage (dict

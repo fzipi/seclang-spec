@@ -231,7 +231,7 @@ def check_adrs(root: Path) -> list[str]:
 
 def check_matrix(root: Path) -> list[str]:
     try:
-        expected = _matrix.render(_matrix.load(root))
+        expected = _matrix.render(_matrix.load(root), _matrix.spec_anchors(root))
     except FileNotFoundError:
         return ["compat/matrix.json: missing"]
     except (ValueError, KeyError) as exc:
@@ -244,14 +244,7 @@ def check_matrix(root: Path) -> list[str]:
     return []
 
 
-MATRIX_SPEC_FILES = {
-    "directives": ("04-directives.md", ""),
-    "variables": ("05-variables.md", ""),
-    "operators": ("06-operators.md", ""),
-    "transformations": ("07-transformations.md", ""),
-    "actions": ("08-actions.md", ""),
-    "ctl": ("08-actions.md", "ctl"),
-}
+MATRIX_SPEC_FILES = _matrix.SPEC_FILES
 
 
 def check_matrix_status(root: Path) -> list[str]:
