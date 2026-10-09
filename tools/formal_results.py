@@ -1,6 +1,6 @@
 """Generate formal/RESULTS.md, the published results of the Lean model.
 
-Usage: uv run python tools/formal_results.py --crs /path/to/coreruleset [--check]
+Usage: uv run python tools/formal_results.py --crs /path/to/coreruleset [--differential formal/.lake/differential.json] [--check]
 Runs the three executables under formal/ (built already: `cd formal && lake build`) on the
 unit corpora, the engine profiles and an OWASP CRS checkout, scans the Lean sources for
 theorems and `#guard` checks, and writes formal/RESULTS.md; `--check` only compares and
@@ -87,7 +87,8 @@ def check_cell(s: CheckSummary, skipped_reason: str) -> str:
 
 
 def render(*, transformations: CheckSummary, operators: CheckSummary, parse: str, eval_: EvalSummary,
-           crs: tuple[str, str], guards: list[tuple[str, int]], thms: list[tuple[str, str]]) -> str:
+           crs: tuple[str, str], guards: list[tuple[str, int]], thms: list[tuple[str, str]],
+           differential: EvalSummary | None = None) -> str:
     lines = [
         "# Formal model results",
         "",
@@ -104,6 +105,7 @@ def render(*, transformations: CheckSummary, operators: CheckSummary, parse: str
         f"| `seclang-parse` | `tests/engine` | {parse} |",
         f"| `seclang-eval` | `tests/engine` | {eval_.stages} stages, {eval_.mismatches} mismatches, {len(eval_.unsupported)} unsupported profiles |",
         f"| `seclang-parse` | OWASP CRS (`crs_setup_version` {crs[0]}) | {crs[1]} |",
+        *([f"| `seclang-eval` | generated requests, what Coraza did (`adapters/coraza/cmd/differential`, seed 1, 30 per profile) | {differential.stages} stages, {differential.mismatches} mismatches |"] if differential else []),
         "",
         "## Profiles outside the model",
         "",
@@ -139,7 +141,7 @@ def run(args: list[str], cwd: Path) -> str:
     return subprocess.run(args, cwd=cwd, text=True, capture_output=True, check=False).stdout
 
 
-def generate(crs_dir: Path) -> str:
+def generate(crs_dir: Path, differential_file: Path | None = None) -> str:
     lake = FORMAL / ".lake"
     lake.mkdir(exist_ok=True)
     (lake / "engine-rules.json").write_text(json.dumps(engine_rules.extract(validate.ROOT)), encoding="utf-8")
@@ -154,16 +156,18 @@ def generate(crs_dir: Path) -> str:
     guards = [(p.name, count_guards(p.read_text(encoding="utf-8"))) for p in sorted((FORMAL / "SecLang").glob("*.lean"))]
     guards = [(n, c) for n, c in guards if c]
     thms = [t for p in sorted((FORMAL / "SecLang").glob("*.lean")) for t in theorems(p.read_text(encoding="utf-8"))]
+    differential = parse_eval(run(["lake", "exe", "seclang-eval", str(differential_file.resolve())], FORMAL)) if differential_file else None
     return render(transformations=transformations, operators=operators, parse=parse, eval_=eval_,
-                  crs=(m[1] if m else "unknown", crs_line), guards=guards, thms=thms)
+                  crs=(m[1] if m else "unknown", crs_line), guards=guards, thms=thms, differential=differential)
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--crs", required=True, type=Path, help="OWASP CRS checkout")
     ap.add_argument("--check", action="store_true", help="exit 1 when formal/RESULTS.md is stale")
+    ap.add_argument("--differential", type=Path, help="JSON written by adapters/coraza/cmd/differential (seed 1, 30 per profile)")
     a = ap.parse_args()
-    text = generate(a.crs)
+    text = generate(a.crs, a.differential)
     if a.check:
         if OUT.read_text(encoding="utf-8") != text:
             sys.exit("formal/RESULTS.md is stale: run `uv run python tools/formal_results.py --crs <dir>`")

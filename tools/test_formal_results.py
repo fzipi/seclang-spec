@@ -53,3 +53,10 @@ class ParseTests(unittest.TestCase):
         self.assertIn("| `tests/engine/body/xml-no-xxe.yaml` | variable XML |", md)
         self.assertIn("| `phase_default` | ADR-0017: x. |", md)
         self.assertIn("4252", md)
+        self.assertNotIn("generated requests", md)
+        md2 = formal_results.render(
+            transformations=formal_results.parse_check(CHECK), operators=formal_results.parse_check(CHECK),
+            parse="104 profiles, 0 mismatches", eval_=formal_results.parse_eval(EVAL), crs=("4252", "29 profiles, 0 mismatches"),
+            guards=[("Regex.lean", 30)], thms=[], differential=formal_results.parse_eval(EVAL))
+        self.assertIn("| generated requests, what Coraza did", md2)
+        self.assertIn("184 stages, 0 mismatches |", md2)

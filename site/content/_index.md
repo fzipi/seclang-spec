@@ -18,5 +18,5 @@ tests, a verified compatibility matrix and the decisions behind every divergence
   {{< card link="compat/matrix" title="Engine matrix" subtitle="Every feature across ModSecurity v2, libmodsecurity v3 and Coraza, with its specification status." icon="view-grid" >}}
   {{< card link="formal/results" title="Formal model" subtitle="Lean 4 model run against the corpus, every engine profile and OWASP CRS, with theorems for the decisions." icon="beaker" >}}
   {{< card link="adr" title="Decisions" subtitle="Architecture Decision Records for the choices made where engines diverge." icon="scale" >}}
-  {{< card link="https://github.com/fzipi/seclang-spec/tree/main/tests" title="Conformance tests" subtitle="Engine-neutral unit and engine-tier test data that the adapters and the model run in CI." icon="clipboard-check" >}}
+  {{< card link="tests" title="Conformance tests" subtitle="The test data contract, and how each reference adapter drives its engine and gates the results." icon="clipboard-check" >}}
 {{< /cards >}}

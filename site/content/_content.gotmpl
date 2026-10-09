@@ -11,7 +11,7 @@
       "kind" "section"
       "path" "adr"
       "title" $title
-      "weight" 4
+      "weight" 5
       "content" (dict "mediaType" "text/markdown" "value" (partial "rewrite-refs.html" $body))
   ) }}
 {{ end }}
@@ -24,6 +24,21 @@
   {{ $.AddPage (dict
       "kind" "section"
       "path" "formal"
+      "title" $title
+      "weight" 4
+      "content" (dict "mediaType" "text/markdown" "value" (partial "rewrite-refs.html" $body))
+  ) }}
+{{ end }}
+{{/* The Tests section page is tests/README.md (the data contract); the adapter READMEs are
+     its pages (content/tests/_content.gotmpl). */}}
+{{ with resources.Get "src/tests/README.md" }}
+  {{ $raw := .Content }}
+  {{ $title := "Conformance tests" }}
+  {{ with findRESubmatch `(?m)^# (.+)$` $raw 1 }}{{ $title = index (index . 0) 1 }}{{ end }}
+  {{ $body := replaceRE `(?m)^# .+\n` "" $raw 1 }}
+  {{ $.AddPage (dict
+      "kind" "section"
+      "path" "tests"
       "title" $title
       "weight" 3
       "content" (dict "mediaType" "text/markdown" "value" (partial "rewrite-refs.html" $body))

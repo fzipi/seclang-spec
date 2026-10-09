@@ -1,0 +1,15 @@
+{{/* One page per reference adapter README (adapters/<engine>/README.md): how the engine is
+     driven and how its results are gated. Title from the first heading. */}}
+{{ range resources.Match "src/adapters/*/README.md" }}
+  {{ $engine := path.Base (path.Dir .Name) }}
+  {{ $raw := .Content }}
+  {{ $title := $engine }}
+  {{ with findRESubmatch `(?m)^# (.+)$` $raw 1 }}{{ $title = index (index . 0) 1 }}{{ end }}
+  {{ $body := partial "rewrite-refs.html" (replaceRE `(?m)^# .+\n` "" $raw 1) }}
+  {{ $.AddPage (dict
+      "path" (printf "%s-adapter" $engine)
+      "title" $title
+      "weight" (cond (eq $engine "coraza") 1 2)
+      "content" (dict "mediaType" "text/markdown" "value" $body)
+  ) }}
+{{ end }}

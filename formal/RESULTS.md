@@ -13,6 +13,7 @@ engine: a mismatch is a defect to fix before merge, never a known gap.
 | `seclang-parse` | `tests/engine` | 111 profiles, 0 mismatches |
 | `seclang-eval` | `tests/engine` | 193 stages, 0 mismatches, 4 unsupported profiles |
 | `seclang-parse` | OWASP CRS (`crs_setup_version` 4252) | 29 profiles, 0 mismatches |
+| `seclang-eval` | generated requests, what Coraza did (`adapters/coraza/cmd/differential`, seed 1, 30 per profile) | 2460 stages, 0 mismatches |
 
 ## Profiles outside the model
 
