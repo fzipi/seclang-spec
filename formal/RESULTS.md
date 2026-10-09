@@ -10,8 +10,8 @@ engine: a mismatch is a defect to fix before merge, never a known gap.
 |---|---|---|
 | `seclang-check` | `tests/unit/transformations` | 38 files: 364 cases passed, 0 failed |
 | `seclang-check` | `tests/unit/operators` | 25 files: 3907 cases passed, 0 failed, 2 skipped (regex outside the Core subset, ADR-0018); not formalized: `detectSQLi.json`, `detectXSS.json` |
-| `seclang-parse` | `tests/engine` | 107 profiles, 0 mismatches |
-| `seclang-eval` | `tests/engine` | 189 stages, 0 mismatches, 4 unsupported profiles |
+| `seclang-parse` | `tests/engine` | 111 profiles, 0 mismatches |
+| `seclang-eval` | `tests/engine` | 193 stages, 0 mismatches, 4 unsupported profiles |
 | `seclang-parse` | OWASP CRS (`crs_setup_version` 4252) | 29 profiles, 0 mismatches |
 
 ## Profiles outside the model

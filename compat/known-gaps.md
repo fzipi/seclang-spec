@@ -12,8 +12,11 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 
 | Test | Engine | Behaviour today | Decided in |
 |---|---|---|---|
+| `tests/engine/body/files-combined-size-fields.yaml` | Coraza | `FILES_COMBINED_SIZE` includes the bytes of non-file fields (`internal/bodyprocessors/multipart.go`, `totalSize` grows in the field branch too) | `05-variables.md#files_combined_size` |
 | `tests/engine/directives/secrequestbodyjsondepthlimit.yaml` | ModSecurity v2 | top-level object not counted toward `SecRequestBodyJsonDepthLimit`; limit 2 accepts depth 3 | `04-directives.md#secrequestbodyjsondepthlimit` |
 | `tests/engine/directives/secrequestbodylimit-boundary.yaml` | Coraza | a body of exactly `SecRequestBodyLimit` bytes is rejected (`transaction.go`, `>= tx.RequestBodyLimit`; v2 and v3 use `>`) | `04-directives.md#secrequestbodylimit` |
+| `tests/engine/directives/secresponsebodylimit-boundary.yaml` | Coraza | a response of exactly `SecResponseBodyLimit` bytes is rejected (`transaction.go`, `WriteResponseBody`, `>=`; v2 and v3 use `>`) | `04-directives.md#secresponsebodylimit` |
+| `tests/engine/directives/secresponsebodylimit-uninspected.yaml` | Coraza | `SecResponseBodyLimit` enforced on a response whose type is not inspected (`transaction.go`, `WriteResponseBody` checks the limit before `IsResponseBodyProcessable`) | `04-directives.md#secresponsebodylimit` |
 | `tests/engine/lexical/case-insensitive-names.yaml` | Coraza | operator names matched case-sensitively | ADR-0002 |
 | `tests/engine/lexical/comment-with-trailing-backslash.yaml` | Coraza | continued comment parsed as a directive | ADR-0013 |
 | `tests/engine/grammar/directive-line-whitespace.yaml` | Coraza | tab between arguments is a load error | `02-grammar.md#directive-line` |
@@ -21,6 +24,7 @@ whenever a Divergence ADR or a divergence note picks against an engine.
 | `tests/engine/processing/default-phase.yaml` | libmodsecurity v3 | phase-less rule runs in phase 1 | ADR-0017 |
 | `tests/engine/processing/default-action-no-phase.yaml` | libmodsecurity v3 | missing phase defaults to 1 | ADR-0014 |
 | `tests/engine/processing/default-action-redefined.yaml` | ModSecurity v2 | second `SecDefaultAction` replaces the first | ADR-0014 |
+| `tests/engine/processing/phase4-without-inspection.yaml` | libmodsecurity v3 | phase 4 rules are not evaluated when the response body is not inspected (`src/transaction.cc`, `processResponseBody` returns before `evaluate(ResponseBodyPhase)` when `SecResponseBodyAccess` is not On or the type is not listed) | `03-processing-model.md#phases` |
 | `tests/engine/processing/rule-exceptions-tag-literal.yaml` | ModSecurity v2 | `ByTag` parameter matched as an unanchored regular expression: `app/foo` also removes the rule tagged `app/foobar` (`apache2/re.c`, `msre_ruleset_rule_matches_exception`) | ADR-0029 |
 | `tests/engine/processing/skipafter-missing-marker.yaml` | libmodsecurity v3, Coraza | `skipAfter` naming a marker that does not exist disables every later phase | ADR-0016 |
 | `tests/engine/processing/rule-exceptions-bad-range.yaml` | ModSecurity v2 | `200-100` accepted silently | `03-processing-model.md#rule-exceptions` |

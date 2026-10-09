@@ -467,7 +467,15 @@ selects nothing there (`compat/known-gaps.md`); `FILES` as a whole works everywh
 
 **Status:** Core
 
-**Semantics.** Scalar: the total size in bytes of all uploaded file contents.
+**Semantics.** Scalar: the total size in bytes of all uploaded file contents; form fields
+of the same body do not count.
+
+**Divergence notes.** Coraza adds the bytes of non-file fields as well
+(`internal/bodyprocessors/multipart.go`, `totalSize` in the field branch); ModSecurity v2
+(`apache2/re_variables.c`, `MULTIPART_FILE` parts only) and libmodsecurity v3 count files.
+`files-combined-size-fields.yaml` fails on Coraza (`compat/known-gaps.md`).
+
+**Tests.** `tests/engine/body/files-combined-size-fields.yaml`
 
 **Divergence notes.** Coraza 3.8.1 also counts the bytes of non-file fields
 (`multipart.go`, `totalSize += len(data)`); the Core test has no non-file field.

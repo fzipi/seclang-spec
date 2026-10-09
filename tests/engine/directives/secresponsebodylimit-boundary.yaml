@@ -1,0 +1,25 @@
+meta:
+  name: secresponsebodylimit-boundary
+  description: A response of exactly SecResponseBodyLimit bytes does not exceed the limit
+spec: 04-directives.md#secresponsebodylimit
+rules: |
+  SecRuleEngine On
+  SecResponseBodyAccess On
+  SecResponseBodyMimeType text/plain
+  SecResponseBodyLimit 5
+  SecResponseBodyLimitAction Reject
+  SecRule RESPONSE_BODY "@contains 0123" "id:5117,phase:4,pass"
+tests:
+  - test_title: five-byte response with a five-byte limit is inspected
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 200
+            headers:
+              Content-Type: text/plain
+            data: "01234"
+          output:
+            triggered_rules: [5117]
+            no_interruption: true

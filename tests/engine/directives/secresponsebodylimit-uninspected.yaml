@@ -1,0 +1,25 @@
+meta:
+  name: secresponsebodylimit-uninspected
+  description: SecResponseBodyLimit applies only to a response whose body is inspected
+spec: 04-directives.md#secresponsebodylimit
+rules: |
+  SecRuleEngine On
+  SecResponseBodyAccess On
+  SecResponseBodyMimeType text/plain
+  SecResponseBodyLimit 5
+  SecResponseBodyLimitAction Reject
+  SecRule RESPONSE_BODY "@contains 0123" "id:5116,phase:4,pass"
+tests:
+  - test_title: an oversize response of a type that is not inspected is not rejected
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 200
+            headers:
+              Content-Type: application/json
+            data: 0123456789
+          output:
+            non_triggered_rules: [5116]
+            no_interruption: true

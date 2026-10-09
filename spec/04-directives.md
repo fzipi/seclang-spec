@@ -521,12 +521,21 @@ phase 4 runs with an empty `RESPONSE_BODY`.
 Coraza (`waf.go`); libmodsecurity v3 applies no limit until set. Unspecified.
 
 **Semantics.** The maximum response body size the engine will buffer. Behaviour above
-the limit is governed by `SecResponseBodyLimitAction`.
+the limit is governed by `SecResponseBodyLimitAction`. The limit applies only to a
+response whose body is inspected (`SecResponseBodyAccess` On and a listed type); any
+other response passes untouched whatever its size.
 
 **Divergence notes.** Coraza treats a response of exactly `BYTES` as over the limit
-(`transaction.go`, `>=`), ModSecurity v2 uses `>`; no test uses a body at the limit.
+(`transaction.go`, `>=`), ModSecurity v2 and libmodsecurity v3 use `>`; `secresponsebodylimit-boundary.yaml` pins the boundary and Coraza fails it (`compat/known-gaps.md`).
+Coraza also enforces the limit on a response whose type is not inspected
+(`transaction.go`, `WriteResponseBody` checks the limit before `IsResponseBodyProcessable`),
+where ModSecurity v2 (`apache2/apache2_io.c`, `of_skipping`) and libmodsecurity v3
+(`src/transaction.cc`, `appendResponseBody` returns before the limit) do not;
+`secresponsebodylimit-uninspected.yaml` fails on Coraza (`compat/known-gaps.md`).
 
 **Tests.** `tests/engine/directives/secresponsebodylimit-processpartial.yaml`,
+`tests/engine/directives/secresponsebodylimit-uninspected.yaml`,
+`tests/engine/directives/secresponsebodylimit-boundary.yaml`,
 `tests/engine/directives/body-limit-directives-load.yaml`
 
 ### SecResponseBodyLimitAction

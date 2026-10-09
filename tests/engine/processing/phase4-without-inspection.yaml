@@ -1,0 +1,26 @@
+meta:
+  name: phase4-without-inspection
+  description: Phase 4 rules run even when the response body is not inspected; RESPONSE_BODY is then empty
+spec: 03-processing-model.md#phases
+rules: |
+  SecRuleEngine On
+  SecResponseBodyAccess On
+  SecResponseBodyMimeType text/plain
+  SecAction "id:4007,phase:4,pass,nolog,setvar:tx.seen=1"
+  SecRule TX:seen "@eq 1" "id:4008,phase:5,pass"
+  SecRule RESPONSE_BODY "@contains leak" "id:4009,phase:4,pass"
+tests:
+  - test_title: a response type that is not inspected still runs phase 4
+    stages:
+      - stage:
+          input:
+            uri: /
+          response:
+            status: 200
+            headers:
+              Content-Type: image/png
+            data: this is a leak
+          output:
+            triggered_rules: [4007, 4008]
+            non_triggered_rules: [4009]
+            no_interruption: true

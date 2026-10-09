@@ -25,9 +25,16 @@ Within a phase, rules run in the order they appear in the configuration, after a
 `Include`s are expanded. A rule without a `phase` action runs in phase 2; the phase is
 **not** inherited from `SecDefaultAction` (ADR-0017). A rule's phase is fixed at load
 time; variables not yet available in that phase are empty. Phase 5 rules MUST run even
-when an earlier phase interrupted the transaction.
+when an earlier phase interrupted the transaction. Phase 4 rules run whether or not the
+response body is inspected; when it is not (`SecResponseBodyAccess` Off, or a type not
+listed by `SecResponseBodyMimeType`) `RESPONSE_BODY` is empty.
 
-**Divergence notes.** The default phase differs: ModSecurity v2 (`apache2/re.c`,
+**Divergence notes.** libmodsecurity v3 does not evaluate phase 4 at all when the response
+body is not inspected (`src/transaction.cc`, `processResponseBody` returns before
+`evaluate(ResponseBodyPhase)`); ModSecurity v2 (`apache2/apache2_io.c`, `output_filter`,
+"Process phase RESPONSE_BODY ... only if it hasn't been processed already") and Coraza
+(`internal/corazawaf/transaction.go`, `ProcessResponseBody`) run it, so
+`phase4-without-inspection.yaml` fails on v3 (`compat/known-gaps.md`). The default phase differs: ModSecurity v2 (`apache2/re.c`,
 `actionset->phase = 2`) and Coraza (`internal/corazawaf/rule.go`, `Phase_: 2`) use
 phase 2, libmodsecurity v3 (`headers/modsecurity/rule.h`, `m_phase(RequestHeadersPhase)`)
 uses phase 1. ModSecurity v2 additionally lets a phase-less rule inherit the phase of
@@ -224,7 +231,8 @@ exactly. See ADR-0029 and `compat/known-gaps.md`.
 `tests/engine/processing/rule-exceptions-update-action.yaml`,
 `tests/engine/processing/rule-exceptions-bad-range.yaml`,
 `tests/engine/processing/rule-exceptions-unknown-id.yaml`,
-`tests/engine/processing/rule-exceptions-tag-literal.yaml`
+`tests/engine/processing/rule-exceptions-tag-literal.yaml`,
+`tests/engine/processing/phase4-without-inspection.yaml`
 
 ### ctl timing
 
