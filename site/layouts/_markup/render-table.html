@@ -1,7 +1,9 @@
 {{- /* Default table rendering plus, for the engine matrix (header v2 | v3 | coraza), a class
        on rows whose engine cells differ (`compat-partial`) or that no engine supports
        (`compat-none`), and on each engine cell (`compat-yes` / `compat-no`); styled by
-       assets/css/custom.css. Any other table renders unchanged. */ -}}
+       assets/css/custom.css. That table and the known-gaps table get class `sortable`:
+       clicking a header sorts the rows (script in _partials/custom/head-end.html). Any
+       other table renders unchanged. */ -}}
 {{- $engines := false -}}
 {{- $gaps := false -}}
 {{- range .THead -}}
@@ -14,7 +16,7 @@
     {{- end -}}
   {{- end -}}
 {{- end -}}
-<table
+<table{{ if or $engines $gaps }} class="sortable"{{ end }}
   {{- range $k, $v := .Attributes }}
     {{- if $v }}
       {{- printf " %s=%q" $k $v | safeHTMLAttr }}

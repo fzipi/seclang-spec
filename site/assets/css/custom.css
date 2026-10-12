@@ -19,3 +19,10 @@ td.compat-no { color: #e11d48; font-weight: 500; }
 /* Known gaps (compat/known-gaps): rows naming only ModSecurity v2 are predictions from
    source reading, not verified by an adapter; they are tinted blue. */
 tr.gap-predicted { background: rgba(59, 130, 246, 0.12); }
+
+/* Sortable tables (engine matrix, known gaps): headers are clickable; the sorted column
+   shows an arrow. Set by the script in layouts/_partials/custom/head-end.html. */
+table.sortable th { cursor: pointer; user-select: none; white-space: nowrap; }
+table.sortable th:hover { text-decoration: underline; }
+table.sortable th[aria-sort="ascending"]::after { content: " \25B2"; font-size: 0.7em; }
+table.sortable th[aria-sort="descending"]::after { content: " \25BC"; font-size: 0.7em; }

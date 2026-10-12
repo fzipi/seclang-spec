@@ -1,1 +1,22 @@
 <meta name="author" content="{{ site.Params.author.name }}" />
+<script>
+// Tables with class "sortable" (engine matrix, known gaps): clicking a header sorts the
+// rows by that column; clicking again reverses. The header carries aria-sort for CSS.
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("table.sortable th").forEach(function (th) {
+    th.addEventListener("click", function () {
+      var table = th.closest("table"), i = th.cellIndex;
+      var asc = th.getAttribute("aria-sort") !== "ascending";
+      table.querySelectorAll("th").forEach(function (h) { h.removeAttribute("aria-sort"); });
+      th.setAttribute("aria-sort", asc ? "ascending" : "descending");
+      var tbody = table.tBodies[0];
+      Array.from(tbody.rows)
+        .sort(function (a, b) {
+          var c = a.cells[i].textContent.trim().localeCompare(b.cells[i].textContent.trim(), undefined, { numeric: true });
+          return asc ? c : -c;
+        })
+        .forEach(function (r) { tbody.appendChild(r); });
+    });
+  });
+});
+</script>
