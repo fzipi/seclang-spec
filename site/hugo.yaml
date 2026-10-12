@@ -1,6 +1,12 @@
 baseURL: https://seclang.org/
 title: SecLang Specification
 enableRobotsTXT: true
+# Every page and section uses Hextra's docs layout, whose sidebar stays visible on
+# desktop; the default single layout hides it below 1280px.
+cascade:
+  - type: docs
+    target:
+      kind: '{page,section}'
 module:
   imports:
     - path: github.com/imfing/hextra
