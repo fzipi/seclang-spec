@@ -27,7 +27,7 @@ all. Read this file before changing anything; the invariants below are enforced 
 | `docs/superpowers/` | Design documents and implementation plans the work was built from. Historical; not published. | Add a new pair for new subsystems. |
 | `.github/workflows/` | `validate.yml` (validator + tools tests, Coraza adapter, libmodsecurity adapter, Lean model), `pages.yml` (site build on PRs, deploy to GitHub Pages on `main`). | Keep third-party actions pinned to a commit SHA. |
 
-Published site: <https://fzipi.github.io/seclang-spec/>. Spec design: `docs/superpowers/specs/2026-10-06-seclang-spec-design.md`.
+Published site: <https://seclang.org/>. Spec design: `docs/superpowers/specs/2026-10-06-seclang-spec-design.md`.
 
 ## Conventions you must keep
 

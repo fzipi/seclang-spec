@@ -1,6 +1,6 @@
 # SecLang Specification
 
-Published at <https://fzipi.github.io/seclang-spec/> (built from this repository by
+Published at <https://seclang.org/> (built from this repository by
 `.github/workflows/pages.yml`; see `site/README.md`).
 
 A formal specification of **SecLang**, the rule language implemented by
