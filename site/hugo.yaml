@@ -9,6 +9,8 @@ module:
       target: content
     - source: static        # explicit mounts replace the defaults; CNAME lives here
       target: static
+    - source: i18n          # footer copyright string
+      target: i18n
     - source: assets        # custom.css lives here
       target: assets
     - source: ../spec
@@ -61,6 +63,9 @@ menu:
       params:
         icon: github
 params:
+  author:
+    name: fzipi
+    link: https://github.com/fzipi
   navbar:
     displayTitle: true
     displayLogo: false
@@ -72,5 +77,5 @@ params:
   page:
     width: wide
   footer:
-    displayCopyright: false
+    displayCopyright: true
     displayPoweredBy: false
